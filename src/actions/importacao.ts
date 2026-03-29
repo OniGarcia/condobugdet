@@ -61,13 +61,10 @@ export async function importarDadosRealizados(entradas: ImportarDadoRealizadoPro
 }
 
 /**
- * Fetch actuals for comparison in Dashboard
+ * Fetch actuals for comparison in Dashboard for a specific period
  */
-export async function getDadosRealizados(ano: number) {
+export async function getDadosRealizados(dataInicial: string, dataFinal: string) {
   const supabase = await createClient()
-
-  const dataInicial = `${ano}-01-01`;
-  const dataFinal = `${ano}-12-31`;
 
   const { data, error } = await supabase
     .from('dados_realizados')

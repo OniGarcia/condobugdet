@@ -30,7 +30,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-neutral-400 hover:text-white hover:bg-white/5 transition-all outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
           >
             <Wallet className="w-4 h-4" />
-            Orçamento
+            Orçamento Previsto
+          </Link>
+          <Link 
+            href="/realizado"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-neutral-400 hover:text-white hover:bg-white/5 transition-all outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+          >
+            <Wallet className="w-4 h-4 text-indigo-400" />
+            Fluxo Realizado
           </Link>
           
           <div className="pt-6 pb-2">

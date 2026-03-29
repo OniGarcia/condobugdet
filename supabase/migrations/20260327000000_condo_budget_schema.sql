@@ -35,30 +35,46 @@ CREATE TABLE public.categorias (
 -- Index for tree lookups
 CREATE INDEX idx_categorias_parent_id ON public.categorias(parent_id);
 
--- 2. Table: orcamento_previsto (Budget Forecast)
+-- 2. Table: orcamentos_simulacoes (Budget Versions/Configurations)
+CREATE TABLE public.orcamentos_simulacoes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    nome VARCHAR(255) NOT NULL,
+    mes_inicio INTEGER NOT NULL CHECK (mes_inicio >= 1 AND mes_inicio <= 12),
+    ano_inicio INTEGER NOT NULL,
+    mes_fim INTEGER NOT NULL CHECK (mes_fim >= 1 AND mes_fim <= 12),
+    ano_fim INTEGER NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 3. Table: orcamento_previsto (Budget Forecast)
 CREATE TABLE public.orcamento_previsto (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    simulacao_id UUID NOT NULL REFERENCES public.orcamentos_simulacoes(id) ON DELETE CASCADE,
     categoria_id UUID NOT NULL REFERENCES public.categorias(id) ON DELETE CASCADE,
     ano INTEGER NOT NULL,
     mes INTEGER NOT NULL CHECK (mes >= 1 AND mes <= 12),
     valor_previsto NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    -- Ensure exactly one budget entry per category, month, and year
-    CONSTRAINT unq_orcamento_categoria_data UNIQUE (categoria_id, ano, mes)
+    -- Ensure exactly one budget entry per category, month, year AND simulacao
+    CONSTRAINT unq_orcamento_categoria_data UNIQUE (simulacao_id, categoria_id, ano, mes)
 );
 
 -- Indexes for querying by time period
-CREATE INDEX idx_orcamento_previsto_data ON public.orcamento_previsto(ano, mes);
+CREATE INDEX idx_orcamento_previsto_data ON public.orcamento_previsto(simulacao_id, ano, mes);
 
 -- 3. Table: dados_realizados (Actuals / Cash flow executed)
 CREATE TABLE public.dados_realizados (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     categoria_id UUID NOT NULL REFERENCES public.categorias(id) ON DELETE RESTRICT,
-    data_referencia DATE NOT NULL, -- The specific date the income/expense happened or the start of the month
+    ano INTEGER NOT NULL,
+    mes INTEGER NOT NULL CHECK (mes >= 1 AND mes <= 12),
     valor_realizado NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
     descricao VARCHAR(255),
-    criado_em TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+    criado_em TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    -- Ensure exactly one value per category, month, year
+    CONSTRAINT unq_realizados_categoria_data UNIQUE (categoria_id, ano, mes)
 );
 
 -- Generate updated_at triggers

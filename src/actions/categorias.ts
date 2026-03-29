@@ -4,7 +4,6 @@ import { createClient } from '@/lib/supabase/server'
 import { Categoria, CategoriaTipo } from '@/types'
 import { revalidatePath } from 'next/cache'
 
-// Helper to build the tree
 function buildTree(categorias: Categoria[], parentId: string | null = null): Categoria[] {
   return categorias
     .filter(cat => cat.parent_id === parentId)
@@ -12,100 +11,112 @@ function buildTree(categorias: Categoria[], parentId: string | null = null): Cat
       ...cat,
       children: buildTree(categorias, cat.id)
     }))
-    .sort((a, b) => a.codigo_reduzido.localeCompare(b.codigo_reduzido, undefined, { numeric: true }));
+    .sort((a, b) => a.codigo_reduzido.localeCompare(b.codigo_reduzido, undefined, { numeric: true }))
 }
 
-/**
- * Get all categories as a flat array
- */
 export async function getCategoriasFlat(): Promise<Categoria[]> {
   const supabase = await createClient()
-  
   const { data, error } = await supabase
     .from('categorias')
     .select('*')
     .order('codigo_reduzido', { ascending: true })
-
-  if (error) {
-    console.error('Error fetching categorias:', error)
-    throw new Error('Failed to fetch categories')
-  }
-
+  if (error) throw new Error('Failed to fetch categories')
   return data as Categoria[]
 }
 
-/**
- * Get categories as a hierarchical tree
- */
 export async function getCategoriasTree(): Promise<Categoria[]> {
   const flatData = await getCategoriasFlat()
   return buildTree(flatData)
 }
 
-/**
- * Create a new category 
- */
 export async function createCategoria(data: {
-  codigo_reduzido: string;
-  nome_conta: string;
-  tipo: CategoriaTipo;
-  parent_id?: string | null;
+  codigo_reduzido: string
+  nome_conta: string
+  tipo: CategoriaTipo
+  parent_id?: string | null
 }) {
   const supabase = await createClient()
-  
   const { data: newCat, error } = await supabase
     .from('categorias')
     .insert([data])
     .select()
     .single()
-
-  if (error) {
-    console.error('Error creating categoria:', error)
-    return { error: error.message }
-  }
-
-  revalidatePath('/orcamento')
+  if (error) return { error: error.message }
+  revalidatePath('/categorias')
   return { data: newCat }
 }
 
-/**
- * Update a category
- */
-export async function updateCategoria(id: string, data: Partial<Categoria>) {
+export async function updateCategoria(id: string, data: Partial<Omit<Categoria, 'id' | 'created_at' | 'updated_at'>>) {
   const supabase = await createClient()
-  
   const { data: updated, error } = await supabase
     .from('categorias')
     .update(data)
     .eq('id', id)
     .select()
     .single()
-
-  if (error) {
-    console.error('Error updating categoria:', error)
-    return { error: error.message }
-  }
-
-  revalidatePath('/orcamento')
+  if (error) return { error: error.message }
+  revalidatePath('/categorias')
   return { data: updated }
 }
 
 /**
- * Delete a category
+ * Check if a category has any linked data before deletion.
+ * Returns counts of linked records.
+ */
+export async function checkCategoriaVinculos(id: string): Promise<{ orcamentos: number; realizados: number }> {
+  const supabase = await createClient()
+
+  const [{ count: orcamentos }, { count: realizados }] = await Promise.all([
+    supabase.from('orcamento_previsto').select('id', { count: 'exact', head: true }).eq('categoria_id', id),
+    supabase.from('dados_realizados').select('id', { count: 'exact', head: true }).eq('categoria_id', id),
+  ])
+
+  return { orcamentos: orcamentos ?? 0, realizados: realizados ?? 0 }
+}
+
+/**
+ * Transfer all linked data to a new category, then delete the original.
+ */
+export async function transferAndDeleteCategoria(fromId: string, toId: string) {
+  const supabase = await createClient()
+
+  // Move orcamento_previsto records
+  const { error: errOrc } = await supabase
+    .from('orcamento_previsto')
+    .update({ categoria_id: toId })
+    .eq('categoria_id', fromId)
+
+  if (errOrc) return { error: `Erro ao transferir orçamentos: ${errOrc.message}` }
+
+  // Move dados_realizados records
+  const { error: errReal } = await supabase
+    .from('dados_realizados')
+    .update({ categoria_id: toId })
+    .eq('categoria_id', fromId)
+
+  if (errReal) return { error: `Erro ao transferir dados realizados: ${errReal.message}` }
+
+  // Now safe to delete
+  const { error: errDel } = await supabase
+    .from('categorias')
+    .delete()
+    .eq('id', fromId)
+
+  if (errDel) return { error: `Erro ao excluir categoria: ${errDel.message}` }
+
+  revalidatePath('/categorias')
+  revalidatePath('/orcamento')
+  revalidatePath('/dashboard')
+  return { success: true }
+}
+
+/**
+ * Direct delete (only when no linked data exists).
  */
 export async function deleteCategoria(id: string) {
   const supabase = await createClient()
-  
-  const { error } = await supabase
-    .from('categorias')
-    .delete()
-    .eq('id', id)
-
-  if (error) {
-    console.error('Error deleting categoria:', error)
-    return { error: error.message }
-  }
-
-  revalidatePath('/orcamento')
+  const { error } = await supabase.from('categorias').delete().eq('id', id)
+  if (error) return { error: error.message }
+  revalidatePath('/categorias')
   return { success: true }
 }

@@ -2,95 +2,257 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { OrcamentoPrevisto } from '@/types'
+import { OrcamentoPrevisto, OrcamentoSimulacao } from '@/types'
 
-export interface ReplicarOrcamentoProps {
-  categoria_id: string;
-  valor_previsto: number;
-  ano: number;
-  mes_inicio: number;
-  mes_fim: number;
-}
+// ==========================================
+// SIMULAÇÕES (BUDGET CONFIGURATIONS)
+// ==========================================
 
-/**
- * Replicate a budget value across multiple months for a given category.
- * If an entry already exists, it is overwritten (Upsert strategy) as per Socratic Gate decision.
- */
-export async function replicarOrcamento(data: ReplicarOrcamentoProps) {
-  const { categoria_id, valor_previsto, ano, mes_inicio, mes_fim } = data;
-  
-  if (mes_inicio > mes_fim || mes_inicio < 1 || mes_fim > 12) {
-    return { error: 'Range de meses inválido. (Deve ser de 1 a 12)' };
-  }
-
-  const supabase = await createClient();
-  
-  // Create payload for upsert
-  const entries = [];
-  for (let mes = mes_inicio; mes <= mes_fim; mes++) {
-    // Upsert relies on unique constraint (categoria_id, ano, mes)
-    entries.push({
-      categoria_id,
-      ano,
-      mes,
-      valor_previsto
-    });
-  }
-
-  // Supabase upsert
-  const { error } = await supabase
-    .from('orcamento_previsto')
-    .upsert(entries, { onConflict: 'categoria_id,ano,mes' });
-
-  if (error) {
-    console.error('Error replicating budget:', error);
-    return { error: error.message };
-  }
-
-  // Reload page cache where this is shown
-  revalidatePath('/orcamento');
-  return { success: true, count: entries.length };
-}
-
-/**
- * Fetch budget values for a specific year
- */
-export async function getOrcamentosGlobais(ano: number): Promise<OrcamentoPrevisto[]> {
-  const supabase = await createClient();
+export async function getSimulacoes(): Promise<OrcamentoSimulacao[]> {
+  const supabase = await createClient()
   
   const { data, error } = await supabase
-    .from('orcamento_previsto')
+    .from('orcamentos_simulacoes')
     .select('*')
-    .eq('ano', ano);
+    .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('Error fetching budgets:', error);
-    throw new Error('Failed to fetch budgets');
+    console.error('Error fetching simulacoes:', error)
+    return []
   }
 
-  return data as OrcamentoPrevisto[];
+  return data as OrcamentoSimulacao[]
+}
+
+export async function createSimulacao(nome: string, mesInicio: number, anoInicio: number, length: number = 12) {
+  const supabase = await createClient()
+
+  // Calculate End Date
+  // Example: mesInicio = 12, anoInicio = 2025, length = 12
+  // 12 months starting from 12/2025 -> ends in 11/2026
+  const totalMonths = mesInicio - 1 + length - 1 // 0-indexed calculation
+  const anoFim = anoInicio + Math.floor(totalMonths / 12)
+  const mesFim = (totalMonths % 12) + 1
+
+  const { data, error } = await supabase
+    .from('orcamentos_simulacoes')
+    .insert({
+      nome,
+      mes_inicio: mesInicio,
+      ano_inicio: anoInicio,
+      mes_fim: mesFim,
+      ano_fim: anoFim
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating simulacao:', error)
+    return { error: error.message }
+  }
+
+  revalidatePath('/orcamento')
+  return { success: true, simulacao: data as OrcamentoSimulacao }
+}
+
+// ==========================================
+// ORÇAMENTOS (BUDGET DATA)
+// ==========================================
+
+/**
+ * Fetch budget values for a specific simulation
+ */
+export async function getOrcamentosPorSimulacao(simulacao_id: string): Promise<OrcamentoPrevisto[]> {
+  if (!simulacao_id) return [];
+  
+  const supabase = await createClient()
+  let allData: any[] = []
+  let from = 0
+  let to = 999
+  let hasMore = true
+
+  while (hasMore) {
+    const { data, error } = await supabase
+      .from('orcamento_previsto')
+      .select('*')
+      .eq('simulacao_id', simulacao_id)
+      .range(from, to)
+
+    if (error) {
+      console.error('Error fetching budgets:', error)
+      throw new Error('Failed to fetch budgets')
+    }
+
+    if (data && data.length > 0) {
+      allData = allData.concat(data)
+      if (data.length < 1000) {
+        hasMore = false
+      } else {
+        from += 1000
+        to += 1000
+      }
+    } else {
+      hasMore = false
+    }
+  }
+
+  return allData as OrcamentoPrevisto[]
 }
 
 /**
- * Upsert single budget entry (for individual cell edits)
+ * Bulk Upsert entire budget grid for a simulation
  */
-export async function updateOrcamentoMensal(categoria_id: string, ano: number, mes: number, valor: number) {
-  const supabase = await createClient();
+export async function bulkUpsertOrcamentos(simulacao_id: string, entries: {categoria_id: string, mes: number, ano: number, valor_previsto: number}[]) {
+  const supabase = await createClient()
   
+  // Inject simulacao_id into all entries
+  const payload = entries.map(e => ({
+    simulacao_id,
+    categoria_id: e.categoria_id,
+    mes: e.mes,
+    ano: e.ano,
+    valor_previsto: e.valor_previsto
+  }))
+
+  // Instead of Upsert which might leave zombies if they deleted a row, we Upsert the new values.
+  // Note: We're doing an upsert on Conflict "simulacao_id,categoria_id,ano,mes".
   const { error } = await supabase
     .from('orcamento_previsto')
-    .upsert({
-      categoria_id,
-      ano,
-      mes,
-      valor_previsto: valor
-    }, { onConflict: 'categoria_id,ano,mes' });
+    .upsert(payload, { onConflict: 'simulacao_id,categoria_id,ano,mes' })
 
   if (error) {
-    console.error('Error updating budget:', error);
-    return { error: error.message };
+    console.error('Error saving budgets:', error.message, error.details, error.hint)
+    return { error: error.message }
   }
 
-  revalidatePath('/orcamento');
-  return { success: true };
+  revalidatePath('/orcamento')
+  return { success: true }
+}
+
+/**
+ * Update only the name of a simulation
+ */
+export async function updateSimulacaoNome(id: string, nome: string) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('orcamentos_simulacoes')
+    .update({ nome })
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error updating simulation name:', error)
+    return { error: error.message }
+  }
+
+  revalidatePath('/orcamento')
+  revalidatePath('/dashboard')
+  return { success: true }
+}
+
+/**
+ * Delete a simulation and all its linked budget data (via cascade)
+ */
+export async function deleteSimulacao(id: string) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('orcamentos_simulacoes')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error deleting simulation:', error)
+    return { error: error.message }
+  }
+
+  revalidatePath('/orcamento')
+  revalidatePath('/dashboard')
+  return { success: true }
+}
+
+/**
+ * Clone a simulation: Copies metadata (start/end dates) and all budget values
+ */
+export async function cloneSimulacao(id: string, novoNome: string) {
+  const supabase = await createClient()
+
+  // 1. Fetch original metadata
+  const { data: original, error: fetchError } = await supabase
+    .from('orcamentos_simulacoes')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (fetchError || !original) {
+    return { error: 'Simulação original não encontrada.' }
+  }
+
+  // 2. Create new simulation
+  const { data: cloned, error: createError } = await supabase
+    .from('orcamentos_simulacoes')
+    .insert({
+      nome: novoNome,
+      mes_inicio: original.mes_inicio,
+      ano_inicio: original.ano_inicio,
+      mes_fim: original.mes_fim,
+      ano_fim: original.ano_fim
+    })
+    .select()
+    .single()
+
+  if (createError || !cloned) {
+    return { error: 'Erro ao criar cópia da simulação.' }
+  }
+
+  // 3. Fetch all original budget values
+  let values: any[] = []
+  let from = 0
+  let to = 999
+  let hasMore = true
+
+  while (hasMore) {
+    const { data: chunk, error: valuesError } = await supabase
+      .from('orcamento_previsto')
+      .select('categoria_id, ano, mes, valor_previsto')
+      .eq('simulacao_id', id)
+      .range(from, to)
+
+    if (valuesError) {
+      return { error: 'Simulação criada, mas erro ao copiar valores: ' + valuesError.message }
+    }
+
+    if (chunk && chunk.length > 0) {
+      values = values.concat(chunk)
+      if (chunk.length < 1000) {
+        hasMore = false
+      } else {
+        from += 1000
+        to += 1000
+      }
+    } else {
+      hasMore = false
+    }
+  }
+
+  // 4. Bulk insert into new simulation
+  if (values && values.length > 0) {
+    const payload = values.map(v => ({
+      simulacao_id: cloned.id,
+      categoria_id: v.categoria_id,
+      ano: v.ano,
+      mes: v.mes,
+      valor_previsto: v.valor_previsto
+    }))
+
+    const { error: insertError } = await supabase
+      .from('orcamento_previsto')
+      .insert(payload)
+
+    if (insertError) {
+       return { error: 'Simulação criada, mas erro ao inserir valores copiados: ' + insertError.message }
+    }
+  }
+
+  revalidatePath('/orcamento')
+  revalidatePath('/dashboard')
+  return { success: true, id: cloned.id }
 }

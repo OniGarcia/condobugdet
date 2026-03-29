@@ -1,21 +1,24 @@
-import { getCategoriasTree } from '@/actions/categorias'
+import { getCategoriasTree, getCategoriasFlat } from '@/actions/categorias'
 import { TreeCategoryView } from '@/components/budget/TreeCategoryView'
 
 export const dynamic = 'force-dynamic'
 
 export default async function CategoriasPage() {
-  const categorias = await getCategoriasTree()
+  const [categorias, allFlat] = await Promise.all([
+    getCategoriasTree(),
+    getCategoriasFlat(),
+  ])
 
   return (
-    <div className="max-w-4xl max-h-[calc(100vh-4rem)] flex flex-col">
-      <div className="mb-6 shrink-0">
+    <div className="max-w-4xl">
+      <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Plano de Contas</h1>
-        <p className="text-neutral-400">Gerencie a estrutura hierárquica das categorias de receitas e despesas.</p>
+        <p className="text-neutral-400">
+          Gerencie a estrutura hierárquica de até 5 níveis. Importe o modelo XLSX ou cadastre manualmente.
+        </p>
       </div>
 
-      <div className="flex-1 overflow-auto rounded-2xl">
-        <TreeCategoryView data={categorias} />
-      </div>
+      <TreeCategoryView data={categorias} allFlat={allFlat} />
     </div>
   )
 }

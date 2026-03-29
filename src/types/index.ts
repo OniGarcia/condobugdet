@@ -13,8 +13,19 @@ export interface Categoria {
   children?: Categoria[];
 }
 
+export interface OrcamentoSimulacao {
+  id: string;
+  nome: string;
+  mes_inicio: number;
+  ano_inicio: number;
+  mes_fim: number;
+  ano_fim: number;
+  created_at: string;
+}
+
 export interface OrcamentoPrevisto {
   id: string;
+  simulacao_id: string;
   categoria_id: string;
   mes: number;
   ano: number;
@@ -26,7 +37,8 @@ export interface OrcamentoPrevisto {
 export interface DadosRealizados {
   id: string;
   categoria_id: string;
-  data_referencia: string;
+  ano: number;
+  mes: number;
   valor_realizado: number;
   descricao: string | null;
   criado_em: string;
