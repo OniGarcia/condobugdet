@@ -30,6 +30,40 @@ export function RealizadoGrid({
     })
     return map
   })
+
+  // Memoized leaves for calculations
+  const leaves = useMemo(() => {
+    const extract = (cats: Categoria[]): Categoria[] => {
+      let arr: Categoria[] = [];
+      cats.forEach(c => {
+        if (c.children && c.children.length > 0) {
+          arr = arr.concat(extract(c.children))
+        } else {
+          arr.push(c)
+        }
+      })
+      return arr;
+    }
+    return extract(categorias);
+  }, [categorias]);
+
+  // Monthly results (Revenue - Expenses)
+  const columnResults = useMemo(() => {
+    return columns.map(col => {
+      let rev = 0;
+      let exp = 0;
+      leaves.forEach(cat => {
+        const val = localState[`${cat.id}_${col.ano}_${col.mes}`] || 0;
+        if (cat.tipo === 'RECEITA') rev += val;
+        else if (cat.tipo === 'DESPESA') exp += val;
+      });
+      return rev - exp;
+    });
+  }, [columns, localState, leaves]);
+
+  const grandTotalResult = useMemo(() => {
+    return columnResults.reduce((acc, val) => acc + val, 0);
+  }, [columnResults]);
   
   const [isSaving, setIsSaving] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
@@ -174,6 +208,9 @@ export function RealizadoGrid({
                   {nomeMeses[m.mes - 1]}/{String(m.ano).slice(-2)}
                 </th>
               ))}
+              <th suppressHydrationWarning className="px-4 py-3 font-bold text-white text-center bg-[#1a1a1a] border-b border-white/10 min-w-32 sticky right-0 z-20 backdrop-blur-xl">
+                TOTAL
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/10">
@@ -187,6 +224,25 @@ export function RealizadoGrid({
                 level={0} 
               />
             ))}
+
+            {/* Resultado Row */}
+            <tr className="bg-indigo-500/10 font-bold border-t-2 border-indigo-500/30">
+              <td className="px-4 py-4 sticky left-0 z-10 bg-[#0d0d1e] border-r border-white/10 text-indigo-400">
+                <div className="flex gap-2 items-center">
+                  <span className="w-5 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>RESULTADO (Receitas - Despesas)</span>
+                </div>
+              </td>
+              {columnResults.map((res, i) => (
+                <td key={`result-${i}`} suppressHydrationWarning className={`px-4 py-4 text-right font-mono border-r border-white/10 ${res >= 0 ? 'text-indigo-400' : 'text-red-400'}`}>
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(res)}
+                </td>
+              ))}
+              <td suppressHydrationWarning className={`px-4 py-4 text-right font-mono sticky right-0 z-10 bg-[#0d0d1e] ${grandTotalResult >= 0 ? 'text-indigo-400 font-bold' : 'text-red-400 font-bold'}`}>
+                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(grandTotalResult)}
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -260,7 +316,7 @@ function RealizadoRow({
           const valorFormatado = isParent ? computeParentSum(categoria.id, col.ano, col.mes, categoria) : (localState[key] || 0)
           
           return (
-            <td key={key} className="px-4 py-2 text-center border-r border-white/10 last:border-r-0 hover:bg-white/5 transition-colors">
+            <td key={key} suppressHydrationWarning className="px-4 py-2 text-center border-r border-white/10 last:border-r-0 hover:bg-white/5 transition-colors">
               {isParent ? (
                 <span className="text-neutral-500 text-sm font-mono block w-full text-right p-1.5 opacity-50">
                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valorFormatado)}
@@ -274,6 +330,16 @@ function RealizadoRow({
             </td>
           )
         })}
+
+        {/* Total Column Cell */}
+        <td suppressHydrationWarning className="px-4 py-2 text-right border-l border-white/10 sticky right-0 z-10 bg-[#121212] group-hover:bg-[#1a1c23] transition-colors font-bold text-white font-mono">
+          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+             columns.reduce((acc, col) => {
+               const val = isParent ? computeParentSum(categoria.id, col.ano, col.mes, categoria) : (localState[`${categoria.id}_${col.ano}_${col.mes}`] || 0)
+               return acc + val
+             }, 0)
+          )}
+        </td>
       </tr>
       
       {isExpanded && categoria.children?.map(child => (
@@ -320,6 +386,7 @@ function EditableCell({ valor, onChange }: { valor: number, onChange: (v: number
   ) : (
     <div 
       onClick={() => setIsEditing(true)}
+      suppressHydrationWarning
       className={`w-full cursor-pointer rounded px-2 py-1 text-right text-sm font-mono transition-colors ${valor > 0 ? 'text-white font-medium bg-indigo-500/5 hover:bg-indigo-500/10' : 'text-neutral-500 hover:bg-white/10'}`}
     >
       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(val) || 0)}
