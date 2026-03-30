@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, LineChart, Line, Area, AreaChart,
@@ -28,6 +28,17 @@ function buildTypeMap(cats: Categoria[], map: Map<string, 'RECEITA' | 'DESPESA'>
   return map
 }
 
+function getLeafIds(cats: Categoria[], leafIds: Set<string> = new Set()) {
+  cats.forEach(c => {
+    if (!c.children || c.children.length === 0) {
+      leafIds.add(c.id)
+    } else {
+      getLeafIds(c.children, leafIds)
+    }
+  })
+  return leafIds
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Props {
   categorias: Categoria[]
@@ -36,11 +47,21 @@ interface Props {
   simulacao: OrcamentoSimulacao
   filterInicio: { ano: number; mes: number }
   filterFim: { ano: number; mes: number }
+  hideInsights?: boolean
+  hideTable?: boolean
 }
 
 // ─── Main Component ────────────────────────────────────────────────────────────
-export function DashboardCharts({ categorias, orcamentos, realizados, simulacao, filterInicio, filterFim }: Props) {
+export function DashboardCharts({ 
+  categorias, orcamentos, realizados, simulacao, filterInicio, filterFim,
+  hideInsights = false,
+  hideTable = false
+}: Props) {
+  const [isMounted, setIsMounted] = useState(false)
+  useEffect(() => { setIsMounted(true) }, [])
+
   const catTypeMap = useMemo(() => buildTypeMap(categorias), [categorias])
+  const leafIds = useMemo(() => getLeafIds(categorias), [categorias])
 
   const chartData = useMemo(() => {
     const cols: { mes: number; ano: number }[] = []
@@ -57,10 +78,10 @@ export function DashboardCharts({ categorias, orcamentos, realizados, simulacao,
     return cols.map(({ mes, ano }) => {
       const label = `${NOMES_MESES[mes - 1]}/${String(ano).slice(-2)}`
 
-      const prev_rec = orcamentos.filter(o => o.mes === mes && o.ano === ano && catTypeMap.get(o.categoria_id) === 'RECEITA').reduce((s, o) => s + Number(o.valor_previsto), 0)
-      const prev_des = orcamentos.filter(o => o.mes === mes && o.ano === ano && catTypeMap.get(o.categoria_id) === 'DESPESA').reduce((s, o) => s + Number(o.valor_previsto), 0)
-      const real_rec = realizados.filter(r => r.mes === mes && r.ano === ano && catTypeMap.get(r.categoria_id) === 'RECEITA').reduce((s, r) => s + Number(r.valor_realizado), 0)
-      const real_des = realizados.filter(r => r.mes === mes && r.ano === ano && catTypeMap.get(r.categoria_id) === 'DESPESA').reduce((s, r) => s + Number(r.valor_realizado), 0)
+      const prev_rec = orcamentos.filter(o => o.mes === mes && o.ano === ano && leafIds.has(o.categoria_id) && catTypeMap.get(o.categoria_id) === 'RECEITA').reduce((s, o) => s + Number(o.valor_previsto), 0)
+      const prev_des = orcamentos.filter(o => o.mes === mes && o.ano === ano && leafIds.has(o.categoria_id) && catTypeMap.get(o.categoria_id) === 'DESPESA').reduce((s, o) => s + Number(o.valor_previsto), 0)
+      const real_rec = realizados.filter(r => r.mes === mes && r.ano === ano && leafIds.has(r.categoria_id) && catTypeMap.get(r.categoria_id) === 'RECEITA').reduce((s, r) => s + Number(r.valor_realizado), 0)
+      const real_des = realizados.filter(r => r.mes === mes && r.ano === ano && leafIds.has(r.categoria_id) && catTypeMap.get(r.categoria_id) === 'DESPESA').reduce((s, r) => s + Number(r.valor_realizado), 0)
 
       return {
         name: label,
@@ -86,14 +107,37 @@ export function DashboardCharts({ categorias, orcamentos, realizados, simulacao,
   const tooltipStyle = { backgroundColor: '#171717', border: '1px solid #333', borderRadius: '12px', color: '#fff' }
   const tooltipFmt = (v: unknown) => BRL.format(Number(v) || 0)
 
+  if (!isMounted) return <div className="min-h-[400px] w-full bg-white/5 border border-white/10 rounded-2xl animate-pulse" />
+
   return (
     <div className="space-y-6">
 
       {/* ── Sec 1: KPIs ─────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
-        <KPICard title="Receitas Previstas" value={totRecPrev} sub={`Real: ${BRL.format(totRecReal)}`} icon={<TrendingUp size={18} className="text-emerald-400" />} color="emerald" />
-        <KPICard title="Despesas Previstas" value={totDesPrev} sub={`Real: ${BRL.format(totDesReal)}`} icon={<TrendingDown size={18} className="text-red-400" />} color="red" />
-        <KPICard title="Resultado Projetado" value={resPrev} success={resPrev >= 0} sub={`Alcançado: ${BRL.format(resReal)}`} icon={<Activity size={18} className="text-indigo-400" />} color="indigo" />
+        <KPICard 
+          title="Receitas Previstas" 
+          value={totRecPrev} 
+          realValue={totRecReal}
+          icon={<TrendingUp size={18} className="text-emerald-400" />} 
+          color="emerald" 
+          type="RECEITA"
+        />
+        <KPICard 
+          title="Despesas Previstas" 
+          value={totDesPrev} 
+          realValue={totDesReal}
+          icon={<TrendingDown size={18} className="text-red-400" />} 
+          color="red" 
+          type="DESPESA"
+        />
+        <KPICard 
+          title="Resultado Projetado" 
+          value={resPrev} 
+          realValue={resReal}
+          icon={<Activity size={18} className="text-indigo-400" />} 
+          color="indigo" 
+          type="RESULTADO"
+        />
         <KPICard
           title="Execução Orçamentária"
           value={execucaoPct}
@@ -166,16 +210,18 @@ export function DashboardCharts({ categorias, orcamentos, realizados, simulacao,
       </ChartCard>
 
       {/* ── Sec 3: Alertas Top 5 ────────────────────────────────────────────── */}
-      <InsightsCards categorias={categorias} orcamentos={orcamentos} realizados={realizados} />
+      {!hideInsights && <InsightsCards categorias={categorias} orcamentos={orcamentos} realizados={realizados} />}
 
       {/* ── Sec 4: Tabela Comparativa ────────────────────────────────────────── */}
-      <ComparativeTable
-        categorias={categorias}
-        orcamentos={orcamentos}
-        realizados={realizados}
-        filterInicio={filterInicio}
-        filterFim={filterFim}
-      />
+      {!hideTable && (
+        <ComparativeTable
+          categorias={categorias}
+          orcamentos={orcamentos}
+          realizados={realizados}
+          filterInicio={filterInicio}
+          filterFim={filterFim}
+        />
+      )}
 
     </div>
   )
@@ -183,15 +229,17 @@ export function DashboardCharts({ categorias, orcamentos, realizados, simulacao,
 
 // ─── KPI Card ─────────────────────────────────────────────────────────────────
 function KPICard({
-  title, value, sub, icon, success, isPercent = false, color,
+  title, value, realValue, sub, icon, success, isPercent = false, color, type
 }: {
   title: string
   value: number
+  realValue?: number
   sub?: string
   icon: React.ReactNode
   success?: boolean
   isPercent?: boolean
   color: 'emerald' | 'red' | 'indigo' | 'blue'
+  type?: 'RECEITA' | 'DESPESA' | 'RESULTADO'
 }) {
   const colorMap = {
     emerald: 'from-emerald-500/10',
@@ -200,16 +248,46 @@ function KPICard({
     blue: 'from-blue-500/10',
   }
 
+  const isPositiveReal = realValue !== undefined && realValue >= value
+  const isNegativeReal = realValue !== undefined && realValue < value
+
+  let variationPct = 0
+  if (realValue !== undefined && value !== 0) {
+    variationPct = Math.abs((realValue / value - 1) * 100)
+  }
+
+  // Logic for Arrows and Colors per the USER request
+  let varColor = 'text-neutral-500'
+  let ArrowIcon = null
+
+  if (type === 'RECEITA') {
+    if (realValue !== undefined) {
+      const isGood = realValue >= value
+      varColor = isGood ? 'text-emerald-400' : 'text-red-400'
+      ArrowIcon = isGood ? TrendingUp : TrendingDown
+    }
+  } else if (type === 'DESPESA') {
+    if (realValue !== undefined) {
+      const isGood = realValue <= value
+      varColor = isGood ? 'text-emerald-400' : 'text-red-400'
+      ArrowIcon = realValue > value ? TrendingUp : TrendingDown
+    }
+  } else if (type === 'RESULTADO') {
+     if (realValue !== undefined) {
+        const isGood = realValue >= value
+        varColor = isGood ? 'text-emerald-400' : 'text-red-400'
+        ArrowIcon = isGood ? TrendingUp : TrendingDown
+     }
+  }
+
   const formatted = isPercent
     ? `${value.toFixed(1)}%`
     : BRL.format(value)
 
   const valueColor =
-    success === undefined
-      ? 'text-white'
-      : success
-      ? 'text-emerald-400'
-      : 'text-red-400'
+    success !== undefined 
+      ? (success ? 'text-emerald-400' : 'text-red-400')
+      : 'text-white'
 
   return (
     <div className={`bg-white/5 border border-white/10 rounded-2xl p-5 relative overflow-hidden group bg-gradient-to-br ${colorMap[color]} to-transparent`}>
@@ -218,7 +296,20 @@ function KPICard({
         <div className="p-2 bg-white/5 rounded-xl border border-white/5">{icon}</div>
       </div>
       <h4 className={`text-xl font-bold tracking-tight ${valueColor}`}>{formatted}</h4>
-      {sub && <p className="text-xs text-neutral-500 mt-1">{sub}</p>}
+      
+      {realValue !== undefined ? (
+        <div className="flex items-center gap-2 mt-1">
+          <p className="text-xs text-neutral-400">Real: {BRL.format(realValue)}</p>
+          {type && ArrowIcon && (
+            <div className={`flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-white/5 ${varColor}`}>
+              <ArrowIcon size={10} strokeWidth={3} />
+              {variationPct.toFixed(1)}%
+            </div>
+          )}
+        </div>
+      ) : sub && (
+        <p className="text-xs text-neutral-500 mt-1">{sub}</p>
+      )}
     </div>
   )
 }

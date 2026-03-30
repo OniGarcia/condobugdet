@@ -44,8 +44,13 @@ function flattenTree(cats: Categoria[], orcMap: Map<string, number>, realMap: Ma
 }
 
 function sumSubtree(cat: Categoria, map: Map<string, number>): number {
-  let total = map.get(cat.id) ?? 0
-  if (cat.children) cat.children.forEach(c => { total += sumSubtree(c, map) })
+  // Only count values if it's a leaf node. 
+  // Parent totals are always the sum of their children's leaf values.
+  if (!cat.children || cat.children.length === 0) {
+    return map.get(cat.id) ?? 0
+  }
+  let total = 0
+  cat.children.forEach(c => { total += sumSubtree(c, map) })
   return total
 }
 

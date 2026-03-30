@@ -6,11 +6,15 @@ import { Categoria, OrcamentoPrevisto, DadosRealizados } from '@/types'
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 
-function buildTypeAndNameMap(cats: Categoria[], typeMap: Map<string, 'RECEITA' | 'DESPESA'>, nameMap: Map<string, string>) {
+function buildTypeAndNameMap(cats: Categoria[], typeMap: Map<string, 'RECEITA' | 'DESPESA'>, nameMap: Map<string, string>, leafIds: Set<string>) {
   cats.forEach(c => {
     typeMap.set(c.id, c.tipo)
     nameMap.set(c.id, c.nome_conta)
-    if (c.children) buildTypeAndNameMap(c.children, typeMap, nameMap)
+    if (!c.children || c.children.length === 0) {
+      leafIds.add(c.id)
+    } else {
+      buildTypeAndNameMap(c.children, typeMap, nameMap, leafIds)
+    }
   })
 }
 
@@ -26,19 +30,20 @@ export function InsightsCards({
   const { topPiores, topEconomia } = useMemo(() => {
     const typeMap = new Map<string, 'RECEITA' | 'DESPESA'>()
     const nameMap = new Map<string, string>()
-    buildTypeAndNameMap(categorias, typeMap, nameMap)
+    const leafIds = new Set<string>()
+    buildTypeAndNameMap(categorias, typeMap, nameMap, leafIds)
 
     // Aggregate per categoria_id (only DESPESA)
     const prevMap = new Map<string, number>()
     const realMap = new Map<string, number>()
 
     orcamentos.forEach(o => {
-      if (typeMap.get(o.categoria_id) === 'DESPESA') {
+      if (leafIds.has(o.categoria_id) && typeMap.get(o.categoria_id) === 'DESPESA') {
         prevMap.set(o.categoria_id, (prevMap.get(o.categoria_id) ?? 0) + Number(o.valor_previsto))
       }
     })
     realizados.forEach(r => {
-      if (typeMap.get(r.categoria_id) === 'DESPESA') {
+      if (leafIds.has(r.categoria_id) && typeMap.get(r.categoria_id) === 'DESPESA') {
         realMap.set(r.categoria_id, (realMap.get(r.categoria_id) ?? 0) + Number(r.valor_realizado))
       }
     })

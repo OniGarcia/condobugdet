@@ -10,3 +10,94 @@
     color: #f5f5f5;
   }
 }
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@media print {
+  /* Hide sidebar and navigation */
+  aside, .no-print, nav, button:not(.print-only) {
+    display: none !important;
+  }
+
+  /* Reset layout for print */
+  main {
+    margin-left: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Force white background and black text (Printer Friendly) */
+  body, 
+  .bg-neutral-950, 
+  .bg-neutral-900,
+  .bg-white\/5,
+  [class*="bg-white/"] {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .text-white, 
+  .text-neutral-100, 
+  .text-neutral-200, 
+  .text-neutral-300,
+  .text-emerald-200 { 
+    color: black !important; 
+  }
+
+  .text-neutral-400, 
+  .text-neutral-500, 
+  .text-neutral-600 { 
+    color: #374151 !important; /* Tailwind Gray-700 */
+  }
+
+  .border, 
+  .border-white\/10,
+  .border-white\/5,
+  [class*="border-white/"] {
+    border-color: #d1d5db !important; /* Tailwind Gray-300 */
+  }
+
+  /* Keep positive/negative colors but ensure contrast */
+  .text-emerald-400 { color: #059669 !important; } /* Emerald-600 */
+  .text-red-400 { color: #dc2626 !important; } /* Red-600 */
+
+  /* Chart adjustments */
+  .recharts-cartesian-axis-text { fill: #374151 !important; }
+  .recharts-cartesian-grid-horizontal line,
+  .recharts-cartesian-grid-vertical line {
+    stroke: #e5e7eb !important;
+  }
+
+  /* Page break rules */
+  .break-inside-avoid {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Ensure tables and containers don't hide data */
+  .overflow-x-auto, .overflow-auto, .overflow-y-auto {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  table {
+    page-break-inside: auto;
+  }
+  
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+}
