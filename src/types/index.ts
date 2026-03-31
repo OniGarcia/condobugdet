@@ -43,3 +43,33 @@ export interface DadosRealizados {
   descricao: string | null;
   criado_em: string;
 }
+
+export interface CentroCusto {
+  id: string;
+  nome: string;
+  descricao: string | null;
+  created_at: string;
+  updated_at: string;
+  // client-side: populated when fetching with associated categories
+  categoria_ids?: string[];
+}
+
+export type StatusSemaforo = 'VERDE' | 'AMARELO' | 'VERMELHO'
+
+export interface RelatorioCategoriaAno {
+  categoriaId: string
+  categoriaNome: string
+  codigoReduzido: string
+  tipo: CategoriaTipo
+  previstoMes: number
+  realizadoMes: number
+  previstoAcumuladoYTD: number
+  realizadoAcumuladoYTD: number
+  orcamentoAnualTotal: number
+  saldoDisponivelAno: number
+  statusSemaforoAno: StatusSemaforo
+  // hierarchy
+  depth: number
+  hasChildren: boolean
+  parentId: string | null
+}

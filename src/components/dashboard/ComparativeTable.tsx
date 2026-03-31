@@ -1,76 +1,54 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { ChevronRight, ChevronDown } from 'lucide-react'
-import { Categoria, OrcamentoPrevisto, DadosRealizados } from '@/types'
+import { useState } from 'react'
+import { ChevronRight, ChevronDown, Info } from 'lucide-react'
+import { RelatorioCategoriaAno, StatusSemaforo } from '@/types'
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
-const NOMES_MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+const PCT = new Intl.NumberFormat('pt-BR', { style: 'percent', maximumFractionDigits: 1 })
+const NOMES_MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function gerarMeses(ini: { ano: number; mes: number }, fim: { ano: number; mes: number }): { value: string; label: string }[] {
-  const meses: { value: string; label: string }[] = []
-  let curMes = ini.mes
-  let curAno = ini.ano
-  let guard = 0
-  while ((curAno < fim.ano || (curAno === fim.ano && curMes <= fim.mes)) && guard < 60) {
-    meses.push({ value: `${curAno}-${String(curMes).padStart(2, '0')}`, label: `${NOMES_MESES[curMes - 1]}/${curAno}` })
-    curMes++
-    if (curMes > 12) { curMes = 1; curAno++ }
-    guard++
+type ViewMode = 'mes' | 'acumulado'
+
+function saldoColorClass(status: StatusSemaforo): string {
+  switch (status) {
+    case 'VERDE':    return 'text-emerald-400'
+    case 'AMARELO':  return 'text-amber-400'
+    case 'VERMELHO': return 'text-red-400'
   }
-  return meses
 }
 
-interface RowData {
-  cat: Categoria
-  previsto: number
-  realizado: number
-  depth: number
-}
-
-function flattenTree(cats: Categoria[], orcMap: Map<string, number>, realMap: Map<string, number>, depth = 0): RowData[] {
-  const rows: RowData[] = []
-  cats.forEach(cat => {
-    // Sum all descendants too
-    const previsto = sumSubtree(cat, orcMap)
-    const realizado = sumSubtree(cat, realMap)
-    rows.push({ cat, previsto, realizado, depth })
-    if (cat.children && cat.children.length > 0) {
-      rows.push(...flattenTree(cat.children, orcMap, realMap, depth + 1))
-    }
-  })
-  return rows
-}
-
-function sumSubtree(cat: Categoria, map: Map<string, number>): number {
-  // Only count values if it's a leaf node. 
-  // Parent totals are always the sum of their children's leaf values.
-  if (!cat.children || cat.children.length === 0) {
-    return map.get(cat.id) ?? 0
+function saldoBgClass(status: StatusSemaforo): string {
+  switch (status) {
+    case 'VERDE':    return 'bg-emerald-500/10'
+    case 'AMARELO':  return 'bg-amber-500/10'
+    case 'VERMELHO': return 'bg-red-500/10'
   }
-  let total = 0
-  cat.children.forEach(c => { total += sumSubtree(c, map) })
-  return total
 }
 
-// ─── Main Component ────────────────────────────────────────────────────────────
+function resultadoColor(value: number): string {
+  if (value > 0) return 'text-emerald-400'
+  if (value < 0) return 'text-red-400'
+  return 'text-amber-400'
+}
+
+function resultadoBg(value: number): string {
+  if (value > 0) return 'bg-emerald-500/10'
+  if (value < 0) return 'bg-red-500/10'
+  return 'bg-amber-500/10'
+}
+
 export function ComparativeTable({
-  categorias,
-  orcamentos,
-  realizados,
-  filterInicio,
-  filterFim,
+  rows,
+  mesAlvo,
+  anoAlvo,
 }: {
-  categorias: Categoria[]
-  orcamentos: OrcamentoPrevisto[]
-  realizados: DadosRealizados[]
-  filterInicio: { ano: number; mes: number }
-  filterFim: { ano: number; mes: number }
+  rows: RelatorioCategoriaAno[]
+  mesAlvo: number
+  anoAlvo: number
 }) {
-  const meses = useMemo(() => gerarMeses(filterInicio, filterFim), [filterInicio, filterFim])
-  const [mesFiltro, setMesFiltro] = useState<string>('todos')
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  const [view, setView] = useState<ViewMode>('acumulado')
 
   const toggle = (id: string) =>
     setCollapsed(prev => {
@@ -79,65 +57,84 @@ export function ComparativeTable({
       return next
     })
 
-  const rows = useMemo(() => {
-    // Build aggregation maps filtered by month selection
-    const orcMap = new Map<string, number>()
-    const realMap = new Map<string, number>()
+  // Determine visible rows by skipping children of collapsed parents
+  const visibleRows: RelatorioCategoriaAno[] = []
+  const skipAboveDepth: number[] = []
 
-    const orcFiltrados = mesFiltro === 'todos'
-      ? orcamentos
-      : orcamentos.filter(o => `${o.ano}-${String(o.mes).padStart(2, '0')}` === mesFiltro)
-
-    const realFiltrados = mesFiltro === 'todos'
-      ? realizados
-      : realizados.filter(r => `${r.ano}-${String(r.mes).padStart(2, '0')}` === mesFiltro)
-
-    orcFiltrados.forEach(o => orcMap.set(o.categoria_id, (orcMap.get(o.categoria_id) ?? 0) + Number(o.valor_previsto)))
-    realFiltrados.forEach(r => realMap.set(r.categoria_id, (realMap.get(r.categoria_id) ?? 0) + Number(r.valor_realizado)))
-
-    return flattenTree(categorias, orcMap, realMap, 0)
-  }, [categorias, orcamentos, realizados, mesFiltro])
-
-  // Determine visible rows (respecting collapsed state)
-  const visibleRows = useMemo(() => {
-    const visible: RowData[] = []
-    const skipDepthAbove: number[] = []
-
-    for (const row of rows) {
-      // Remove skip markers for depths deeper than current
-      while (skipDepthAbove.length > 0 && skipDepthAbove[skipDepthAbove.length - 1] >= row.depth) {
-        skipDepthAbove.pop()
-      }
-      if (skipDepthAbove.length > 0) continue
-
-      visible.push(row)
-      if (collapsed.has(row.cat.id) && row.cat.children && row.cat.children.length > 0) {
-        skipDepthAbove.push(row.depth)
-      }
+  for (const row of rows) {
+    while (skipAboveDepth.length > 0 && skipAboveDepth[skipAboveDepth.length - 1] >= row.depth) {
+      skipAboveDepth.pop()
     }
-    return visible
-  }, [rows, collapsed])
+    if (skipAboveDepth.length > 0) continue
+
+    visibleRows.push(row)
+    if (collapsed.has(row.categoriaId) && row.hasChildren) {
+      skipAboveDepth.push(row.depth)
+    }
+  }
+
+  // Compute Resultado = Receitas - Despesas (aggregating depth=0 roots)
+  const depth0 = rows.filter(r => r.depth === 0)
+  const sumTipo = (tipo: 'RECEITA' | 'DESPESA') => {
+    const f = depth0.filter(r => r.tipo === tipo)
+    return {
+      previstoMes:   f.reduce((s, r) => s + r.previstoMes, 0),
+      realizadoMes:  f.reduce((s, r) => s + r.realizadoMes, 0),
+      previstoYTD:   f.reduce((s, r) => s + r.previstoAcumuladoYTD, 0),
+      realizadoYTD:  f.reduce((s, r) => s + r.realizadoAcumuladoYTD, 0),
+      orcAnual:      f.reduce((s, r) => s + r.orcamentoAnualTotal, 0),
+      saldoAno:      f.reduce((s, r) => s + r.saldoDisponivelAno, 0),
+    }
+  }
+  const rec = sumTipo('RECEITA')
+  const des = sumTipo('DESPESA')
+  const res = {
+    previstoMes:  rec.previstoMes  - des.previstoMes,
+    realizadoMes: rec.realizadoMes - des.realizadoMes,
+    previstoYTD:  rec.previstoYTD  - des.previstoYTD,
+    realizadoYTD: rec.realizadoYTD - des.realizadoYTD,
+    orcAnual:     rec.orcAnual     - des.orcAnual,
+    saldoAno:     rec.saldoAno     - des.saldoAno,
+  }
+  const hasResultado = depth0.some(r => r.tipo === 'RECEITA') && depth0.some(r => r.tipo === 'DESPESA')
+
+  const mesLabel = mesAlvo >= 1 && mesAlvo <= 12
+    ? `${NOMES_MESES[mesAlvo - 1]}/${anoAlvo}`
+    : `${mesAlvo}/${anoAlvo}`
 
   return (
     <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
-      <div className="flex justify-between items-center mb-5">
+      <div className="mb-5 flex items-start justify-between gap-4">
         <div>
           <h3 className="text-base font-semibold text-white">Matriz Analítica</h3>
-          <p className="text-xs text-neutral-500 mt-0.5">Comparativo hierárquico por conta</p>
+          <p className="text-xs text-neutral-500 mt-0.5">
+            Mês de referência: <span className="text-neutral-300 font-medium">{mesLabel}</span>
+            {view === 'acumulado' && <> · YTD: Janeiro até {mesLabel}</>}
+          </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-neutral-400">Mês:</span>
-          <select
-            value={mesFiltro}
-            onChange={e => setMesFiltro(e.target.value)}
-            className="bg-white/5 border border-white/10 text-neutral-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer"
+        {/* Toggle Mês / Acumulado */}
+        <div className="flex bg-white/5 border border-white/10 rounded-lg p-0.5 shrink-0">
+          <button
+            onClick={() => setView('mes')}
+            className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
+              view === 'mes'
+                ? 'bg-emerald-500 text-white shadow'
+                : 'text-neutral-400 hover:text-white'
+            }`}
           >
-            <option value="todos" className="bg-neutral-900">Todos os meses</option>
-            {meses.map(m => (
-              <option key={m.value} value={m.value} className="bg-neutral-900">{m.label}</option>
-            ))}
-          </select>
+            Mês
+          </button>
+          <button
+            onClick={() => setView('acumulado')}
+            className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
+              view === 'acumulado'
+                ? 'bg-emerald-500 text-white shadow'
+                : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            Acumulado
+          </button>
         </div>
       </div>
 
@@ -145,59 +142,158 @@ export function ComparativeTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-white/10">
-              <th className="text-left text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 pr-4">Categoria</th>
-              <th className="text-right text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 px-4 whitespace-nowrap">Orçado</th>
-              <th className="text-right text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 px-4 whitespace-nowrap">Realizado</th>
-              <th className="text-right text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 px-4 whitespace-nowrap">Saldo (R$)</th>
-              <th className="text-right text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 pl-4 whitespace-nowrap">Saldo (%)</th>
+              <th className="text-left text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 pr-4 min-w-[200px]">
+                Categoria
+              </th>
+
+              {view === 'mes' ? (
+                <>
+                  <th className="text-right text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 px-3 whitespace-nowrap">
+                    Mês Previsto
+                  </th>
+                  <th className="text-right text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 px-3 whitespace-nowrap">
+                    Mês Realizado
+                  </th>
+                </>
+              ) : (
+                <>
+                  <th className="text-right text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 px-3 whitespace-nowrap">
+                    YTD Previsto
+                  </th>
+                  <th className="text-right text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 px-3 whitespace-nowrap">
+                    YTD Realizado
+                  </th>
+                  <th className="text-right text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 px-3 whitespace-nowrap">
+                    Orç. Anual
+                  </th>
+                  <th className="text-right text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 pl-3 whitespace-nowrap">
+                    <span className="flex items-center justify-end gap-1">
+                      Saldo Ano
+                      <span
+                        title="Mostra o quanto ainda podemos gastar nesta categoria até o fim do ano"
+                        className="cursor-help"
+                      >
+                        <Info className="w-3.5 h-3.5 text-neutral-500" />
+                      </span>
+                    </span>
+                  </th>
+                </>
+              )}
             </tr>
           </thead>
+
           <tbody className="divide-y divide-white/5">
-            {visibleRows.map(({ cat, previsto, realizado, depth }) => {
-              const variacao = previsto - realizado // positive = under budget (money left)
-              const pct = previsto !== 0 ? (variacao / Math.abs(previsto)) * 100 : 0
-              const hasChildren = cat.children && cat.children.length > 0
-              const isCollapsed = collapsed.has(cat.id)
-              const isDespesa = cat.tipo === 'DESPESA'
-              // For despesas: negative saldo = over budget (bad). For receitas: negative saldo = under budget (bad).
-              const isOver = isDespesa ? variacao < 0 : variacao > 0
-              const varColor = variacao === 0 ? 'text-neutral-400' : isOver ? 'text-red-400' : 'text-emerald-400'
+            {visibleRows.map(row => {
+              const isCollapsed = collapsed.has(row.categoriaId)
+              const colorClass = saldoColorClass(row.statusSemaforoAno)
+              const bgClass = saldoBgClass(row.statusSemaforoAno)
+              const pct = row.orcamentoAnualTotal !== 0
+                ? row.saldoDisponivelAno / row.orcamentoAnualTotal
+                : null
 
               return (
-                <tr key={cat.id} className="hover:bg-white/[0.03] transition-colors group">
-                  <td className="py-2.5 pr-4" style={{ paddingLeft: `${depth * 1.5 + 0.5}rem` }}>
+                <tr key={row.categoriaId} className="hover:bg-white/[0.03] transition-colors">
+                  {/* Categoria */}
+                  <td className="py-2.5 pr-4" style={{ paddingLeft: `${row.depth * 1.5 + 0.5}rem` }}>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => hasChildren && toggle(cat.id)}
-                        className={`p-0.5 rounded text-neutral-600 w-5 shrink-0 ${hasChildren ? 'hover:text-white cursor-pointer' : 'cursor-default'}`}
+                        onClick={() => row.hasChildren && toggle(row.categoriaId)}
+                        className={`p-0.5 rounded text-neutral-600 w-5 shrink-0 ${row.hasChildren ? 'hover:text-white cursor-pointer' : 'cursor-default'}`}
                       >
-                        {hasChildren
+                        {row.hasChildren
                           ? isCollapsed
                             ? <ChevronRight size={14} />
                             : <ChevronDown size={14} />
                           : <span className="w-3.5 h-3.5 block" />}
                       </button>
-                      <span className="font-mono text-xs text-neutral-500 w-12 shrink-0">{cat.codigo_reduzido}</span>
-                      <span className={depth === 0 ? 'text-neutral-100 font-medium' : 'text-neutral-300'}>
-                        {cat.nome_conta}
+                      <span className="font-mono text-xs text-neutral-500 w-12 shrink-0">{row.codigoReduzido}</span>
+                      <span className={row.depth === 0 ? 'text-neutral-100 font-medium' : 'text-neutral-300'}>
+                        {row.categoriaNome}
                       </span>
                     </div>
                   </td>
-                  <td className="py-2.5 px-4 text-right text-neutral-300 tabular-nums whitespace-nowrap">
-                    {BRL.format(previsto)}
-                  </td>
-                  <td className="py-2.5 px-4 text-right text-neutral-300 tabular-nums whitespace-nowrap">
-                    {BRL.format(realizado)}
-                  </td>
-                  <td className={`py-2.5 px-4 text-right tabular-nums font-medium whitespace-nowrap ${varColor}`}>
-                    {BRL.format(variacao)}
-                  </td>
-                  <td className={`py-2.5 pl-4 text-right tabular-nums font-medium whitespace-nowrap ${varColor}`}>
-                    {pct.toFixed(1)}%
-                  </td>
+
+                  {view === 'mes' ? (
+                    <>
+                      <td className="py-2.5 px-3 text-right text-neutral-400 tabular-nums whitespace-nowrap">
+                        {BRL.format(row.previstoMes)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right text-neutral-300 tabular-nums whitespace-nowrap">
+                        {BRL.format(row.realizadoMes)}
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="py-2.5 px-3 text-right text-neutral-400 tabular-nums whitespace-nowrap">
+                        {BRL.format(row.previstoAcumuladoYTD)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right text-neutral-300 tabular-nums whitespace-nowrap">
+                        {BRL.format(row.realizadoAcumuladoYTD)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right text-neutral-300 tabular-nums whitespace-nowrap">
+                        {BRL.format(row.orcamentoAnualTotal)}
+                      </td>
+                      <td className="py-2.5 pl-3 text-right tabular-nums whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center gap-2 px-2 py-0.5 rounded font-bold ${colorClass} ${bgClass}`}
+                          title="Mostra o quanto ainda podemos gastar nesta categoria até o fim do ano"
+                        >
+                          {BRL.format(row.saldoDisponivelAno)}
+                          {pct !== null && (
+                            <span className="text-xs font-normal opacity-60">
+                              {PCT.format(pct)}
+                            </span>
+                          )}
+                        </span>
+                      </td>
+                    </>
+                  )}
                 </tr>
               )
             })}
+
+            {/* Linha de Resultado = Receitas - Despesas */}
+            {hasResultado && (
+              <tr className="border-t-2 border-white/20 bg-white/[0.04]">
+                <td className="py-3 pr-4 pl-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 shrink-0" />
+                    <span className="font-mono text-xs text-neutral-500 w-12 shrink-0">---</span>
+                    <span className="text-white font-bold text-xs uppercase tracking-widest">
+                      Resultado
+                    </span>
+                  </div>
+                </td>
+
+                {view === 'mes' ? (
+                  <>
+                    <td className={`py-3 px-3 text-right tabular-nums whitespace-nowrap font-bold ${resultadoColor(res.previstoMes)}`}>
+                      {BRL.format(res.previstoMes)}
+                    </td>
+                    <td className={`py-3 px-3 text-right tabular-nums whitespace-nowrap font-bold ${resultadoColor(res.realizadoMes)}`}>
+                      {BRL.format(res.realizadoMes)}
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td className={`py-3 px-3 text-right tabular-nums whitespace-nowrap font-bold ${resultadoColor(res.previstoYTD)}`}>
+                      {BRL.format(res.previstoYTD)}
+                    </td>
+                    <td className={`py-3 px-3 text-right tabular-nums whitespace-nowrap font-bold ${resultadoColor(res.realizadoYTD)}`}>
+                      {BRL.format(res.realizadoYTD)}
+                    </td>
+                    <td className={`py-3 px-3 text-right tabular-nums whitespace-nowrap font-bold ${resultadoColor(res.orcAnual)}`}>
+                      {BRL.format(res.orcAnual)}
+                    </td>
+                    <td className="py-3 pl-3 text-right tabular-nums whitespace-nowrap">
+                      <span className={`inline-flex items-center gap-2 px-2 py-0.5 rounded font-bold ${resultadoColor(res.saldoAno)} ${resultadoBg(res.saldoAno)}`}>
+                        {BRL.format(res.saldoAno)}
+                      </span>
+                    </td>
+                  </>
+                )}
+              </tr>
+            )}
           </tbody>
         </table>
 

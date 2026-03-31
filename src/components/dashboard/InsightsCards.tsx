@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { TrendingUp, TrendingDown } from 'lucide-react'
-import { Categoria, OrcamentoPrevisto, DadosRealizados } from '@/types'
+import { Categoria, OrcamentoPrevisto, DadosRealizados, RelatorioCategoriaAno } from '@/types'
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 
@@ -22,18 +22,65 @@ export function InsightsCards({
   categorias,
   orcamentos,
   realizados,
+  relatorioRows,
 }: {
   categorias: Categoria[]
   orcamentos: OrcamentoPrevisto[]
   realizados: DadosRealizados[]
+  relatorioRows?: RelatorioCategoriaAno[]
 }) {
-  const { topPiores, topEconomia } = useMemo(() => {
+  const { topPiores, topSemOrcamento } = useMemo(() => {
+    if (relatorioRows && relatorioRows.length > 0) {
+      // 1. Items WITH budget (for over-budget ranking)
+      const plannedEntries = relatorioRows
+        .filter(r => !r.hasChildren && r.tipo === 'DESPESA' && r.categoriaId !== '__nao_categorizado__' && r.orcamentoAnualTotal > 0)
+        .map(r => {
+          const previsto = r.orcamentoAnualTotal
+          const realizado = r.realizadoAcumuladoYTD
+          const variacao = realizado - previsto
+          const pct = (realizado / previsto - 1) * 100
+          
+          return {
+            id: r.categoriaId,
+            nome: r.categoriaNome,
+            previsto,
+            realizado,
+            variacao,
+            pct
+          }
+        })
+
+      // 2. Items WITHOUT budget (unplanned/extra)
+      const unplannedEntries = relatorioRows
+        .filter(r => !r.hasChildren && r.tipo === 'DESPESA' && r.categoriaId !== '__nao_categorizado__' && r.orcamentoAnualTotal === 0)
+        .map(r => ({
+          id: r.categoriaId,
+          nome: r.categoriaNome,
+          previsto: 0,
+          realizado: r.realizadoAcumuladoYTD,
+          variacao: r.realizadoAcumuladoYTD,
+          pct: 0
+        }))
+
+      const topPiores = [...plannedEntries]
+        .filter(e => e.variacao > 0)
+        .sort((a, b) => b.pct - a.pct)
+        .slice(0, 5)
+
+      const topSemOrcamento = [...unplannedEntries]
+        .filter(e => e.realizado > 0)
+        .sort((a, b) => b.realizado - a.realizado)
+        .slice(0, 5)
+
+      return { topPiores, topSemOrcamento }
+    }
+
+    // Fallback for non-report views
     const typeMap = new Map<string, 'RECEITA' | 'DESPESA'>()
     const nameMap = new Map<string, string>()
     const leafIds = new Set<string>()
     buildTypeAndNameMap(categorias, typeMap, nameMap, leafIds)
 
-    // Aggregate per categoria_id (only DESPESA)
     const prevMap = new Map<string, number>()
     const realMap = new Map<string, number>()
 
@@ -48,37 +95,41 @@ export function InsightsCards({
       }
     })
 
-    // Union of all category ids that appear in either map
     const ids = new Set([...prevMap.keys(), ...realMap.keys()])
+    const planned: any[] = []
+    const unplanned: any[] = []
 
-    const entries = Array.from(ids).map(id => {
+    ids.forEach(id => {
       const previsto = prevMap.get(id) ?? 0
       const realizado = realMap.get(id) ?? 0
-      const variacao = realizado - previsto // positive = over budget (bad)
-      return { id, nome: nameMap.get(id) ?? id, previsto, realizado, variacao }
+      const entry = { id, nome: nameMap.get(id) ?? id, previsto, realizado, variacao: realizado - previsto }
+      
+      if (previsto > 0) {
+        planned.push({ ...entry, pct: (realizado / previsto - 1) * 100 })
+      } else if (realizado > 0) {
+        unplanned.push({ ...entry, pct: 0 })
+      }
     })
 
-    // Top 5 piores: highest positive variação (most over budget)
-    const topPiores = [...entries]
+    const topPiores = planned
       .filter(e => e.variacao > 0)
-      .sort((a, b) => b.variacao - a.variacao)
+      .sort((a, b) => b.pct - a.pct)
       .slice(0, 5)
 
-    // Top 5 economia: most negative variação (most under budget)
-    const topEconomia = [...entries]
-      .filter(e => e.variacao < 0)
-      .sort((a, b) => a.variacao - b.variacao)
+    const topSemOrcamento = unplanned
+      .sort((a, b) => b.realizado - a.realizado)
       .slice(0, 5)
 
-    return { topPiores, topEconomia }
-  }, [categorias, orcamentos, realizados])
+    return { topPiores, topSemOrcamento }
+  }, [categorias, orcamentos, realizados, relatorioRows])
 
-  if (topPiores.length === 0 && topEconomia.length === 0) return null
+  // Only return if at least one side has content
+  if (topPiores.length === 0 && topSemOrcamento.length === 0) return null
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-      {/* Rank Negativo - Piores */}
+      {/* Rank Negativo - Piores (%) */}
       <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
         <div className="flex items-center gap-2 mb-5">
           <div className="p-2 bg-red-500/10 rounded-xl border border-red-500/10">
@@ -86,17 +137,18 @@ export function InsightsCards({
           </div>
           <div>
             <h3 className="text-base font-semibold text-white">Top 5 — Acima do Orçamento</h3>
-            <p className="text-xs text-neutral-500">Despesas que mais extrapolaram o previsto</p>
+            <p className="text-xs text-neutral-500">Despesas planejadas que mais extrapolaram (%)</p>
           </div>
         </div>
 
         {topPiores.length === 0 ? (
-          <p className="text-sm text-neutral-500 py-4 text-center">Nenhuma despesa acima do orçamento no período.</p>
+          <p className="text-sm text-neutral-500 py-4 text-center">Nenhuma despesa planejada acima do orçamento.</p>
         ) : (
           <div className="space-y-3">
             {topPiores.map((entry, i) => {
-              const pct = entry.previsto > 0 ? (entry.realizado / entry.previsto - 1) * 100 : 0
-              const barPct = Math.min((entry.variacao / Math.max(...topPiores.map(e => e.variacao))) * 100, 100)
+              const maxPct = Math.max(...topPiores.map(e => e.pct))
+              const barPct = maxPct > 0 ? Math.min((entry.pct / maxPct) * 100, 100) : 0
+              
               return (
                 <div key={entry.id} className="flex flex-col gap-1">
                   <div className="flex justify-between items-baseline">
@@ -110,7 +162,7 @@ export function InsightsCards({
                     <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
                       <div className="h-full bg-red-500/60 rounded-full transition-all" style={{ width: `${barPct}%` }} />
                     </div>
-                    <span className="text-xs text-red-400/70 w-12 text-right">{pct.toFixed(0)}%</span>
+                    <span className="text-xs text-red-400/70 w-12 text-right">{entry.pct.toFixed(0)}%</span>
                   </div>
                 </div>
               )
@@ -119,26 +171,26 @@ export function InsightsCards({
         )}
       </div>
 
-      {/* Rank Positivo - Economia */}
+      {/* Rank Despesas Não Previstas (Extras) */}
       <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
         <div className="flex items-center gap-2 mb-5">
-          <div className="p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/10">
-            <TrendingUp size={16} className="text-emerald-400" />
+          <div className="p-2 bg-amber-500/10 rounded-xl border border-amber-500/10">
+            <TrendingDown size={16} className="text-amber-400" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-white">Top 5 — Maior Economia</h3>
-            <p className="text-xs text-neutral-500">Despesas que mais pouparam em relação ao previsto</p>
+            <h3 className="text-base font-semibold text-white">Top 5 — Despesas Não Previstas</h3>
+            <p className="text-xs text-neutral-500">Gastos em categorias com orçamento zero (Extras)</p>
           </div>
         </div>
 
-        {topEconomia.length === 0 ? (
-          <p className="text-sm text-neutral-500 py-4 text-center">Nenhuma economia registrada no período.</p>
+        {topSemOrcamento.length === 0 ? (
+          <p className="text-sm text-neutral-500 py-4 text-center">Nenhuma despesa imprevista registrada.</p>
         ) : (
           <div className="space-y-3">
-            {topEconomia.map((entry, i) => {
-              const pct = entry.previsto > 0 ? (1 - entry.realizado / entry.previsto) * 100 : 0
-              const absVar = Math.abs(entry.variacao)
-              const barPct = Math.min((absVar / Math.max(...topEconomia.map(e => Math.abs(e.variacao)))) * 100, 100)
+            {topSemOrcamento.map((entry, i) => {
+              const maxVal = Math.max(...topSemOrcamento.map(e => e.realizado))
+              const barPct = maxVal > 0 ? Math.min((entry.realizado / maxVal) * 100, 100) : 0
+              
               return (
                 <div key={entry.id} className="flex flex-col gap-1">
                   <div className="flex justify-between items-baseline">
@@ -146,13 +198,13 @@ export function InsightsCards({
                       <span className="text-neutral-500 font-mono text-xs mr-2">#{i + 1}</span>
                       {entry.nome}
                     </span>
-                    <span className="text-sm font-semibold text-emerald-400 shrink-0">{BRL.format(entry.variacao)}</span>
+                    <span className="text-sm font-semibold text-amber-400 shrink-0">+{BRL.format(entry.realizado)}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                      <div className="h-full bg-emerald-500/60 rounded-full transition-all" style={{ width: `${barPct}%` }} />
+                      <div className="h-full bg-amber-500/60 rounded-full transition-all" style={{ width: `${barPct}%` }} />
                     </div>
-                    <span className="text-xs text-emerald-400/70 w-12 text-right">{pct.toFixed(0)}%</span>
+                    <span className="text-xs text-amber-400/70 w-12 text-right">Extra</span>
                   </div>
                 </div>
               )

@@ -5,7 +5,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, LineChart, Line, Area, AreaChart,
 } from 'recharts'
-import { OrcamentoPrevisto, DadosRealizados, Categoria, OrcamentoSimulacao } from '@/types'
+import { OrcamentoPrevisto, DadosRealizados, Categoria, OrcamentoSimulacao, RelatorioCategoriaAno } from '@/types'
 import { TrendingDown, TrendingUp, DollarSign, Activity, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { InsightsCards } from '@/components/dashboard/InsightsCards'
 import { ComparativeTable } from '@/components/dashboard/ComparativeTable'
@@ -47,6 +47,7 @@ interface Props {
   simulacao: OrcamentoSimulacao
   filterInicio: { ano: number; mes: number }
   filterFim: { ano: number; mes: number }
+  relatorioRows?: RelatorioCategoriaAno[]
   hideInsights?: boolean
   hideTable?: boolean
 }
@@ -54,6 +55,7 @@ interface Props {
 // ─── Main Component ────────────────────────────────────────────────────────────
 export function DashboardCharts({ 
   categorias, orcamentos, realizados, simulacao, filterInicio, filterFim,
+  relatorioRows,
   hideInsights = false,
   hideTable = false
 }: Props) {
@@ -75,7 +77,12 @@ export function DashboardCharts({
       guard++
     }
 
-    return cols.map(({ mes, ano }) => {
+    let acc_prev_rec = 0
+    let acc_prev_des = 0
+    let acc_real_rec = 0
+    let acc_real_des = 0
+
+    const data = cols.map(({ mes, ano }) => {
       const label = `${NOMES_MESES[mes - 1]}/${String(ano).slice(-2)}`
 
       const prev_rec = orcamentos.filter(o => o.mes === mes && o.ano === ano && leafIds.has(o.categoria_id) && catTypeMap.get(o.categoria_id) === 'RECEITA').reduce((s, o) => s + Number(o.valor_previsto), 0)
@@ -83,23 +90,34 @@ export function DashboardCharts({
       const real_rec = realizados.filter(r => r.mes === mes && r.ano === ano && leafIds.has(r.categoria_id) && catTypeMap.get(r.categoria_id) === 'RECEITA').reduce((s, r) => s + Number(r.valor_realizado), 0)
       const real_des = realizados.filter(r => r.mes === mes && r.ano === ano && leafIds.has(r.categoria_id) && catTypeMap.get(r.categoria_id) === 'DESPESA').reduce((s, r) => s + Number(r.valor_realizado), 0)
 
+      acc_prev_rec += prev_rec
+      acc_prev_des += prev_des
+      acc_real_rec += real_rec
+      acc_real_des += real_des
+
+      const isCumulative = !!relatorioRows
+
       return {
         name: label,
-        'Rec. Prevista': prev_rec,
-        'Rec. Realizada': real_rec,
-        'Des. Prevista': prev_des,
-        'Des. Realizada': real_des,
-        'Resultado Prev.': prev_rec - prev_des,
-        'Resultado Real.': real_rec - real_des,
+        'Rec. Prevista': isCumulative ? acc_prev_rec : prev_rec,
+        'Rec. Realizada': isCumulative ? acc_real_rec : real_rec,
+        'Des. Prevista': isCumulative ? acc_prev_des : prev_des,
+        'Des. Realizada': isCumulative ? acc_real_des : real_des,
+        'Resultado Prev.': isCumulative ? acc_prev_rec - acc_prev_des : prev_rec - prev_des,
+        'Resultado Real.': isCumulative ? acc_real_rec - acc_real_des : real_rec - real_des,
+        // Mantemos os valores brutos para totais se necessário
+        _raw: { prev_rec, prev_des, real_rec, real_des }
       }
     })
-  }, [orcamentos, realizados, catTypeMap, filterInicio, filterFim])
 
-  // KPI totals
-  const totRecPrev = chartData.reduce((s, d) => s + d['Rec. Prevista'], 0)
-  const totRecReal = chartData.reduce((s, d) => s + d['Rec. Realizada'], 0)
-  const totDesPrev = chartData.reduce((s, d) => s + d['Des. Prevista'], 0)
-  const totDesReal = chartData.reduce((s, d) => s + d['Des. Realizada'], 0)
+    return data
+  }, [orcamentos, realizados, catTypeMap, filterInicio, filterFim, relatorioRows])
+
+  // KPI totals - calculate from raw values to be consistent regardless of chart mode
+  const totRecPrev = chartData.reduce((s, d) => s + (d._raw?.prev_rec ?? 0), 0)
+  const totRecReal = chartData.reduce((s, d) => s + (d._raw?.real_rec ?? 0), 0)
+  const totDesPrev = chartData.reduce((s, d) => s + (d._raw?.prev_des ?? 0), 0)
+  const totDesReal = chartData.reduce((s, d) => s + (d._raw?.real_des ?? 0), 0)
   const resPrev = totRecPrev - totDesPrev
   const resReal = totRecReal - totDesReal
   const execucaoPct = totDesPrev > 0 ? (totDesReal / totDesPrev) * 100 : 0
@@ -210,16 +228,21 @@ export function DashboardCharts({
       </ChartCard>
 
       {/* ── Sec 3: Alertas Top 5 ────────────────────────────────────────────── */}
-      {!hideInsights && <InsightsCards categorias={categorias} orcamentos={orcamentos} realizados={realizados} />}
+      {!hideInsights && (
+        <InsightsCards 
+          categorias={categorias} 
+          orcamentos={orcamentos} 
+          realizados={realizados} 
+          relatorioRows={relatorioRows} 
+        />
+      )}
 
       {/* ── Sec 4: Tabela Comparativa ────────────────────────────────────────── */}
       {!hideTable && (
         <ComparativeTable
-          categorias={categorias}
-          orcamentos={orcamentos}
-          realizados={realizados}
-          filterInicio={filterInicio}
-          filterFim={filterFim}
+          rows={relatorioRows || []}
+          mesAlvo={filterFim.mes}
+          anoAlvo={filterFim.ano}
         />
       )}
 

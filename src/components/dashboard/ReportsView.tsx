@@ -1,29 +1,25 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { FileText, Printer, ChevronDown, Boxes, LayoutDashboard } from 'lucide-react'
-import { Categoria, OrcamentoPrevisto, DadosRealizados, OrcamentoSimulacao, CentroCusto } from '@/types'
+import { FileText, Printer, ChevronDown, LayoutDashboard } from 'lucide-react'
+import { Categoria, OrcamentoPrevisto, DadosRealizados, OrcamentoSimulacao, CentroCusto, RelatorioCategoriaAno } from '@/types'
 import { DashboardCharts } from '@/components/budget/DashboardCharts'
 import { ComparativeTable } from '@/components/dashboard/ComparativeTable'
 import { SimulationSelector } from '@/components/budget/SimulationSelector'
 import { PeriodSelector } from '@/components/budget/PeriodSelector'
-import { clsx } from 'clsx'
-import { twMerge } from 'tailwind-merge'
-
-function cn(...inputs: (string | undefined | null | false)[]) {
-  return twMerge(clsx(inputs))
-}
+import { useRouter, useSearchParams } from 'next/navigation'
 
 interface ReportsViewProps {
   categorias: Categoria[]
-  orcamentos: OrcamentoPrevisto[]
-  realizados: DadosRealizados[]
+  orcamentos: OrcamentoPrevisto[]     // already filtered by period + CC
+  realizados: DadosRealizados[]       // already filtered by period + CC
   simulacoes: OrcamentoSimulacao[]
   centrosCusto: CentroCusto[]
   activeSim: OrcamentoSimulacao | undefined
   filterInicio: { ano: number; mes: number }
   filterFim: { ano: number; mes: number }
   dataRange: any
+  selectedCCId: string
+  relatorioRows: RelatorioCategoriaAno[]
 }
 
 export function ReportsView({
@@ -36,48 +32,33 @@ export function ReportsView({
   filterInicio,
   filterFim,
   dataRange,
+  selectedCCId,
+  relatorioRows,
 }: ReportsViewProps) {
-  const [selectedCCId, setSelectedCCId] = useState<string>('all')
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
-  const selectedCC = useMemo(() => 
-    centrosCusto.find(cc => cc.id === selectedCCId),
-    [centrosCusto, selectedCCId]
-  )
-
-  const { filteredOrcamentos, filteredRealizados } = useMemo(() => {
-    const startKey = filterInicio.ano * 100 + filterInicio.mes
-    const endKey = filterFim.ano * 100 + filterFim.mes
-
-    // 1. Time filter
-    let oFil = orcamentos.filter(o => {
-      const k = o.ano * 100 + o.mes
-      return k >= startKey && k <= endKey
-    })
-    let rFil = realizados.filter(r => {
-      const k = r.ano * 100 + r.mes
-      return k >= startKey && k <= endKey
-    })
-
-    // 2. Cost Center filter
-    if (selectedCC && selectedCCId !== 'all') {
-      const ccCatIds = new Set(selectedCC.categoria_ids)
-      oFil = oFil.filter(o => ccCatIds.has(o.categoria_id))
-      rFil = rFil.filter(r => ccCatIds.has(r.categoria_id))
+  const handleCCChange = (ccId: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (ccId === 'all') {
+      params.delete('cc')
+    } else {
+      params.set('cc', ccId)
     }
-
-    return { filteredOrcamentos: oFil, filteredRealizados: rFil }
-  }, [orcamentos, realizados, filterInicio, filterFim, selectedCC, selectedCCId])
+    router.push(`/relatorios?${params.toString()}`)
+  }
 
   const handlePrint = () => {
     window.print()
   }
 
+  const selectedCC = centrosCusto.find(cc => cc.id === selectedCCId)
   const selectedInicioStr = `${filterInicio.ano}-${String(filterInicio.mes).padStart(2, '0')}`
   const selectedFimStr = `${filterFim.ano}-${String(filterFim.mes).padStart(2, '0')}`
 
   return (
     <div className="flex flex-col gap-6">
-      
+
       {/* ── Header & Toolbar (No Print) ────────────────────────────────────────── */}
       <div className="no-print flex flex-col gap-4">
         <div className="flex justify-between items-end">
@@ -86,7 +67,7 @@ export function ReportsView({
             <p className="text-neutral-400">Geração de relatórios financeiros consolidados e por centro de custo.</p>
           </div>
           <div className="flex gap-3">
-             <button
+            <button
               onClick={handlePrint}
               className="flex items-center gap-2 px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-all shadow-lg shadow-emerald-500/20"
             >
@@ -101,13 +82,13 @@ export function ReportsView({
             <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider ml-1">Simulação</label>
             <SimulationSelector simulacoes={simulacoes} selectedId={activeSim?.id} targetPath="/relatorios" />
           </div>
-          
+
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider ml-1">Centro de Custo</label>
             <div className="relative group">
               <select
                 value={selectedCCId}
-                onChange={(e) => setSelectedCCId(e.target.value)}
+                onChange={(e) => handleCCChange(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer hover:bg-white/10"
               >
                 <option value="all" className="bg-neutral-900">Todos os Lançamentos</option>
@@ -129,6 +110,7 @@ export function ReportsView({
                 selectedFim={selectedFimStr}
                 simulacaoId={activeSim?.id}
                 targetPath="/relatorios"
+                selectedCC={selectedCCId}
               />
             )}
           </div>
@@ -137,7 +119,7 @@ export function ReportsView({
 
       {/* ── Report Content (Print Ready) ────────────────────────────────────────── */}
       <div className="flex flex-col gap-8 print:gap-12">
-        
+
         {/* Print Header (Visible only on PDF) */}
         <div className="hidden print:flex justify-between items-start border-b-2 border-neutral-900 pb-6 mb-4">
           <div>
@@ -161,17 +143,18 @@ export function ReportsView({
 
         {/* 1. Statistics (KPI Cards) & Charts */}
         <div className="break-inside-avoid">
-           {activeSim && (
-             <DashboardCharts
-                categorias={categorias}
-                orcamentos={filteredOrcamentos}
-                realizados={filteredRealizados}
-                simulacao={activeSim}
-                filterInicio={filterInicio}
-                filterFim={filterFim}
-                hideTable={true} // We render the table separately for better control
-             />
-           )}
+          {activeSim && (
+            <DashboardCharts
+              categorias={categorias}
+              orcamentos={orcamentos}
+              realizados={realizados}
+              simulacao={activeSim}
+              filterInicio={{ ano: filterFim.ano, mes: 1 }}
+              filterFim={filterFim}
+              relatorioRows={relatorioRows}
+              hideTable={true}
+            />
+          )}
         </div>
 
         {/* 2. Analytical Matrix (Table) */}
@@ -181,11 +164,9 @@ export function ReportsView({
             Matriz Analítica Detalhada
           </h3>
           <ComparativeTable
-            categorias={categorias}
-            orcamentos={filteredOrcamentos}
-            realizados={filteredRealizados}
-            filterInicio={filterInicio}
-            filterFim={filterFim}
+            rows={relatorioRows}
+            mesAlvo={filterFim.mes}
+            anoAlvo={filterFim.ano}
           />
         </div>
       </div>

@@ -2,6 +2,7 @@ import { getCategoriasTree } from '@/actions/categorias'
 import { getSimulacoes, getOrcamentosPorSimulacao } from '@/actions/orcamento'
 import { getTodosRealizados } from '@/actions/realizado'
 import { getCentrosCusto } from '@/actions/centrosCusto'
+import { getRelatorioAnual } from '@/actions/relatorios'
 import { ReportsView } from '@/components/dashboard/ReportsView'
 import { OrcamentoPrevisto, DadosRealizados } from '@/types'
 
@@ -38,7 +39,7 @@ function calcDataRange(
 export default async function ReportsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ simulacao?: string; inicio?: string; fim?: string }>
+  searchParams: Promise<{ simulacao?: string; inicio?: string; fim?: string; cc?: string }>
 }) {
   const params = await searchParams
 
@@ -51,6 +52,7 @@ export default async function ReportsPage({
 
   const selectedSimId = params.simulacao || simulacoes[0]?.id
   const activeSim = simulacoes.find(s => s.id === selectedSimId) ?? simulacoes[0]
+  const selectedCCId = params.cc || 'all'
 
   let orcamentos: OrcamentoPrevisto[] = []
   if (activeSim) {
@@ -64,18 +66,47 @@ export default async function ReportsPage({
   const filterInicio = parsePeriod(params.inicio, defaultInicio)
   const filterFim    = parsePeriod(params.fim,    defaultFim)
 
+  // Compute report rows server-side (mesAlvo = filterFim)
+  const relatorioRows = activeSim
+    ? await getRelatorioAnual(
+        activeSim.id,
+        filterFim.ano,
+        filterFim.mes,
+        selectedCCId !== 'all' ? selectedCCId : undefined,
+      )
+    : []
+
+  // Filter orcamentos/realizados for DashboardCharts (period + CC)
+  const selectedCC = centrosCusto.find(cc => cc.id === selectedCCId)
+  const ccCatIds = selectedCC ? new Set(selectedCC.categoria_ids ?? []) : null
+
+  // In Reports, "Acumulado" starts from January of the end-date's year
+  const startKeyYTD = filterFim.ano * 100 + 1
+  const endKeyYTD   = filterFim.ano * 100 + filterFim.mes
+  
+  const filteredOrcamentos = orcamentos.filter(o => {
+    const k = o.ano * 100 + o.mes
+    return k >= startKeyYTD && k <= endKeyYTD && (ccCatIds === null || ccCatIds.has(o.categoria_id))
+  })
+  const filteredRealizados = todosRealizados.filter(r => {
+    const k = r.ano * 100 + r.mes
+    return k >= startKeyYTD && k <= endKeyYTD && (ccCatIds === null || ccCatIds.has(r.categoria_id))
+  })
+
   return (
     <div className="flex flex-col min-h-screen">
       <ReportsView
         categorias={categorias}
-        orcamentos={orcamentos}
-        realizados={todosRealizados}
+        orcamentos={filteredOrcamentos}
+        realizados={filteredRealizados}
         simulacoes={simulacoes}
         centrosCusto={centrosCusto}
         activeSim={activeSim}
         filterInicio={filterInicio}
         filterFim={filterFim}
         dataRange={dataRange}
+        selectedCCId={selectedCCId}
+        relatorioRows={relatorioRows}
       />
     </div>
   )

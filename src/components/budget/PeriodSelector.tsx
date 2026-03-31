@@ -29,6 +29,7 @@ export function PeriodSelector({
   selectedFim,
   simulacaoId,
   targetPath = '/dashboard',
+  selectedCC,
 }: {
   dataInicio: { ano: number; mes: number }
   dataFim: { ano: number; mes: number }
@@ -36,6 +37,7 @@ export function PeriodSelector({
   selectedFim: string
   simulacaoId?: string
   targetPath?: string
+  selectedCC?: string
 }) {
   const meses = gerarMeses(dataInicio, dataFim)
   if (meses.length === 0) return null
@@ -43,6 +45,7 @@ export function PeriodSelector({
   return (
     <Form action={targetPath} className="flex items-center gap-2">
       {simulacaoId && <input type="hidden" name="simulacao" value={simulacaoId} />}
+      {selectedCC && selectedCC !== 'all' && <input type="hidden" name="cc" value={selectedCC} />}
       <span className="text-sm text-neutral-400 whitespace-nowrap">De:</span>
       <select
         name="inicio"
