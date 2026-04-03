@@ -42,16 +42,18 @@ export function ComparativeTable({
   rows,
   mesAlvo,
   anoAlvo,
+  inicio,
 }: {
   rows: RelatorioCategoriaAno[]
   mesAlvo: number
   anoAlvo: number
+  inicio?: { ano: number; mes: number }
 }) {
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [view, setView] = useState<ViewMode>('acumulado')
 
   const toggle = (id: string) =>
-    setCollapsed(prev => {
+    setExpanded(prev => {
       const next = new Set(prev)
       next.has(id) ? next.delete(id) : next.add(id)
       return next
@@ -68,7 +70,7 @@ export function ComparativeTable({
     if (skipAboveDepth.length > 0) continue
 
     visibleRows.push(row)
-    if (collapsed.has(row.categoriaId) && row.hasChildren) {
+    if (!expanded.has(row.categoriaId) && row.hasChildren) {
       skipAboveDepth.push(row.depth)
     }
   }
@@ -109,7 +111,11 @@ export function ComparativeTable({
           <h3 className="text-base font-semibold text-white">Matriz Analítica</h3>
           <p className="text-xs text-neutral-500 mt-0.5">
             Mês de referência: <span className="text-neutral-300 font-medium">{mesLabel}</span>
-            {view === 'acumulado' && <> · YTD: Janeiro até {mesLabel}</>}
+            {view === 'acumulado' && (() => {
+            const ini = inicio ?? { ano: anoAlvo, mes: 1 }
+            const iniLabel = `${NOMES_MESES[ini.mes - 1]}/${ini.ano}`
+            return <> · Acumulado: {iniLabel} até {mesLabel}</>
+          })()}
           </p>
         </div>
 
@@ -184,7 +190,7 @@ export function ComparativeTable({
 
           <tbody className="divide-y divide-white/5">
             {visibleRows.map(row => {
-              const isCollapsed = collapsed.has(row.categoriaId)
+              const isExpanded = expanded.has(row.categoriaId)
               const colorClass = saldoColorClass(row.statusSemaforoAno)
               const bgClass = saldoBgClass(row.statusSemaforoAno)
               const pct = row.orcamentoAnualTotal !== 0
@@ -201,9 +207,9 @@ export function ComparativeTable({
                         className={`p-0.5 rounded text-neutral-600 w-5 shrink-0 ${row.hasChildren ? 'hover:text-white cursor-pointer' : 'cursor-default'}`}
                       >
                         {row.hasChildren
-                          ? isCollapsed
-                            ? <ChevronRight size={14} />
-                            : <ChevronDown size={14} />
+                          ? expanded.has(row.categoriaId)
+                            ? <ChevronDown size={14} />
+                            : <ChevronRight size={14} />
                           : <span className="w-3.5 h-3.5 block" />}
                       </button>
                       <span className="font-mono text-xs text-neutral-500 w-12 shrink-0">{row.codigoReduzido}</span>

@@ -73,6 +73,7 @@ export function CostCenterView({
               <tr className="border-b border-white/10">
                 <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Nome</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Descrição</th>
+                <th className="text-right px-5 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Saldo Inicial</th>
                 <th className="text-right px-5 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Categorias</th>
                 <th className="px-5 py-3 w-28" />
               </tr>
@@ -82,6 +83,9 @@ export function CostCenterView({
                 <tr key={centro.id} className="group hover:bg-white/5 transition-colors">
                   <td className="px-5 py-3.5 font-medium text-neutral-200">{centro.nome}</td>
                   <td className="px-5 py-3.5 text-neutral-400">{centro.descricao ?? <span className="italic text-neutral-600">—</span>}</td>
+                  <td className="px-5 py-3.5 text-right font-mono text-emerald-400 text-sm">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(centro.saldo_inicial ?? 0)}
+                  </td>
                   <td className="px-5 py-3.5 text-right">
                     <button
                       onClick={() => setModal({ type: 'categories', centro })}
@@ -173,12 +177,15 @@ function CostCenterFormModal({
   modal: Extract<ModalState, { type: 'create' | 'edit' }>
   isPending: boolean
   onClose: () => void
-  onSubmit: (data: { nome: string; descricao: string | null }) => void
+  onSubmit: (data: { nome: string; descricao: string | null; saldo_inicial: number }) => void
 }) {
   const isEdit = modal.type === 'edit'
   const initial = isEdit ? modal.centro : null
   const [nome, setNome] = useState(initial?.nome ?? '')
   const [descricao, setDescricao] = useState(initial?.descricao ?? '')
+  const [saldoInicial, setSaldoInicial] = useState(
+    String(initial?.saldo_inicial ?? 0)
+  )
 
   return (
     <Overlay onClose={onClose}>
@@ -207,6 +214,20 @@ function CostCenterFormModal({
               className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-neutral-400 mb-1.5">
+              Saldo Inicial <span className="text-neutral-600">(R$)</span>
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              value={saldoInicial}
+              onChange={e => setSaldoInicial(e.target.value)}
+              placeholder="0.00"
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+            />
+            <p className="text-xs text-neutral-600 mt-1">Valor financeiro disponível no início do período deste centro de custo.</p>
+          </div>
         </div>
 
         <div className="flex justify-end gap-2 mt-6">
@@ -214,7 +235,11 @@ function CostCenterFormModal({
             Cancelar
           </button>
           <button
-            onClick={() => onSubmit({ nome, descricao: descricao || null })}
+            onClick={() => onSubmit({
+              nome,
+              descricao: descricao || null,
+              saldo_inicial: parseFloat(saldoInicial) || 0,
+            })}
             disabled={isPending || !nome.trim()}
             className="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
           >
@@ -316,7 +341,7 @@ function CategoryCheckNode({
   selected: Set<string>
   onToggle: (node: Categoria) => void
 }) {
-  const [isExpanded, setIsExpanded] = useState(depth < 2)
+  const [isExpanded, setIsExpanded] = useState(false)
   const hasChildren = node.children && node.children.length > 0
   const isChecked = selected.has(node.id)
 

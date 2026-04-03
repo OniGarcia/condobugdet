@@ -48,6 +48,7 @@ export interface CentroCusto {
   id: string;
   nome: string;
   descricao: string | null;
+  saldo_inicial: number;
   created_at: string;
   updated_at: string;
   // client-side: populated when fetching with associated categories
@@ -73,3 +74,70 @@ export interface RelatorioCategoriaAno {
   hasChildren: boolean
   parentId: string | null
 }
+
+// ─── Gestão Financeira por Centro de Custo ─────────────────────────────────────
+
+export interface GestaoCCCategoria {
+  categoriaId: string
+  categoriaNome: string
+  codigoReduzido: string
+  tipo: CategoriaTipo
+  valor: number      // realizado
+  previsto: number   // orçamento previsto do período
+}
+
+/** Resumo financeiro de um único mês do extrato de caixa */
+export interface GestaoCCMes {
+  ano: number
+  mes: number
+  saldoInicial: number
+  entradas: number
+  saidas: number
+  entradasPrevisto: number
+  saidasPrevisto: number
+  resultado: number
+  resultadoPrevisto: number
+  saldoFinal: number
+  categorias: GestaoCCCategoria[]
+}
+
+export interface GestaoCCMatrizCategoria {
+  categoriaId: string
+  categoriaNome: string
+  codigoReduzido: string
+  tipo: CategoriaTipo
+  previsto: number
+  realizado: number
+  variacao: number   // realizado - previsto (receita) ou previsto - realizado (despesa)
+  pct: number | null // realizado / previsto * 100
+  orcamentoAnualTotal: number
+  saldoDisponivelAno: number
+  statusSemaforoAno: StatusSemaforo
+  // hierarchy
+  depth: number
+  hasChildren: boolean
+  parentId: string | null
+}
+
+export interface GestaoCCResult {
+  centroCustoId: string
+  centroCustoNome: string
+  saldoInicial: number
+  totalEntradas: number
+  totalEntradasPrevisto: number
+  totalSaidas: number
+  totalSaidasPrevisto: number
+  resultado: number
+  resultadoPrevisto: number
+  saldoFinal: number
+  meses: GestaoCCMes[]
+  matriz: GestaoCCMatrizCategoria[]   // visão previsto vs realizado por categoria
+  periodo: {
+    anoInicio: number
+    mesInicio: number
+    anoFim: number
+    mesFim: number
+  }
+  temSimulacao: boolean
+}
+

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Read(//c/Users/jonatas.garcia/OneDrive/**)",
+      "Read(//c/Users/jonatas.garcia/AppData/Local/Temp/claude/c--Users-jonatas-garcia-OneDrive---Conjel-Contabilidade-e-Controladoria-Ss-Ltda-Documents-APP-ORCAMENTO-CONDOMINIO/9504747b-00cd-4d07-b0e8-9245f3206102/tasks/**)",
+      "Bash(npx next:*)"
+    ]
+  }
+}

@@ -77,13 +77,17 @@ export function ReportsView({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-xl">
-          <div className="space-y-1.5">
+        <div className="flex flex-col lg:flex-row items-end gap-4 bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-xl">
+          {/* Simulação */}
+          <div className="flex-[2] min-w-0 w-full space-y-1.5">
             <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider ml-1">Simulação</label>
-            <SimulationSelector simulacoes={simulacoes} selectedId={activeSim?.id} targetPath="/relatorios" />
+            <div className="relative">
+              <SimulationSelector simulacoes={simulacoes} selectedId={activeSim?.id} targetPath="/relatorios" />
+            </div>
           </div>
 
-          <div className="space-y-1.5">
+          {/* Centro de Custo */}
+          <div className="flex-1 min-w-0 w-full space-y-1.5">
             <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider ml-1">Centro de Custo</label>
             <div className="relative group">
               <select
@@ -100,18 +104,21 @@ export function ReportsView({
             </div>
           </div>
 
-          <div className="space-y-1.5">
+          {/* Período */}
+          <div className="flex-none w-full lg:w-auto space-y-1.5">
             <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider ml-1">Período</label>
             {dataRange && (
-              <PeriodSelector
-                dataInicio={dataRange.dataInicio}
-                dataFim={dataRange.dataFim}
-                selectedInicio={selectedInicioStr}
-                selectedFim={selectedFimStr}
-                simulacaoId={activeSim?.id}
-                targetPath="/relatorios"
-                selectedCC={selectedCCId}
-              />
+              <div className="flex items-center">
+                <PeriodSelector
+                  dataInicio={dataRange.dataInicio}
+                  dataFim={dataRange.dataFim}
+                  selectedInicio={selectedInicioStr}
+                  selectedFim={selectedFimStr}
+                  simulacaoId={activeSim?.id}
+                  targetPath="/relatorios"
+                  selectedCC={selectedCCId}
+                />
+              </div>
             )}
           </div>
         </div>
@@ -149,7 +156,7 @@ export function ReportsView({
               orcamentos={orcamentos}
               realizados={realizados}
               simulacao={activeSim}
-              filterInicio={{ ano: filterFim.ano, mes: 1 }}
+              filterInicio={filterInicio}
               filterFim={filterFim}
               relatorioRows={relatorioRows}
               hideTable={true}
@@ -167,6 +174,7 @@ export function ReportsView({
             rows={relatorioRows}
             mesAlvo={filterFim.mes}
             anoAlvo={filterFim.ano}
+            inicio={filterInicio}
           />
         </div>
       </div>

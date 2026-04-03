@@ -19,7 +19,7 @@ export function SimulationSelector({ simulacoes, selectedId, targetPath = '/orca
           router.push(`${targetPath}?${params.toString()}`)
         }
       }}
-      className="bg-white/5 border border-white/10 text-neutral-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer font-medium"
+      className="w-full bg-white/5 border border-white/10 text-neutral-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer font-medium"
       title="Escolha a Simulação"
     >
       {simulacoes.map(s => (

@@ -59,7 +59,21 @@ export default async function ReportsPage({
     orcamentos = await getOrcamentosPorSimulacao(activeSim.id)
   }
 
-  const dataRange = calcDataRange(orcamentos, todosRealizados)
+  const rawRange = calcDataRange(orcamentos, todosRealizados)
+  // Clamp to simulation bounds so PeriodSelector only shows valid months
+  const simStart = activeSim ? { ano: activeSim.ano_inicio, mes: activeSim.mes_inicio } : null
+  const simEnd   = activeSim ? { ano: activeSim.ano_fim,    mes: activeSim.mes_fim    } : null
+  const clampPeriod = (p: { ano: number; mes: number }, min: { ano: number; mes: number }, max: { ano: number; mes: number }) => {
+    const k = p.ano * 100 + p.mes
+    if (k < min.ano * 100 + min.mes) return min
+    if (k > max.ano * 100 + max.mes) return max
+    return p
+  }
+  const dataRange = rawRange && simStart && simEnd ? {
+    dataInicio: clampPeriod(rawRange.dataInicio, simStart, simEnd),
+    dataFim:    clampPeriod(rawRange.dataFim,    simStart, simEnd),
+  } : rawRange
+
   const defaultInicio = dataRange?.dataInicio ?? { ano: activeSim?.ano_inicio ?? 0, mes: activeSim?.mes_inicio ?? 1 }
   const defaultFim    = dataRange?.dataFim    ?? { ano: activeSim?.ano_fim    ?? 0, mes: activeSim?.mes_fim    ?? 12 }
 
@@ -73,6 +87,12 @@ export default async function ReportsPage({
         filterFim.ano,
         filterFim.mes,
         selectedCCId !== 'all' ? selectedCCId : undefined,
+        filterInicio.ano,
+        filterInicio.mes,
+        activeSim.ano_inicio,
+        activeSim.mes_inicio,
+        activeSim.ano_fim,
+        activeSim.mes_fim,
       )
     : []
 
@@ -80,17 +100,16 @@ export default async function ReportsPage({
   const selectedCC = centrosCusto.find(cc => cc.id === selectedCCId)
   const ccCatIds = selectedCC ? new Set(selectedCC.categoria_ids ?? []) : null
 
-  // In Reports, "Acumulado" starts from January of the end-date's year
-  const startKeyYTD = filterFim.ano * 100 + 1
-  const endKeyYTD   = filterFim.ano * 100 + filterFim.mes
-  
+  const startKey = filterInicio.ano * 100 + filterInicio.mes
+  const endKey   = filterFim.ano   * 100 + filterFim.mes
+
   const filteredOrcamentos = orcamentos.filter(o => {
     const k = o.ano * 100 + o.mes
-    return k >= startKeyYTD && k <= endKeyYTD && (ccCatIds === null || ccCatIds.has(o.categoria_id))
+    return k >= startKey && k <= endKey && (ccCatIds === null || ccCatIds.has(o.categoria_id))
   })
   const filteredRealizados = todosRealizados.filter(r => {
     const k = r.ano * 100 + r.mes
-    return k >= startKeyYTD && k <= endKeyYTD && (ccCatIds === null || ccCatIds.has(r.categoria_id))
+    return k >= startKey && k <= endKey && (ccCatIds === null || ccCatIds.has(r.categoria_id))
   })
 
   return (

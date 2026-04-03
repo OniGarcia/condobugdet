@@ -233,7 +233,7 @@ function CategoryNode({
   onAddChild: (c: Categoria) => void
   isPending: boolean
 }) {
-  const [isExpanded, setIsExpanded] = useState(depth < 2)
+  const [isExpanded, setIsExpanded] = useState(false)
   const hasChildren = node.children && node.children.length > 0
 
   return (

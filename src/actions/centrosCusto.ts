@@ -23,7 +23,7 @@ export async function getCentrosCusto(): Promise<CentroCusto[]> {
 
 // ─── Create ────────────────────────────────────────────────────────────────────
 
-export async function createCentroCusto(data: { nome: string; descricao: string | null }) {
+export async function createCentroCusto(data: { nome: string; descricao: string | null; saldo_inicial: number }) {
   const supabase = await createClient()
   const { data: created, error } = await supabase
     .from('centros_custo')
@@ -32,12 +32,13 @@ export async function createCentroCusto(data: { nome: string; descricao: string 
     .single()
   if (error) return { error: error.message }
   revalidatePath('/centros-custo')
+  revalidatePath('/gestao-cc')
   return { data: created as CentroCusto }
 }
 
 // ─── Update ────────────────────────────────────────────────────────────────────
 
-export async function updateCentroCusto(id: string, data: { nome: string; descricao: string | null }) {
+export async function updateCentroCusto(id: string, data: { nome: string; descricao: string | null; saldo_inicial: number }) {
   const supabase = await createClient()
   const { data: updated, error } = await supabase
     .from('centros_custo')
@@ -47,6 +48,7 @@ export async function updateCentroCusto(id: string, data: { nome: string; descri
     .single()
   if (error) return { error: error.message }
   revalidatePath('/centros-custo')
+  revalidatePath('/gestao-cc')
   return { data: updated as CentroCusto }
 }
 

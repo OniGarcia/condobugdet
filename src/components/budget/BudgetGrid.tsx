@@ -356,7 +356,7 @@ function BudgetRow({
   level?: number
 }) {
   const isParent = !!(categoria.children && categoria.children.length > 0)
-  const [isExpanded, setIsExpanded] = useState(level < 2)
+  const [isExpanded, setIsExpanded] = useState(false)
 
   const computeParentSum = (catId: string, ano: number, mes: number, cat: Categoria): number => {
     let sum = 0

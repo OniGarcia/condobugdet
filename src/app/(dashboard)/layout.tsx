@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
-import { LayoutDashboard, Wallet, Settings, FileText, Boxes } from 'lucide-react';
+import { LayoutDashboard, Wallet, Settings, FileText, Boxes, TrendingUp } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -69,6 +69,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           >
             <FileText className="w-4 h-4" />
             Relatórios
+          </Link>
+          <Link
+            href="/gestao-cc"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-neutral-400 hover:text-white hover:bg-white/5 transition-all outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+          >
+            <TrendingUp className="w-4 h-4" />
+            Gestão por CC
           </Link>
         </nav>
       </aside>
