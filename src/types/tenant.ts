@@ -1,4 +1,4 @@
-export type MemberRole = 'admin' | 'editor' | 'viewer'
+export type MemberRole = 'admin' | 'gestor' | 'visualizador'
 
 export interface Condo {
   id: string

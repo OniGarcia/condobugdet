@@ -7,10 +7,10 @@ import type { MemberRole } from '@/types/tenant'
  * Valida que o usuário autenticado tem acesso ao condo_id do cookie.
  * Masters (is_master=true) sempre passam com role efetivo de 'admin'.
  *
- * @param requiredRole - Nível mínimo de permissão necessário. Padrão: 'viewer'.
+ * @param requiredRole - Nível mínimo de permissão necessário. Padrão: 'visualizador'.
  * @returns condo_id validado e role do usuário.
  */
-export async function validateAccess(requiredRole: MemberRole = 'viewer'): Promise<{
+export async function validateAccess(requiredRole: MemberRole = 'visualizador'): Promise<{
   condoId: string
   role: MemberRole
   userId: string
@@ -53,8 +53,8 @@ export async function validateAccess(requiredRole: MemberRole = 'viewer'): Promi
   }
 
   const roleHierarchy: Record<MemberRole, number> = {
-    viewer: 0,
-    editor: 1,
+    visualizador: 0,
+    gestor: 1,
     admin: 2,
   }
 

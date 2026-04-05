@@ -10,7 +10,7 @@ export default async function CentrosCustoPage() {
     getCentrosCusto(),
     getCategoriasFlat(),
     getCategoriasTree(),
-    validateAccess('viewer'),
+    validateAccess('visualizador'),
   ])
 
   return (

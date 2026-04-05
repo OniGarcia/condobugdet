@@ -8,7 +8,7 @@ export default async function CategoriasPage() {
   const [categorias, allFlat, { role }] = await Promise.all([
     getCategoriasTree(),
     getCategoriasFlat(),
-    validateAccess('viewer'),
+    validateAccess('visualizador'),
   ])
 
   return (

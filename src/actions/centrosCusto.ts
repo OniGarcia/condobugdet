@@ -27,7 +27,7 @@ export async function getCentrosCusto(): Promise<CentroCusto[]> {
 // ─── Create ────────────────────────────────────────────────────────────────────
 
 export async function createCentroCusto(data: { nome: string; descricao: string | null; saldo_inicial: number }) {
-  const { condoId } = await validateAccess('editor')
+  const { condoId } = await validateAccess('gestor')
   const supabase = await createClient()
   const { data: created, error } = await supabase
     .from('centros_custo')
@@ -43,7 +43,7 @@ export async function createCentroCusto(data: { nome: string; descricao: string 
 // ─── Update ────────────────────────────────────────────────────────────────────
 
 export async function updateCentroCusto(id: string, data: { nome: string; descricao: string | null; saldo_inicial: number }) {
-  const { condoId } = await validateAccess('editor')
+  const { condoId } = await validateAccess('gestor')
   const supabase = await createClient()
   const { data: updated, error } = await supabase
     .from('centros_custo')
@@ -77,7 +77,7 @@ export async function deleteCentroCusto(id: string) {
  * Deletes existing rows and inserts the new set atomically.
  */
 export async function setCentroCategories(centroCustoId: string, categoriaIds: string[]) {
-  const { condoId } = await validateAccess('editor')
+  const { condoId } = await validateAccess('gestor')
   const supabase = await createClient()
 
   // Garantir que o centro de custo pertence ao condo do usuário

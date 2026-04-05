@@ -110,12 +110,16 @@ export default function SidebarClient({
         <NavLink href="/realizado" icon={Wallet}>Fluxo Realizado</NavLink>
         
         {/* CONFIGURAÇÕES */}
-        <SectionHeader id="config" label="Configurações" />
-        {expanded.config && (
-          <div className="ml-2 pl-2 border-l border-neutral-200 dark:border-white/5 space-y-1 mt-1">
-            <NavLink href="/categorias" icon={Settings}>Plano de Contas</NavLink>
-            <NavLink href="/centros-custo" icon={Boxes}>Centros de Custo</NavLink>
-          </div>
+        {(currentCondo?.role === 'admin' || currentCondo?.role === 'gestor') && (
+          <>
+            <SectionHeader id="config" label="Configurações" />
+            {expanded.config && (
+              <div className="ml-2 pl-2 border-l border-neutral-200 dark:border-white/5 space-y-1 mt-1">
+                <NavLink href="/categorias" icon={Settings}>Plano de Contas</NavLink>
+                <NavLink href="/centros-custo" icon={Boxes}>Centros de Custo</NavLink>
+              </div>
+            )}
+          </>
         )}
 
         {/* ADMINISTRAÇÃO */}

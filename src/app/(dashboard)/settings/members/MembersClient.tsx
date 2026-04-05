@@ -8,7 +8,7 @@ import type { MemberRole } from '@/types/tenant'
 function InviteButton() {
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState('')
-  const [role, setRole] = useState<MemberRole>('viewer')
+  const [role, setRole] = useState<MemberRole>('visualizador')
   const [tempPassword, setTempPassword] = useState('Mudar@123')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -28,7 +28,7 @@ function InviteButton() {
         password: result?.tempPassword,
       })
       setEmail('')
-      setRole('viewer')
+      setRole('visualizador')
       setTempPassword('Mudar@123')
     }
   }
@@ -96,9 +96,9 @@ function InviteButton() {
                   onChange={(e) => setRole(e.target.value as MemberRole)}
                   className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
                 >
-                  <option value="viewer">Visualizador — Somente leitura</option>
-                  <option value="editor">Editor — Edita orçamentos e realizado</option>
-                  <option value="admin">Admin — Controle total + convites</option>
+                  <option value="visualizador">Visualizador — Somente leitura</option>
+                  <option value="gestor">Gestor — Edita orçamentos e realizado</option>
+                  <option value="admin">Super Admin — Controle total + convites</option>
                 </select>
               </div>
               <div>
@@ -161,9 +161,9 @@ function MemberActions({ membershipId, currentRole }: { membershipId: string; cu
         disabled={loading}
         className="px-2 py-1.5 rounded-lg bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-xs text-neutral-700 dark:text-neutral-300 outline-none focus:ring-1 focus:ring-sky-500 disabled:opacity-50"
       >
-        <option value="viewer">Viewer</option>
-        <option value="editor">Editor</option>
-        <option value="admin">Admin</option>
+        <option value="visualizador">Visualizador</option>
+        <option value="gestor">Gestor</option>
+        <option value="admin">Super Admin</option>
       </select>
       <button
         onClick={handleRemove}

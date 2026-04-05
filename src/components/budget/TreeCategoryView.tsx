@@ -31,8 +31,8 @@ type ModalState =
   | { type: 'delete-transfer'; categoria: Categoria; vinculos: { orcamentos: number; realizados: number } }
 
 // ─── Main Component ────────────────────────────────────────────────────────────
-export function TreeCategoryView({ data, allFlat, role = 'viewer' }: { data: Categoria[]; allFlat: Categoria[]; role?: string }) {
-  const canEdit = role === 'admin' || role === 'editor'
+export function TreeCategoryView({ data, allFlat, role = 'visualizador' }: { data: Categoria[]; allFlat: Categoria[]; role?: string }) {
+  const canEdit = role === 'admin' || role === 'gestor'
   const [modal, setModal] = useState<ModalState>({ type: 'none' })
   const [isPending, startTransition] = useTransition()
   const [importResult, setImportResult] = useState<{ inserted: number; updated: number; errors?: string[] } | null>(null)

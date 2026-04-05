@@ -163,7 +163,7 @@ export async function getDadosRealizadosSimulacao(
 
 
 export async function bulkUpsertRealizados(ano: number, entries: { categoria_id: string, mes: number, valor_realizado: number }[]) {
-  const { condoId } = await validateAccess('editor')
+  const { condoId } = await validateAccess('gestor')
   const supabase = await createClient()
 
   const payload = entries.map(e => ({

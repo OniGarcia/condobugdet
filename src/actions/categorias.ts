@@ -38,7 +38,7 @@ export async function createCategoria(data: {
   tipo: CategoriaTipo
   parent_id?: string | null
 }) {
-  const { condoId } = await validateAccess('editor')
+  const { condoId } = await validateAccess('gestor')
   const supabase = await createClient()
   const { data: newCat, error } = await supabase
     .from('categorias')
@@ -51,7 +51,7 @@ export async function createCategoria(data: {
 }
 
 export async function updateCategoria(id: string, data: Partial<Omit<Categoria, 'id' | 'created_at' | 'updated_at'>>) {
-  const { condoId } = await validateAccess('editor')
+  const { condoId } = await validateAccess('gestor')
   const supabase = await createClient()
   const { data: updated, error } = await supabase
     .from('categorias')

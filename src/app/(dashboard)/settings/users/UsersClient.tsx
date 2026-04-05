@@ -14,15 +14,16 @@ import type { GlobalUser } from '@/actions/users_mgmt'
 import type { Condo, MemberRole } from '@/types/tenant'
 
 const roleLabels: Record<MemberRole, string> = {
-  admin: 'Admin',
-  editor: 'Editor',
-  viewer: 'Visualizador',
+  admin: 'Super Admin',
+  gestor: 'Gestor',
+  visualizador: 'Visualizador',
 }
 
 function CreateUserModal({ onClose }: { onClose: () => void }) {
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
+  const [isMaster, setIsMaster] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -31,7 +32,7 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    const result = await createUser({ email, nome, senha })
+    const result = await createUser({ email, nome, senha, is_master: isMaster })
     setLoading(false)
     if (result?.error) {
       setError(result.error)
@@ -104,6 +105,18 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
             />
           </div>
           <div>
+            <label className="block text-sm text-neutral-600 dark:text-neutral-400 mb-1.5">Nível de Acesso (Global)</label>
+            <select
+              value={isMaster ? 'admin' : 'user'}
+              onChange={(e) => setIsMaster(e.target.value === 'admin')}
+              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
+            >
+              <option value="user">Usuário Padrão</option>
+              <option value="admin">Super Admin (Acesso Total)</option>
+            </select>
+            <p className="text-xs text-neutral-500 mt-1">Super Admins gerenciam condomínios e todos os usuários do sistema.</p>
+          </div>
+          <div>
             <label className="block text-sm text-neutral-600 dark:text-neutral-400 mb-1.5">Senha inicial *</label>
             <input
               type="text"
@@ -149,7 +162,7 @@ function AssignCondoModal({
   onClose: () => void
 }) {
   const [condoId, setCondoId] = useState('')
-  const [role, setRole] = useState<MemberRole>('viewer')
+  const [role, setRole] = useState<MemberRole>('visualizador')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -208,9 +221,9 @@ function AssignCondoModal({
               onChange={(e) => setRole(e.target.value as MemberRole)}
               className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
             >
-              <option value="viewer">Visualizador</option>
-              <option value="editor">Editor</option>
-              <option value="admin">Admin</option>
+              <option value="visualizador">Visualizador</option>
+              <option value="gestor">Gestor</option>
+              <option value="admin">Super Admin</option>
             </select>
           </div>
           {error && <p className="text-sm text-red-400">{error}</p>}

@@ -28,7 +28,7 @@ export async function getSimulacoes(): Promise<OrcamentoSimulacao[]> {
 }
 
 export async function createSimulacao(nome: string, mesInicio: number, anoInicio: number, length: number = 12) {
-  const { condoId } = await validateAccess('editor')
+  const { condoId } = await validateAccess('gestor')
   const supabase = await createClient()
 
   // Calculate End Date
@@ -110,7 +110,7 @@ export async function getOrcamentosPorSimulacao(simulacao_id: string): Promise<O
  * Bulk Upsert entire budget grid for a simulation
  */
 export async function bulkUpsertOrcamentos(simulacao_id: string, entries: {categoria_id: string, mes: number, ano: number, valor_previsto: number}[]) {
-  const { condoId } = await validateAccess('editor')
+  const { condoId } = await validateAccess('gestor')
   const supabase = await createClient()
 
   // Inject simulacao_id into all entries
@@ -142,7 +142,7 @@ export async function bulkUpsertOrcamentos(simulacao_id: string, entries: {categ
  * Update only the name of a simulation
  */
 export async function updateSimulacaoNome(id: string, nome: string) {
-  const { condoId } = await validateAccess('editor')
+  const { condoId } = await validateAccess('gestor')
   const supabase = await createClient()
   const { error } = await supabase
     .from('orcamentos_simulacoes')
@@ -186,7 +186,7 @@ export async function deleteSimulacao(id: string) {
  * Clone a simulation: Copies metadata (start/end dates) and all budget values
  */
 export async function cloneSimulacao(id: string, novoNome: string) {
-  const { condoId } = await validateAccess('editor')
+  const { condoId } = await validateAccess('gestor')
   const supabase = await createClient()
 
   // 1. Fetch original metadata

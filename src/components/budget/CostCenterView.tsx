@@ -29,14 +29,14 @@ export function CostCenterView({
   data,
   allFlat,
   categoriaTree,
-  role = 'viewer',
+  role = 'visualizador',
 }: {
   data: CentroCusto[]
   allFlat: Categoria[]
   categoriaTree: Categoria[]
   role?: string
 }) {
-  const canEdit = role === 'admin' || role === 'editor'
+  const canEdit = role === 'admin' || role === 'gestor'
   const [modal, setModal] = useState<ModalState>({ type: 'none' })
   const [isPending, startTransition] = useTransition()
 

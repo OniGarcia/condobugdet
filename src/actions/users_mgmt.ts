@@ -134,7 +134,7 @@ export async function toggleUserMaster(userId: string, isMaster: boolean) {
   return { success: true }
 }
 
-export async function createUser(data: { email: string; nome: string; senha: string }) {
+export async function createUser(data: { email: string; nome: string; senha: string; is_master?: boolean }) {
   await validateMasterAccess()
   const adminClient = createAdminClient()
 
@@ -147,7 +147,7 @@ export async function createUser(data: { email: string; nome: string; senha: str
 
   await adminClient
     .from('profiles')
-    .upsert({ id: created.user.id, nome: data.nome.trim() }, { onConflict: 'id' })
+    .upsert({ id: created.user.id, nome: data.nome.trim(), is_master: data.is_master ?? false }, { onConflict: 'id' })
 
   revalidatePath('/settings/users')
   return { success: true }

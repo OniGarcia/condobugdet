@@ -3,9 +3,9 @@ import { getMembers } from '@/actions/members'
 import { InviteButton, MemberActions } from './MembersClient'
 
 const roleLabels: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  admin: { label: 'Admin', icon: Shield, color: 'text-sky-400' },
-  editor: { label: 'Editor', icon: Pencil, color: 'text-violet-400' },
-  viewer: { label: 'Visualizador', icon: Eye, color: 'text-neutral-600 dark:text-neutral-400' },
+  admin: { label: 'Super Admin', icon: Shield, color: 'text-sky-400' },
+  gestor: { label: 'Gestor', icon: Pencil, color: 'text-violet-400' },
+  visualizador: { label: 'Visualizador', icon: Eye, color: 'text-neutral-600 dark:text-neutral-400' },
 }
 
 export default async function MembersPage() {
@@ -36,7 +36,7 @@ export default async function MembersPage() {
         ) : (
           <ul className="divide-y divide-neutral-200 dark:divide-white/5">
             {members.map((m) => {
-              const roleInfo = roleLabels[m.role] ?? roleLabels.viewer
+              const roleInfo = roleLabels[m.role] ?? roleLabels.visualizador
               const RoleIcon = roleInfo.icon
               return (
                 <li key={m.id} className="flex items-center gap-4 px-6 py-4">

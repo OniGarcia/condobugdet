@@ -18,7 +18,7 @@ export default async function RealizadoPage({ searchParams }: { searchParams: Pr
   const [categorias, realizados, { role }] = await Promise.all([
     getCategoriasTree(),
     getDadosRealizadosAnual(selectedYear),
-    validateAccess('viewer'),
+    validateAccess('visualizador'),
   ]);
 
   return (
@@ -28,14 +28,14 @@ export default async function RealizadoPage({ searchParams }: { searchParams: Pr
           <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white mb-2">Fluxo de Caixa Realizado</h1>
           <p className="text-neutral-600 dark:text-neutral-400">Importe o Balancete Contábil ou preencha manualmente os lançamentos executados.</p>
         </div>
-        
+
         <div className="flex gap-3 items-center bg-white/60 dark:bg-white/5 p-1 rounded-xl border border-neutral-200 dark:border-white/10">
           <YearSelector years={availableYears} selectedYear={selectedYear} />
         </div>
       </div>
 
       {/* Main Realizado Data Grid Area */}
-      <RealizadoGrid categorias={categorias} realizados={realizados} ano={selectedYear} canEdit={role === 'admin' || role === 'editor'} />
+      <RealizadoGrid categorias={categorias} realizados={realizados} ano={selectedYear} canEdit={role === 'admin' || role === 'gestor'} />
     </div>
   )
 }

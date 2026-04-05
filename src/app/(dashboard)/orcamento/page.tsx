@@ -15,9 +15,9 @@ export default async function OrcamentoPage({ searchParams }: { searchParams: Pr
   const [categorias, simulacoes, { role }] = await Promise.all([
     getCategoriasTree(),
     getSimulacoes(),
-    validateAccess('viewer'),
+    validateAccess('visualizador'),
   ]);
-  const canEdit = role === 'admin' || role === 'editor'
+  const canEdit = role === 'admin' || role === 'gestor'
 
   const selectedSimId = params.simulacao || simulacoes[0]?.id
   const activeSim = simulacoes.find(s => s.id === selectedSimId)

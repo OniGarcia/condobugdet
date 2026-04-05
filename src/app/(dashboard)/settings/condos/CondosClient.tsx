@@ -7,9 +7,9 @@ import type { CondoWithMembers, MemberRole } from '@/types/tenant'
 import type { GlobalUser } from '@/actions/users_mgmt'
 
 const roleLabels: Record<MemberRole, string> = {
-  admin: 'Admin',
-  editor: 'Editor',
-  viewer: 'Visualizador',
+  admin: 'Super Admin',
+  gestor: 'Gestor',
+  visualizador: 'Visualizador',
 }
 
 interface MemberEntry {
@@ -34,8 +34,12 @@ function UserMembershipList({
     if (isSelected(userId)) {
       onChange(selected.filter((s) => s.userId !== userId))
     } else {
-      onChange([...selected, { userId, role: 'admin' }])
+      onChange([...selected, { userId, role: 'visualizador' }])
     }
+  }
+
+  function changeRole(userId: string, newRole: MemberRole) {
+    onChange(selected.map((s) => s.userId === userId ? { ...s, role: newRole } : s))
   }
 
   if (users.length === 0) {
@@ -63,6 +67,19 @@ function UserMembershipList({
               <p className="text-sm text-neutral-800 dark:text-neutral-100 truncate">{u.nome ?? u.email}</p>
               {u.nome && <p className="text-xs text-neutral-500 truncate">{u.email}</p>}
             </div>
+            {checked && (
+              <div onClick={(e) => e.stopPropagation()}>
+                <select
+                  value={selected.find((s) => s.userId === u.id)?.role}
+                  onChange={(e) => changeRole(u.id, e.target.value as MemberRole)}
+                  className="px-2 py-1 rounded-lg bg-white/60 dark:bg-white/5 border border-sky-200 dark:border-sky-500/20 text-xs text-sky-700 dark:text-sky-300 outline-none focus:ring-1 focus:ring-sky-500"
+                >
+                  <option value="visualizador">Visualizador</option>
+                  <option value="gestor">Gestor</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+            )}
           </li>
         )
       })}
