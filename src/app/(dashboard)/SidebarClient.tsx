@@ -31,7 +31,6 @@ export default function SidebarClient({
   // Estados dos menus colapsáveis (todos iniciam FECHADOS por padrão)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
     config: false,
-    analises: false,
     admin: false
   })
 
@@ -117,15 +116,6 @@ export default function SidebarClient({
           <div className="ml-2 pl-2 border-l border-neutral-200 dark:border-white/5 space-y-1 mt-1">
             <NavLink href="/categorias" icon={Settings}>Plano de Contas</NavLink>
             <NavLink href="/centros-custo" icon={Boxes}>Centros de Custo</NavLink>
-          </div>
-        )}
-
-        {/* ANÁLISES */}
-        <SectionHeader id="analises" label="Análises" />
-        {expanded.analises && (
-          <div className="ml-2 pl-2 border-l border-neutral-200 dark:border-white/5 space-y-1 mt-1">
-            {/* Relatórios removido conforme pedido */}
-            <NavLink href="/gestao-cc" icon={TrendingUp}>Gestão por CC</NavLink>
           </div>
         )}
 
