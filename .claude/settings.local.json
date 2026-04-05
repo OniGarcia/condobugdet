@@ -5,7 +5,8 @@
       "Bash(npm install:*)",
       "Bash(node -e \"const v = require\\('./node_modules/tailwindcss/package.json'\\); console.log\\(v.version\\)\")",
       "Bash(node -e \"const v = require\\('./node_modules/next-themes/package.json'\\); console.log\\(v.version\\)\")",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(npm run:*)"
     ]
   }
 }

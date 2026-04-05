@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import Image from 'next/image'
 import {
   LayoutDashboard, Wallet, Settings, FileText, Boxes,
   TrendingUp, LogOut, Building2, User, UserCog,
@@ -79,10 +80,8 @@ export default function SidebarClient({
   return (
     <aside className="w-64 border-r border-neutral-200 dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-xl flex flex-col fixed inset-y-0 left-0 z-50">
       {/* Header / Logo */}
-      <div className="p-6 flex items-center gap-3 border-b border-neutral-200 dark:border-white/10 shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-          <Wallet className="w-4 h-4 text-neutral-900 dark:text-white" />
-        </div>
+      <div className="px-3 py-2 flex items-center gap-1.5 border-b border-neutral-200 dark:border-white/10 shrink-0">
+        <Image src="/logo.png" alt="Logo" width={84} height={84} className="rounded-lg" />
         <h1 className="font-semibold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-neutral-800 to-neutral-500 dark:from-white dark:to-white/60">
           CondoBudget
         </h1>

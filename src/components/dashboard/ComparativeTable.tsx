@@ -213,7 +213,7 @@ export function ComparativeTable({
                           : <span className="w-3.5 h-3.5 block" />}
                       </button>
                       <span className="font-mono text-xs text-neutral-500 w-12 shrink-0">{row.codigoReduzido}</span>
-                      <span className={row.depth === 0 ? 'text-neutral-100 font-medium' : 'text-neutral-700 dark:text-neutral-300'}>
+                      <span className={row.depth === 0 ? 'text-neutral-800 dark:text-neutral-100 font-medium' : 'text-neutral-700 dark:text-neutral-300'}>
                         {row.categoriaNome}
                       </span>
                     </div>

@@ -260,10 +260,10 @@ export function RealizadoGrid({
         <table className="w-full text-left text-sm whitespace-nowrap">
           <thead className="sticky top-0 z-20 shadow-sm">
             <tr>
-              <th className="px-4 py-3 font-medium text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-[#121212] border-b border-neutral-200 dark:border-white/10 border-r sticky left-0 z-30 w-[400px]">
+              <th className="px-4 py-3 font-medium text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-[#121212] border-b border-neutral-200 dark:border-white/10 border-r sticky left-0 z-30 w-80">
                 Categoria
               </th>
-              <th className="px-4 py-3 font-medium text-indigo-400 bg-indigo-50 dark:bg-[#0d0d1e] border-b border-neutral-200 dark:border-white/10 border-r text-center w-28 backdrop-blur-xl sticky left-[400px] z-20">
+              <th className="px-4 py-3 font-medium text-indigo-400 bg-indigo-50 dark:bg-[#0d0d1e] border-b border-neutral-200 dark:border-white/10 border-r text-center w-28 backdrop-blur-xl sticky left-80 z-20">
                 Ações
               </th>
               {columns.map((m) => (
@@ -299,7 +299,7 @@ export function RealizadoGrid({
                   <span>RESULTADO (Receitas - Despesas)</span>
                 </div>
               </td>
-              <td className="px-4 py-4 text-center bg-indigo-50 dark:bg-[#0d0d1e] border-r border-neutral-200 dark:border-white/10 sticky left-[400px] z-10" />
+              <td className="px-4 py-4 text-center bg-indigo-50 dark:bg-[#0d0d1e] border-r border-neutral-200 dark:border-white/10 sticky left-80 z-10" />
               {columnResults.map((res, i) => (
                 <td key={`result-${i}`} suppressHydrationWarning className={`px-4 py-4 text-right font-mono border-r border-neutral-200 dark:border-white/10 ${res >= 0 ? 'text-indigo-400' : 'text-red-400'}`}>
                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(res)}
@@ -382,7 +382,7 @@ function RealizadoRow({
         </td>
 
         {/* Acoes: Now the very first column after Categoria */}
-        <td className="px-4 py-2 text-center bg-indigo-50 dark:bg-[#0d0d1e] border-r border-neutral-200 dark:border-white/10 sticky left-[400px] z-10 group-hover:bg-indigo-100 dark:group-hover:bg-[#11241c] transition-colors">
+        <td className="px-4 py-2 text-center bg-indigo-50 dark:bg-[#0d0d1e] border-r border-neutral-200 dark:border-white/10 sticky left-80 z-10 group-hover:bg-indigo-100 dark:group-hover:bg-[#11241c] transition-colors">
           {canEdit && !isParent && columns.length > 0 && (
             <button
               onClick={() => onReplicate(categoria.id, localState[`${categoria.id}_${columns[0].ano}_${columns[0].mes}`] || 0)}

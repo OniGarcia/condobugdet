@@ -48,15 +48,15 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
           <div className="space-y-3 text-sm mb-4">
             <div>
               <p className="text-neutral-600 dark:text-neutral-400">Nome</p>
-              <p className="text-neutral-100">{nome}</p>
+              <p className="text-neutral-800 dark:text-neutral-100">{nome}</p>
             </div>
             <div>
               <p className="text-neutral-600 dark:text-neutral-400">E-mail</p>
-              <p className="text-neutral-100 font-mono">{email}</p>
+              <p className="text-neutral-800 dark:text-neutral-100 font-mono">{email}</p>
             </div>
             <div>
               <p className="text-neutral-600 dark:text-neutral-400">Senha inicial</p>
-              <p className="text-neutral-100 font-mono bg-white/60 dark:bg-white/5 px-3 py-2 rounded-lg">{senha}</p>
+              <p className="text-neutral-800 dark:text-neutral-100 font-mono bg-white/60 dark:bg-white/5 px-3 py-2 rounded-lg">{senha}</p>
               <p className="text-xs text-amber-400 mt-1">Informe ao usuário. Ele pode alterar após o primeiro acesso.</p>
             </div>
           </div>
@@ -88,7 +88,7 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
               required
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
               placeholder="Nome completo"
             />
           </div>
@@ -99,7 +99,7 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
               placeholder="nome@email.com"
             />
           </div>
@@ -111,7 +111,7 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
               minLength={6}
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
               placeholder="Mínimo 6 caracteres"
             />
             <p className="text-xs text-neutral-500 mt-1">Anote para entregar ao usuário</p>
@@ -190,7 +190,7 @@ function AssignCondoModal({
               required
               value={condoId}
               onChange={(e) => setCondoId(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
             >
               <option value="">Selecione...</option>
               {availableCondos.map((c) => (
@@ -206,7 +206,7 @@ function AssignCondoModal({
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as MemberRole)}
-              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
             >
               <option value="viewer">Visualizador</option>
               <option value="editor">Editor</option>
@@ -319,7 +319,7 @@ function UserDetailModal({
                 type="text"
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
             <div>
@@ -328,7 +328,7 @@ function UserDetailModal({
                 type="text"
                 value={cargo}
                 onChange={(e) => setCargo(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
                 placeholder="Ex: Síndico, Administrador..."
               />
             </div>
@@ -441,7 +441,7 @@ export function UsersClient({ users, condos }: { users: GlobalUser[]; condos: Co
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nome ou e-mail..."
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
         <button
@@ -466,19 +466,19 @@ export function UsersClient({ users, condos }: { users: GlobalUser[]; condos: Co
             Nenhum usuário encontrado.
           </div>
         ) : (
-          <ul className="divide-y divide-white/5">
+          <ul className="divide-y divide-neutral-200 dark:divide-white/5">
             {filtered.map((user) => (
               <li
                 key={user.id}
                 className="flex items-center gap-4 px-6 py-4 hover:bg-white/60 dark:bg-white/5 cursor-pointer transition-colors"
                 onClick={() => setSelectedUser(user)}
               >
-                <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
+                <div className="w-9 h-9 rounded-full bg-neutral-200 dark:bg-white/10 flex items-center justify-center flex-shrink-0 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
                   {(user.nome ?? user.email).charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-neutral-100 truncate">
+                    <p className="text-sm font-medium text-neutral-800 dark:text-neutral-100 truncate">
                       {user.nome ?? user.email}
                     </p>
                     {user.is_master && (

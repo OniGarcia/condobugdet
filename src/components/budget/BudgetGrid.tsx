@@ -289,23 +289,23 @@ export function BudgetGrid({
         <table className="w-full text-left text-sm whitespace-nowrap">
           <thead className="sticky top-0 z-20 shadow-sm">
             <tr>
-              <th className="px-4 py-3 font-medium text-neutral-600 dark:text-neutral-400 bg-[#121212] border-b border-neutral-200 dark:border-white/10 border-r sticky left-0 z-30 w-80">
+              <th className="px-4 py-3 font-medium text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-[#121212] border-b border-neutral-200 dark:border-white/10 border-r sticky left-0 z-30 w-80">
                 Categoria
               </th>
-              <th className="px-4 py-3 font-medium text-emerald-400 bg-[#06241a] border-b border-neutral-200 dark:border-white/10 border-r text-center w-28 backdrop-blur-xl sticky left-80 z-20">
+              <th className="px-4 py-3 font-medium text-emerald-400 bg-emerald-50 dark:bg-[#06241a] border-b border-neutral-200 dark:border-white/10 border-r text-center w-28 backdrop-blur-xl sticky left-80 z-20">
                 Ações
               </th>
               {columns.map((m, i) => (
-                <th key={`${m.mes}-${m.ano}`} className="px-4 py-3 font-medium text-neutral-600 dark:text-neutral-400 text-center bg-[#121212] border-b border-neutral-200 dark:border-white/10 border-r last:border-r-0 min-w-32 backdrop-blur-xl">
+                <th key={`${m.mes}-${m.ano}`} className="px-4 py-3 font-medium text-neutral-600 dark:text-neutral-400 text-center bg-neutral-100 dark:bg-[#121212] border-b border-neutral-200 dark:border-white/10 border-r last:border-r-0 min-w-32 backdrop-blur-xl">
                   {nomeMeses[m.mes - 1]}/{String(m.ano).slice(-2)}
                 </th>
               ))}
-              <th suppressHydrationWarning className="px-4 py-3 font-bold text-neutral-900 dark:text-white text-center bg-[#1a1a1a] border-b border-neutral-200 dark:border-white/10 min-w-32 sticky right-0 z-20 backdrop-blur-xl">
+              <th suppressHydrationWarning className="px-4 py-3 font-bold text-neutral-900 dark:text-white text-center bg-neutral-100 dark:bg-[#1a1a1a] border-b border-neutral-200 dark:border-white/10 min-w-32 sticky right-0 z-20 backdrop-blur-xl">
                 TOTAL
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/10">
+          <tbody className="divide-y divide-neutral-200 dark:divide-white/10">
             {categorias.map(cat => (
               <BudgetRow
                 key={cat.id}
@@ -321,20 +321,20 @@ export function BudgetGrid({
             
             {/* Resultado Row */}
             <tr className="bg-emerald-500/10 font-bold border-t-2 border-emerald-500/30">
-              <td className="px-4 py-4 sticky left-0 z-10 bg-[#06241a] border-r border-neutral-200 dark:border-white/10 text-emerald-400">
+              <td className="px-4 py-4 sticky left-0 z-10 bg-emerald-50 dark:bg-[#06241a] border-r border-neutral-200 dark:border-white/10 text-emerald-400">
                 <div className="flex gap-2 items-center">
                   <span className="w-5 shrink-0" />
                   <CheckCircle2 className="w-4 h-4" />
                   <span>RESULTADO (Receitas - Despesas)</span>
                 </div>
               </td>
-              <td className="px-4 py-4 text-center bg-[#0d1613] border-r border-neutral-200 dark:border-white/10 sticky left-80 z-10" />
+              <td className="px-4 py-4 text-center bg-emerald-50 dark:bg-[#0d1613] border-r border-neutral-200 dark:border-white/10 sticky left-80 z-10" />
               {columnResults.map((res, i) => (
                 <td key={`result-${i}`} suppressHydrationWarning className={`px-4 py-4 text-right font-mono border-r border-neutral-200 dark:border-white/10 ${res >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(res)}
                 </td>
               ))}
-              <td suppressHydrationWarning className={`px-4 py-4 text-right font-mono sticky right-0 z-10 bg-[#06241a] ${grandTotalResult >= 0 ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold'}`}>
+              <td suppressHydrationWarning className={`px-4 py-4 text-right font-mono sticky right-0 z-10 bg-emerald-50 dark:bg-[#06241a] ${grandTotalResult >= 0 ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold'}`}>
                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(grandTotalResult)}
               </td>
             </tr>
@@ -379,7 +379,7 @@ function BudgetRow({
     <>
       <tr className="hover:bg-white/60 dark:bg-white/5 transition-colors group">
         <td 
-          className="px-4 py-3 font-medium sticky left-0 z-10 bg-[#121212] group-hover:bg-[#1a1c23] transition-colors border-r border-neutral-200 dark:border-white/10"
+          className="px-4 py-3 font-medium sticky left-0 z-10 bg-neutral-100 dark:bg-[#121212] group-hover:bg-neutral-200 dark:bg-[#1a1c23] transition-colors border-r border-neutral-200 dark:border-white/10"
           style={{ paddingLeft: `${(level * 1.25) + 0.5}rem` }}
         >
           <div className="flex gap-2 items-center">
@@ -411,7 +411,7 @@ function BudgetRow({
         </td>
         
         {/* Acoes: Now the very first column after Categoria */}
-        <td className="px-4 py-2 text-center bg-[#0d1613] border-r border-neutral-200 dark:border-white/10 sticky left-80 z-10 group-hover:bg-[#11241c] transition-colors">
+        <td className="px-4 py-2 text-center bg-emerald-50 dark:bg-[#0d1613] border-r border-neutral-200 dark:border-white/10 sticky left-80 z-10 group-hover:bg-emerald-100 dark:group-hover:bg-[#11241c] transition-colors">
           {canEdit && !isParent && columns.length > 0 && (
             <button
               onClick={() => onReplicate(categoria.id, localState[`${categoria.id}_${columns[0].ano}_${columns[0].mes}`] || 0)}
@@ -445,7 +445,7 @@ function BudgetRow({
         })}
 
         {/* Total Column Cell */}
-        <td suppressHydrationWarning className="px-4 py-2 text-right border-l border-neutral-200 dark:border-white/10 sticky right-0 z-10 bg-[#121212] group-hover:bg-[#1a1c23] transition-colors font-bold text-neutral-900 dark:text-white font-mono">
+        <td suppressHydrationWarning className="px-4 py-2 text-right border-l border-neutral-200 dark:border-white/10 sticky right-0 z-10 bg-neutral-100 dark:bg-[#121212] group-hover:bg-neutral-200 dark:bg-[#1a1c23] transition-colors font-bold text-neutral-900 dark:text-white font-mono">
           {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
              columns.reduce((acc, col) => {
                const val = isParent ? computeParentSum(categoria.id, col.ano, col.mes, categoria) : (localState[`${categoria.id}_${col.ano}_${col.mes}`] || 0)

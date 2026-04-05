@@ -34,17 +34,17 @@ export default async function MembersPage() {
             Nenhum membro encontrado.
           </div>
         ) : (
-          <ul className="divide-y divide-white/5">
+          <ul className="divide-y divide-neutral-200 dark:divide-white/5">
             {members.map((m) => {
               const roleInfo = roleLabels[m.role] ?? roleLabels.viewer
               const RoleIcon = roleInfo.icon
               return (
                 <li key={m.id} className="flex items-center gap-4 px-6 py-4">
-                  <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
+                  <div className="w-9 h-9 rounded-full bg-neutral-200 dark:bg-white/10 flex items-center justify-center flex-shrink-0 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
                     {(m.profiles?.nome ?? 'U').charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-neutral-100 truncate">
+                    <p className="text-sm font-medium text-neutral-800 dark:text-neutral-100 truncate">
                       {m.profiles?.nome ?? 'Usuário'}
                     </p>
                     {m.profiles?.cargo && (

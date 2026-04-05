@@ -50,12 +50,12 @@ function InviteButton() {
             <div className="space-y-3 text-sm">
               <div>
                 <p className="text-neutral-600 dark:text-neutral-400">E-mail</p>
-                <p className="text-neutral-100 font-mono">{successInfo.email}</p>
+                <p className="text-neutral-800 dark:text-neutral-100 font-mono">{successInfo.email}</p>
               </div>
               {successInfo.password && (
                 <div>
                   <p className="text-neutral-600 dark:text-neutral-400">Senha temporária</p>
-                  <p className="text-neutral-100 font-mono bg-white/60 dark:bg-white/5 px-3 py-2 rounded-lg">{successInfo.password}</p>
+                  <p className="text-neutral-800 dark:text-neutral-100 font-mono bg-white/60 dark:bg-white/5 px-3 py-2 rounded-lg">{successInfo.password}</p>
                   <p className="text-xs text-amber-400 mt-1">Anote e envie ao usuário. Ele deve trocar a senha após o primeiro acesso.</p>
                 </div>
               )}
@@ -85,7 +85,7 @@ function InviteButton() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
                   placeholder="nome@email.com"
                 />
               </div>
@@ -94,7 +94,7 @@ function InviteButton() {
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as MemberRole)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="viewer">Visualizador — Somente leitura</option>
                   <option value="editor">Editor — Edita orçamentos e realizado</option>
@@ -107,7 +107,7 @@ function InviteButton() {
                   type="text"
                   value={tempPassword}
                   onChange={(e) => setTempPassword(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
                   placeholder="Mudar@123"
                 />
                 <p className="text-xs text-neutral-500 mt-1">O usuário deve trocar após o primeiro acesso</p>

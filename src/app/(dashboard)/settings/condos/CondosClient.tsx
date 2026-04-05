@@ -49,7 +49,7 @@ function UserMembershipList({
         return (
           <li
             key={u.id}
-            className={`flex items-center gap-3 rounded-xl px-3 py-2 transition-colors cursor-pointer ${checked ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-white/60 dark:bg-white/5 border border-white/5 hover:bg-neutral-100 dark:hover:bg-white/10'}`}
+            className={`flex items-center gap-3 rounded-xl px-3 py-2 transition-colors cursor-pointer ${checked ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/5 hover:bg-neutral-100 dark:hover:bg-white/10'}`}
             onClick={() => toggle(u.id)}
           >
             <input
@@ -60,7 +60,7 @@ function UserMembershipList({
               className="accent-emerald-500 w-4 h-4 flex-shrink-0"
             />
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-neutral-100 truncate">{u.nome ?? u.email}</p>
+              <p className="text-sm text-neutral-800 dark:text-neutral-100 truncate">{u.nome ?? u.email}</p>
               {u.nome && <p className="text-xs text-neutral-500 truncate">{u.email}</p>}
             </div>
           </li>
@@ -115,7 +115,7 @@ function CreateCondoModal({
                 required
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
                 placeholder="Nome do condomínio"
               />
             </div>
@@ -125,7 +125,7 @@ function CreateCondoModal({
                 type="text"
                 value={cnpj}
                 onChange={(e) => setCnpj(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
                 placeholder="00.000.000/0000-00"
               />
             </div>
@@ -210,7 +210,7 @@ function EditCondoModal({
                 required
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
             <div>
@@ -219,7 +219,7 @@ function EditCondoModal({
                 type="text"
                 value={cnpj}
                 onChange={(e) => setCnpj(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
                 placeholder="00.000.000/0000-00"
               />
             </div>
@@ -278,7 +278,7 @@ function CondoRow({
           <Building2 className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-neutral-100 truncate">{condo.nome}</p>
+          <p className="text-sm font-medium text-neutral-800 dark:text-neutral-100 truncate">{condo.nome}</p>
           {condo.cnpj && (
             <p className="text-xs text-neutral-500 font-mono">{condo.cnpj}</p>
           )}
@@ -287,7 +287,7 @@ function CondoRow({
           <Users className="w-3.5 h-3.5" />
           <span className="text-xs">{condo.memberships.length}</span>
         </div>
-        <span className={`text-xs font-medium px-2 py-1 rounded-full ${condo.ativo ? 'bg-emerald-500/10 text-emerald-400' : 'bg-neutral-700/50 text-neutral-500'}`}>
+        <span className={`text-xs font-medium px-2 py-1 rounded-full ${condo.ativo ? 'bg-emerald-500/10 text-emerald-400' : 'bg-neutral-200 dark:bg-neutral-700/50 text-neutral-500'}`}>
           {condo.ativo ? 'Ativo' : 'Inativo'}
         </span>
         <div className="flex items-center gap-1.5">
@@ -366,7 +366,7 @@ export function CondosClient({
             Nenhum condomínio encontrado.
           </div>
         ) : (
-          <ul className="divide-y divide-white/5">
+          <ul className="divide-y divide-neutral-200 dark:divide-white/5">
             {filtered.map((condo) => (
               <CondoRow key={condo.id} condo={condo} users={users} />
             ))}
