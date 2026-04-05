@@ -482,7 +482,7 @@ export function UsersClient({ users, condos }: { users: GlobalUser[]; condos: Co
                       {user.nome ?? user.email}
                     </p>
                     {user.is_master && (
-                      <Crown className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" title="Super Admin" />
+                      <Crown className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
                     )}
                   </div>
                   <p className="text-xs text-neutral-500 truncate">{user.email}</p>

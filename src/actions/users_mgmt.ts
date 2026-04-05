@@ -157,7 +157,7 @@ export async function deactivateUser(userId: string) {
   await validateMasterAccess()
   const adminClient = createAdminClient()
 
-  const { error } = await adminClient.auth.admin.updateUser(userId, {
+  const { error } = await adminClient.auth.admin.updateUserById(userId, {
     ban_duration: '87600h',
   })
   if (error) return { error: error.message }
