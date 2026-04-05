@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { Categoria } from '@/types'
-import { ChevronDown, ChevronRight, Folder, FolderOpen, FileText, Save, Loader2, Upload, CheckCircle2 } from 'lucide-react'
+import { Copy, ChevronDown, ChevronRight, Folder, FolderOpen, FileText, Save, Loader2, Upload, CheckCircle2, ListChecks } from 'lucide-react'
 import { bulkUpsertRealizados } from '@/actions/realizado'
 import { parseBalanceteExcel } from '@/actions/parseBalanceteExcel'
 
@@ -89,6 +89,52 @@ export function RealizadoGrid({
       [`${categoriaId}_${ano}_${mes}`]: valor
     }))
     setIsDirty(true)
+  }
+
+  const handleReplicate = (categoriaId: string, valor: number) => {
+    setLocalState(prev => {
+      const next = { ...prev }
+      columns.forEach(col => {
+        next[`${categoriaId}_${col.ano}_${col.mes}`] = valor
+      })
+      return next
+    })
+    setIsDirty(true)
+  }
+
+  const handleMasterReplicate = () => {
+    if (!columns.length) return;
+    if (!confirm("Isso irá copiar o valor do primeiro mês visível para todos os demais meses de cada conta. Deseja continuar?")) return;
+
+    const firstCol = columns[0]
+    setLocalState(prev => {
+      const next = { ...prev }
+      // Get all leaf categories that have a value in the first column
+      const flatCats = extractLeaves(categorias)
+      flatCats.forEach(cat => {
+         const firstVal = next[`${cat.id}_${firstCol.ano}_${firstCol.mes}`] || 0
+         if (firstVal > 0) {
+           columns.forEach(col => {
+              next[`${cat.id}_${col.ano}_${col.mes}`] = firstVal
+           })
+         }
+      })
+      return next
+    })
+    setIsDirty(true)
+  }
+
+  // Recursive flat categories (Leaves only)
+  const extractLeaves = (cats: Categoria[]): Categoria[] => {
+     let arr: Categoria[] = [];
+     cats.forEach(c => {
+       if (c.children && c.children.length > 0) {
+         arr = arr.concat(extractLeaves(c.children))
+       } else {
+         arr.push(c)
+       }
+     })
+     return arr;
   }
 
   const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -181,6 +227,16 @@ export function RealizadoGrid({
             <div className="w-px bg-white/10 mx-1 self-stretch my-1" />
 
             <button
+              onClick={handleMasterReplicate}
+              disabled={isSaving}
+              className="flex items-center gap-2 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 text-indigo-400 font-medium rounded-lg transition-all border border-indigo-500/20 disabled:opacity-50"
+              title="Copia o valor do 1º mês para toda a linha para Múltiplas Contas"
+            >
+              <ListChecks className="w-4 h-4" />
+              Replicar Tudo
+            </button>
+
+            <button
               onClick={handleSave}
               disabled={!isDirty || isSaving}
               className="flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-neutral-900 dark:text-white font-medium rounded-lg shadow-lg shadow-indigo-500/20 transition-all border border-indigo-400 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed ml-2"
@@ -204,20 +260,23 @@ export function RealizadoGrid({
         <table className="w-full text-left text-sm whitespace-nowrap">
           <thead className="sticky top-0 z-20 shadow-sm">
             <tr>
-              <th className="px-4 py-3 font-medium text-neutral-600 dark:text-neutral-400 bg-[#121212] border-b border-neutral-200 dark:border-white/10 border-r sticky left-0 z-30 w-[400px]">
+              <th className="px-4 py-3 font-medium text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-[#121212] border-b border-neutral-200 dark:border-white/10 border-r sticky left-0 z-30 w-[400px]">
                 Categoria
               </th>
+              <th className="px-4 py-3 font-medium text-indigo-400 bg-indigo-50 dark:bg-[#0d0d1e] border-b border-neutral-200 dark:border-white/10 border-r text-center w-28 backdrop-blur-xl sticky left-[400px] z-20">
+                Ações
+              </th>
               {columns.map((m) => (
-                <th key={`${m.mes}-${m.ano}`} className="px-4 py-3 font-medium text-neutral-600 dark:text-neutral-400 text-center bg-[#121212] border-b border-neutral-200 dark:border-white/10 border-r last:border-r-0 min-w-32 backdrop-blur-xl">
+                <th key={`${m.mes}-${m.ano}`} className="px-4 py-3 font-medium text-neutral-600 dark:text-neutral-400 text-center bg-neutral-100 dark:bg-[#121212] border-b border-neutral-200 dark:border-white/10 border-r last:border-r-0 min-w-32 backdrop-blur-xl">
                   {nomeMeses[m.mes - 1]}/{String(m.ano).slice(-2)}
                 </th>
               ))}
-              <th suppressHydrationWarning className="px-4 py-3 font-bold text-neutral-900 dark:text-white text-center bg-[#1a1a1a] border-b border-neutral-200 dark:border-white/10 min-w-32 sticky right-0 z-20 backdrop-blur-xl">
+              <th suppressHydrationWarning className="px-4 py-3 font-bold text-neutral-900 dark:text-white text-center bg-neutral-100 dark:bg-[#1a1a1a] border-b border-neutral-200 dark:border-white/10 min-w-32 sticky right-0 z-20 backdrop-blur-xl">
                 TOTAL
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/10">
+          <tbody className="divide-y divide-neutral-200 dark:divide-white/10">
             {categorias.map(cat => (
               <RealizadoRow
                 key={cat.id}
@@ -225,6 +284,7 @@ export function RealizadoGrid({
                 columns={columns}
                 localState={localState}
                 onUpdate={handleUpdate}
+                onReplicate={handleReplicate}
                 level={0}
                 canEdit={canEdit}
               />
@@ -232,19 +292,20 @@ export function RealizadoGrid({
 
             {/* Resultado Row */}
             <tr className="bg-indigo-500/10 font-bold border-t-2 border-indigo-500/30">
-              <td className="px-4 py-4 sticky left-0 z-10 bg-[#0d0d1e] border-r border-neutral-200 dark:border-white/10 text-indigo-400">
+              <td className="px-4 py-4 sticky left-0 z-10 bg-indigo-50 dark:bg-[#0d0d1e] border-r border-neutral-200 dark:border-white/10 text-indigo-400">
                 <div className="flex gap-2 items-center">
                   <span className="w-5 shrink-0" />
                   <CheckCircle2 className="w-4 h-4" />
                   <span>RESULTADO (Receitas - Despesas)</span>
                 </div>
               </td>
+              <td className="px-4 py-4 text-center bg-indigo-50 dark:bg-[#0d0d1e] border-r border-neutral-200 dark:border-white/10 sticky left-[400px] z-10" />
               {columnResults.map((res, i) => (
                 <td key={`result-${i}`} suppressHydrationWarning className={`px-4 py-4 text-right font-mono border-r border-neutral-200 dark:border-white/10 ${res >= 0 ? 'text-indigo-400' : 'text-red-400'}`}>
                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(res)}
                 </td>
               ))}
-              <td suppressHydrationWarning className={`px-4 py-4 text-right font-mono sticky right-0 z-10 bg-[#0d0d1e] ${grandTotalResult >= 0 ? 'text-indigo-400 font-bold' : 'text-red-400 font-bold'}`}>
+              <td suppressHydrationWarning className={`px-4 py-4 text-right font-mono sticky right-0 z-10 bg-indigo-50 dark:bg-[#0d0d1e] ${grandTotalResult >= 0 ? 'text-indigo-400 font-bold' : 'text-red-400 font-bold'}`}>
                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(grandTotalResult)}
               </td>
             </tr>
@@ -260,6 +321,7 @@ function RealizadoRow({
   columns,
   localState,
   onUpdate,
+  onReplicate,
   level = 0,
   canEdit = true,
 }: {
@@ -267,6 +329,7 @@ function RealizadoRow({
   columns: {mes: number, ano: number}[],
   localState: Record<string, number>,
   onUpdate: (catId: string, ano: number, mes: number, valor: number) => void,
+  onReplicate: (catId: string, valor: number) => void,
   level?: number,
   canEdit?: boolean,
 }) {
@@ -287,7 +350,7 @@ function RealizadoRow({
     <>
       <tr className="hover:bg-white/60 dark:bg-white/5 transition-colors group">
         <td 
-          className="px-4 py-3 font-medium sticky left-0 z-10 bg-[#121212] group-hover:bg-[#1a1c23] transition-colors border-r border-neutral-200 dark:border-white/10"
+          className="px-4 py-3 font-medium sticky left-0 z-10 bg-neutral-100 dark:bg-[#121212] group-hover:bg-neutral-200 dark:bg-[#1a1c23] transition-colors border-r border-neutral-200 dark:border-white/10"
           style={{ paddingLeft: `${(level * 1.5) + 0.5}rem` }}
         >
           <div className="flex gap-2 items-center">
@@ -318,6 +381,20 @@ function RealizadoRow({
           </div>
         </td>
 
+        {/* Acoes: Now the very first column after Categoria */}
+        <td className="px-4 py-2 text-center bg-indigo-50 dark:bg-[#0d0d1e] border-r border-neutral-200 dark:border-white/10 sticky left-[400px] z-10 group-hover:bg-indigo-100 dark:group-hover:bg-[#11241c] transition-colors">
+          {canEdit && !isParent && columns.length > 0 && (
+            <button
+              onClick={() => onReplicate(categoria.id, localState[`${categoria.id}_${columns[0].ano}_${columns[0].mes}`] || 0)}
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-neutral-800/80 text-indigo-400/80 hover:text-indigo-400 hover:bg-neutral-700/80 rounded block text-[10px] uppercase font-bold tracking-wider transition-colors border border-indigo-500/10 mx-auto disabled:opacity-30 disabled:cursor-not-allowed"
+              title="Copiar 1º mês para toda a linha"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              Replicar
+            </button>
+          )}
+        </td>
+
         {columns.map(col => {
           const key = `${categoria.id}_${col.ano}_${col.mes}`
           const valorFormatado = isParent ? computeParentSum(categoria.id, col.ano, col.mes, categoria) : (localState[key] || 0)
@@ -339,7 +416,7 @@ function RealizadoRow({
         })}
 
         {/* Total Column Cell */}
-        <td suppressHydrationWarning className="px-4 py-2 text-right border-l border-neutral-200 dark:border-white/10 sticky right-0 z-10 bg-[#121212] group-hover:bg-[#1a1c23] transition-colors font-bold text-neutral-900 dark:text-white font-mono">
+        <td suppressHydrationWarning className="px-4 py-2 text-right border-l border-neutral-200 dark:border-white/10 sticky right-0 z-10 bg-neutral-100 dark:bg-[#121212] group-hover:bg-neutral-200 dark:bg-[#1a1c23] transition-colors font-bold text-neutral-900 dark:text-white font-mono">
           {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
              columns.reduce((acc, col) => {
                const val = isParent ? computeParentSum(categoria.id, col.ano, col.mes, categoria) : (localState[`${categoria.id}_${col.ano}_${col.mes}`] || 0)
@@ -356,6 +433,7 @@ function RealizadoRow({
           columns={columns}
           localState={localState}
           onUpdate={onUpdate}
+          onReplicate={onReplicate}
           level={level + 1}
           canEdit={canEdit}
         />
