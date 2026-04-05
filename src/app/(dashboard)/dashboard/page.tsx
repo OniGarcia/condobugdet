@@ -82,8 +82,8 @@ export default async function DashboardPage({
       <div className="mb-6 flex flex-col gap-3 shrink-0">
         <div className="flex justify-between items-end">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Painel de Controle</h1>
-            <p className="text-neutral-400">Análise de variação orçamentária (Previsto x Realizado).</p>
+            <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white mb-2">Painel de Controle</h1>
+            <p className="text-neutral-600 dark:text-neutral-400">Análise de variação orçamentária (Previsto x Realizado).</p>
           </div>
           <div className="flex gap-3 items-center">
             <SimulationSelector simulacoes={simulacoes} selectedId={activeSim?.id} targetPath="/dashboard" />
@@ -115,9 +115,9 @@ export default async function DashboardPage({
             filterFim={filterFim}
           />
         ) : (
-          <div className="h-full flex flex-col items-center justify-center bg-white/5 border border-white/10 rounded-2xl text-neutral-400">
+          <div className="h-full flex flex-col items-center justify-center bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl text-neutral-600 dark:text-neutral-400">
             <p className="mb-4">Nenhuma simulação de orçamento encontrada.</p>
-            <a href="/orcamento" className="px-5 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 font-medium">
+            <a href="/orcamento" className="px-5 py-2 bg-emerald-500 text-neutral-900 dark:text-white rounded-lg hover:bg-emerald-600 font-medium">
               Ir para Orçamentos
             </a>
           </div>

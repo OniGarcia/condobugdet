@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { validateAccess } from '@/lib/supabase/validateAccess'
 import {
   GestaoCCResult, GestaoCCMes, GestaoCCCategoria,
   GestaoCCMatrizCategoria, CategoriaTipo, StatusSemaforo,
@@ -36,6 +37,7 @@ export async function getGestaoCentroCusto(
 ): Promise<GestaoCCResult | null> {
   if (!centroCustoId || centroCustoId === 'all') return null
 
+  const { condoId } = await validateAccess()
   const supabase = await createClient()
   const startKey = anoInicio * 100 + mesInicio
   const endKey   = anoFim   * 100 + mesFim
@@ -46,6 +48,7 @@ export async function getGestaoCentroCusto(
     .from('centros_custo')
     .select('id, nome, saldo_inicial')
     .eq('id', centroCustoId)
+    .eq('condo_id', condoId)
     .single()
   if (ccErr || !cc) return null
   const saldoInicialCC = r2(Number(cc.saldo_inicial ?? 0))
@@ -88,6 +91,7 @@ export async function getGestaoCentroCusto(
       const { data, error } = await supabase
         .from('dados_realizados')
         .select('categoria_id, ano, mes, valor_realizado')
+        .eq('condo_id', condoId)
         .in('categoria_id', catIds)
         .gte('ano', anoInicio).lte('ano', anoFim)
         .range(from, to)
@@ -108,6 +112,7 @@ export async function getGestaoCentroCusto(
         .from('orcamento_previsto')
         .select('categoria_id, ano, mes, valor_previsto')
         .eq('simulacao_id', simulacaoId!)
+        .eq('condo_id', condoId)
         .in('categoria_id', catIds)
         .gte('ano', anoInicio).lte('ano', anoFim)
         .range(from, to)
@@ -163,6 +168,7 @@ export async function getGestaoCentroCusto(
   const { data: allCatData } = await supabase
     .from('categorias')
     .select('id, codigo_reduzido, nome_conta, tipo, parent_id')
+    .or(`condo_id.eq.${condoId},condo_id.is.null`)
     .order('codigo_reduzido', { ascending: true })
 
   const allCats: Array<{ id: string; codigo_reduzido: string; nome_conta: string; tipo: string; parent_id: string | null; children?: any[] }> = allCatData ?? []

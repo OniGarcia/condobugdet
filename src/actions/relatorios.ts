@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { validateAccess } from '@/lib/supabase/validateAccess'
 import { RelatorioCategoriaAno, StatusSemaforo, Categoria } from '@/types'
 
 function round2(n: number): number {
@@ -107,13 +108,14 @@ export async function getRelatorioAnual(
 
   if (!simulacaoId || !ano || !mesAlvo || numMeses <= 0) return []
 
-
+  const { condoId } = await validateAccess()
   const supabase = await createClient()
 
   // 1. Fetch flat categories
   const { data: catData, error: catErr } = await supabase
     .from('categorias')
     .select('*')
+    .or(`condo_id.eq.${condoId},condo_id.is.null`)
     .order('codigo_reduzido', { ascending: true })
   if (catErr) {
     console.error('relatorio: cat error', catErr)
@@ -156,6 +158,7 @@ export async function getRelatorioAnual(
         .from('orcamento_previsto')
         .select('categoria_id, ano, mes, valor_previsto')
         .eq('simulacao_id', simulacaoId)
+        .eq('condo_id', condoId)
         .gte('ano', qAnoMin)
         .lte('ano', qAnoMax)
         .range(from, to)
@@ -175,6 +178,7 @@ export async function getRelatorioAnual(
       const { data, error } = await supabase
         .from('dados_realizados')
         .select('categoria_id, ano, mes, valor_realizado')
+        .eq('condo_id', condoId)
         .gte('ano', anoIni)
         .lte('ano', ano)
         .range(from, to)

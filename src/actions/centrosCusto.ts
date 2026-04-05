@@ -1,16 +1,19 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { validateAccess } from '@/lib/supabase/validateAccess'
 import { CentroCusto } from '@/types'
 import { revalidatePath } from 'next/cache'
 
 // ─── Read ──────────────────────────────────────────────────────────────────────
 
 export async function getCentrosCusto(): Promise<CentroCusto[]> {
+  const { condoId } = await validateAccess()
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('centros_custo')
     .select('*, categoria_centro_custo(categoria_id)')
+    .eq('condo_id', condoId)
     .order('nome', { ascending: true })
   if (error) throw new Error(`Failed to fetch centros de custo: ${error.message}`)
 
@@ -24,10 +27,11 @@ export async function getCentrosCusto(): Promise<CentroCusto[]> {
 // ─── Create ────────────────────────────────────────────────────────────────────
 
 export async function createCentroCusto(data: { nome: string; descricao: string | null; saldo_inicial: number }) {
+  const { condoId } = await validateAccess('editor')
   const supabase = await createClient()
   const { data: created, error } = await supabase
     .from('centros_custo')
-    .insert([data])
+    .insert([{ ...data, condo_id: condoId }])
     .select()
     .single()
   if (error) return { error: error.message }
@@ -39,11 +43,13 @@ export async function createCentroCusto(data: { nome: string; descricao: string 
 // ─── Update ────────────────────────────────────────────────────────────────────
 
 export async function updateCentroCusto(id: string, data: { nome: string; descricao: string | null; saldo_inicial: number }) {
+  const { condoId } = await validateAccess('editor')
   const supabase = await createClient()
   const { data: updated, error } = await supabase
     .from('centros_custo')
     .update(data)
     .eq('id', id)
+    .eq('condo_id', condoId)
     .select()
     .single()
   if (error) return { error: error.message }
@@ -55,9 +61,10 @@ export async function updateCentroCusto(id: string, data: { nome: string; descri
 // ─── Delete ────────────────────────────────────────────────────────────────────
 
 export async function deleteCentroCusto(id: string) {
+  const { condoId } = await validateAccess('admin')
   const supabase = await createClient()
   // Junction rows are deleted via ON DELETE CASCADE in the DB
-  const { error } = await supabase.from('centros_custo').delete().eq('id', id)
+  const { error } = await supabase.from('centros_custo').delete().eq('id', id).eq('condo_id', condoId)
   if (error) return { error: error.message }
   revalidatePath('/centros-custo')
   return { success: true }
@@ -70,7 +77,17 @@ export async function deleteCentroCusto(id: string) {
  * Deletes existing rows and inserts the new set atomically.
  */
 export async function setCentroCategories(centroCustoId: string, categoriaIds: string[]) {
+  const { condoId } = await validateAccess('editor')
   const supabase = await createClient()
+
+  // Garantir que o centro de custo pertence ao condo do usuário
+  const { data: cc } = await supabase
+    .from('centros_custo')
+    .select('id')
+    .eq('id', centroCustoId)
+    .eq('condo_id', condoId)
+    .single()
+  if (!cc) return { error: 'Centro de custo não encontrado.' }
 
   const { error: delError } = await supabase
     .from('categoria_centro_custo')

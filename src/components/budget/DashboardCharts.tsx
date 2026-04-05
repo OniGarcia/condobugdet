@@ -125,7 +125,7 @@ export function DashboardCharts({
   const tooltipStyle = { backgroundColor: '#171717', border: '1px solid #333', borderRadius: '12px', color: '#fff' }
   const tooltipFmt = (v: unknown) => BRL.format(Number(v) || 0)
 
-  if (!isMounted) return <div className="min-h-[400px] w-full bg-white/5 border border-white/10 rounded-2xl animate-pulse" />
+  if (!isMounted) return <div className="min-h-[400px] w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl animate-pulse" />
 
   return (
     <div className="space-y-6">
@@ -310,21 +310,21 @@ function KPICard({
   const valueColor =
     success !== undefined 
       ? (success ? 'text-emerald-400' : 'text-red-400')
-      : 'text-white'
+      : 'text-neutral-900 dark:text-white'
 
   return (
-    <div className={`bg-white/5 border border-white/10 rounded-2xl p-5 relative overflow-hidden group bg-gradient-to-br ${colorMap[color]} to-transparent`}>
+    <div className={`bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl p-5 relative overflow-hidden group bg-gradient-to-br ${colorMap[color]} to-transparent`}>
       <div className="flex justify-between items-start mb-3">
-        <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">{title}</p>
-        <div className="p-2 bg-white/5 rounded-xl border border-white/5">{icon}</div>
+        <p className="text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wider">{title}</p>
+        <div className="p-2 bg-white/60 dark:bg-white/5 rounded-xl border border-white/5">{icon}</div>
       </div>
       <h4 className={`text-xl font-bold tracking-tight ${valueColor}`}>{formatted}</h4>
       
       {realValue !== undefined ? (
         <div className="flex items-center gap-2 mt-1">
-          <p className="text-xs text-neutral-400">Real: {BRL.format(realValue)}</p>
+          <p className="text-xs text-neutral-600 dark:text-neutral-400">Real: {BRL.format(realValue)}</p>
           {type && ArrowIcon && (
-            <div className={`flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-white/5 ${varColor}`}>
+            <div className={`flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-white/60 dark:bg-white/5 ${varColor}`}>
               <ArrowIcon size={10} strokeWidth={3} />
               {variationPct.toFixed(1)}%
             </div>
@@ -340,9 +340,9 @@ function KPICard({
 // ─── Chart Card wrapper ────────────────────────────────────────────────────────
 function ChartCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
+    <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 backdrop-blur-xl">
       <div className="mb-5">
-        <h3 className="text-base font-semibold text-white">{title}</h3>
+        <h3 className="text-base font-semibold text-neutral-900 dark:text-white">{title}</h3>
         {subtitle && <p className="text-xs text-neutral-500 mt-0.5">{subtitle}</p>}
       </div>
       <div className="h-[260px] w-full">{children}</div>

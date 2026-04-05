@@ -46,31 +46,31 @@ export function SimulationActionsDropdown({ simulacao }: { simulacao: OrcamentoS
       <button 
         onClick={() => setIsOpen(!isOpen)}
         disabled={isDeleting}
-        className="p-2 bg-white/5 border border-white/10 hover:bg-white/10 text-neutral-400 hover:text-white rounded-lg transition-all"
+        className="p-2 bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:text-white rounded-lg transition-all"
         title="Opções da Simulação"
       >
         {isDeleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <MoreVertical className="w-5 h-5" />}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 bg-neutral-900 border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="p-1">
             <button 
               onClick={() => { setIsOpen(false); setShowRename(true); }}
-              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:text-white hover:bg-white/60 dark:bg-white/5 rounded-lg transition-colors"
             >
               <Edit2 className="w-4 h-4 text-emerald-400" />
               Renomear Cenário
             </button>
             <button 
               onClick={() => { setIsOpen(false); setShowClone(true); }}
-              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:text-white hover:bg-white/60 dark:bg-white/5 rounded-lg transition-colors"
             >
               <Copy className="w-4 h-4 text-indigo-400" />
               Clonar como Novo
             </button>
             
-            <div className="h-px bg-white/5 my-1" />
+            <div className="h-px bg-white/60 dark:bg-white/5 my-1" />
             
             <button 
               onClick={handleDelete}

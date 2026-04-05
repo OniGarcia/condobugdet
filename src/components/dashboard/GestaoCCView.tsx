@@ -29,7 +29,7 @@ for (let ano = 2023; ano <= 2030; ano++) {
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-function valColor(v: number, neutral = 'text-neutral-400') {
+function valColor(v: number, neutral = 'text-neutral-600 dark:text-neutral-400') {
   if (v > 0) return 'text-emerald-400'
   if (v < 0) return 'text-red-400'
   return neutral
@@ -71,9 +71,9 @@ function KPICard({
 
   const bgColor = isBalance
     ? realizado >= 0 ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-red-500/5 border-red-500/30'
-    : tipo === 'RECEITA' ? 'bg-emerald-500/5 border-white/10'
-    : tipo === 'DESPESA' ? 'bg-red-500/5 border-white/10'
-    : 'bg-sky-500/5 border-white/10'
+    : tipo === 'RECEITA' ? 'bg-emerald-500/5 border-neutral-200 dark:border-white/10'
+    : tipo === 'DESPESA' ? 'bg-red-500/5 border-neutral-200 dark:border-white/10'
+    : 'bg-sky-500/5 border-neutral-200 dark:border-white/10'
 
   const iconColor = isBalance
     ? realizado >= 0 ? 'text-emerald-400' : 'text-red-400'
@@ -100,12 +100,12 @@ function KPICard({
           <div className="mt-2 space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="text-xs text-neutral-600">Previsto:</span>
-              <span className="text-xs font-medium text-neutral-400 tabular-nums">{BRL.format(previsto!)}</span>
+              <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400 tabular-nums">{BRL.format(previsto!)}</span>
             </div>
             {pct !== null && (
               <>
                 {/* Barra de progresso */}
-                <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                <div className="w-full h-1 bg-white/60 dark:bg-white/5 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all ${status === 'good' ? 'bg-emerald-500' : 'bg-amber-500'}`}
                     style={{ width: `${Math.min(pct, 100)}%` }}
@@ -147,11 +147,11 @@ function MesRow({ mes, temSimulacao }: { mes: GestaoCCMes; temSimulacao: boolean
                 ? open ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />
                 : <span className="block" />}
             </span>
-            <span className="text-sm font-medium text-neutral-200">{mesLabel}</span>
+            <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">{mesLabel}</span>
           </div>
         </td>
 
-        <td className="py-3 px-3 text-right tabular-nums text-sm text-neutral-400">{BRL.format(mes.saldoInicial)}</td>
+        <td className="py-3 px-3 text-right tabular-nums text-sm text-neutral-600 dark:text-neutral-400">{BRL.format(mes.saldoInicial)}</td>
 
         <td className="py-3 px-3 text-right tabular-nums text-sm">
           {mes.entradas > 0
@@ -194,10 +194,10 @@ function MesRow({ mes, temSimulacao }: { mes: GestaoCCMes; temSimulacao: boolean
       {open && hasMovimento && (
         <tr className="bg-black/20">
           <td colSpan={6} className="px-0 pb-0">
-            <div className="mx-4 mb-3 mt-1 rounded-xl border border-white/10 overflow-hidden">
+            <div className="mx-4 mb-3 mt-1 rounded-xl border border-neutral-200 dark:border-white/10 overflow-hidden">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="bg-white/5 border-b border-white/10">
+                  <tr className="bg-white/60 dark:bg-white/5 border-b border-neutral-200 dark:border-white/10">
                     <th className="text-left px-4 py-2 text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Cód.</th>
                     <th className="text-left px-3 py-2 text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Categoria</th>
                     <th className="text-right px-3 py-2 text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Tipo</th>
@@ -209,7 +209,7 @@ function MesRow({ mes, temSimulacao }: { mes: GestaoCCMes; temSimulacao: boolean
                   {mes.categorias.map(cat => (
                     <tr key={cat.categoriaId} className="hover:bg-white/[0.03]">
                       <td className="px-4 py-2 font-mono text-neutral-600">{cat.codigoReduzido}</td>
-                      <td className="px-3 py-2 text-neutral-300">{cat.categoriaNome}</td>
+                      <td className="px-3 py-2 text-neutral-700 dark:text-neutral-300">{cat.categoriaNome}</td>
                       <td className="px-3 py-2 text-right">
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold ${cat.tipo === 'RECEITA' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
                           {cat.tipo === 'RECEITA' ? '↑' : '↓'} {cat.tipo === 'RECEITA' ? 'Entrada' : 'Saída'}
@@ -226,9 +226,9 @@ function MesRow({ mes, temSimulacao }: { mes: GestaoCCMes; temSimulacao: boolean
                     </tr>
                   ))}
                 </tbody>
-                <tfoot className="border-t border-white/10 bg-white/5">
+                <tfoot className="border-t border-neutral-200 dark:border-white/10 bg-white/60 dark:bg-white/5">
                   <tr>
-                    <td colSpan={temSimulacao ? 4 : 3} className="px-4 py-2 text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
+                    <td colSpan={temSimulacao ? 4 : 3} className="px-4 py-2 text-[10px] font-bold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider">
                       Resultado {mesLabel}
                     </td>
                     <td className={`px-4 py-2 text-right tabular-nums font-bold ${valColor(mes.resultado)}`}>
@@ -257,10 +257,10 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
     })
 
   if (!temSimulacao) return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
+    <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 backdrop-blur-xl">
       <div className="flex items-center gap-3 mb-4">
         <BarChart3 className="w-4 h-4 text-neutral-500" />
-        <h3 className="text-sm font-semibold text-white">Previsto vs Realizado</h3>
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Previsto vs Realizado</h3>
       </div>
       <div className="flex items-center gap-3 py-8 justify-center text-neutral-500">
         <Info className="w-5 h-5 shrink-0" />
@@ -270,10 +270,10 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
   )
 
   if (matriz.length === 0) return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
+    <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 backdrop-blur-xl">
       <div className="flex items-center gap-3 mb-4">
         <BarChart3 className="w-4 h-4 text-neutral-500" />
-        <h3 className="text-sm font-semibold text-white">Previsto vs Realizado</h3>
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Previsto vs Realizado</h3>
       </div>
       <div className="flex items-center gap-3 py-8 justify-center text-neutral-500">
         <Info className="w-5 h-5 shrink-0" />
@@ -314,10 +314,10 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
   const hasResultado = roots.some(r => r.tipo === 'RECEITA') && roots.some(r => r.tipo === 'DESPESA')
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl">
-      <div className="px-6 py-4 border-b border-white/10">
-        <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-          <BarChart3 className="w-4 h-4 text-neutral-400" />
+    <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl">
+      <div className="px-6 py-4 border-b border-neutral-200 dark:border-white/10">
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
+          <BarChart3 className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
           Previsto vs Realizado — Período Completo
         </h3>
         <p className="text-xs text-neutral-500 mt-0.5">% = execução orçamentária. Verde = dentro da meta. Âmbar = atenção.</p>
@@ -326,7 +326,7 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-white/10 bg-white/[0.02]">
+            <tr className="border-b border-neutral-200 dark:border-white/10 bg-white/[0.02]">
               <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider min-w-[220px]">Categoria</th>
               <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Previsto</th>
               <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Realizado</th>
@@ -347,7 +347,7 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => row.hasChildren && toggle(row.categoriaId)}
-                        className={`p-0.5 rounded text-neutral-600 w-5 shrink-0 ${row.hasChildren ? 'hover:text-white cursor-pointer' : 'cursor-default'}`}
+                        className={`p-0.5 rounded text-neutral-600 w-5 shrink-0 ${row.hasChildren ? 'hover:text-neutral-900 dark:text-white cursor-pointer' : 'cursor-default'}`}
                       >
                         {row.hasChildren
                           ? expanded.has(row.categoriaId)
@@ -356,13 +356,13 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
                           : <span className="block w-3.5 h-3.5" />}
                       </button>
                       <span className="font-mono text-xs text-neutral-600 w-12 shrink-0">{row.codigoReduzido}</span>
-                      <span className={row.depth === 0 ? 'text-neutral-100 font-medium' : 'text-neutral-300'}>
+                      <span className={row.depth === 0 ? 'text-neutral-100 font-medium' : 'text-neutral-700 dark:text-neutral-300'}>
                         {row.categoriaNome}
                       </span>
                     </div>
                   </td>
 
-                  <td className="py-2.5 px-3 text-right tabular-nums text-sm text-neutral-400 whitespace-nowrap">
+                  <td className="py-2.5 px-3 text-right tabular-nums text-sm text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
                     {row.previsto > 0 ? BRL.format(row.previsto) : <span className="text-neutral-700">—</span>}
                   </td>
 
@@ -398,7 +398,7 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
                   <div className="flex items-center gap-2">
                     <span className="block w-5 shrink-0" />
                     <span className="font-mono text-xs text-neutral-500 w-12 shrink-0">---</span>
-                    <span className="text-neutral-300 font-bold text-xs uppercase tracking-widest">Resultado Líquido</span>
+                    <span className="text-neutral-700 dark:text-neutral-300 font-bold text-xs uppercase tracking-widest">Resultado Líquido</span>
                   </div>
                 </td>
                 <td className={`py-3.5 px-3 text-right tabular-nums font-bold whitespace-nowrap ${valColor(resultado.previsto)}`}>
@@ -464,10 +464,10 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
     })
 
   if (!temSimulacao) return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
+    <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 backdrop-blur-xl">
       <div className="flex items-center gap-3 mb-4">
         <Table2 className="w-4 h-4 text-neutral-500" />
-        <h3 className="text-sm font-semibold text-white">Matriz Analítica Detalhada</h3>
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Matriz Analítica Detalhada</h3>
       </div>
       <div className="flex items-center gap-3 py-8 justify-center text-neutral-500">
         <Info className="w-5 h-5 shrink-0" />
@@ -477,10 +477,10 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
   )
 
   if (matriz.length === 0) return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
+    <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 backdrop-blur-xl">
       <div className="flex items-center gap-3 mb-4">
         <Table2 className="w-4 h-4 text-neutral-500" />
-        <h3 className="text-sm font-semibold text-white">Matriz Analítica Detalhada</h3>
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Matriz Analítica Detalhada</h3>
       </div>
       <div className="flex items-center gap-3 py-8 justify-center text-neutral-500">
         <Info className="w-5 h-5 shrink-0" />
@@ -525,10 +525,10 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
   const hasResultado = roots.some(r => r.tipo === 'RECEITA') && roots.some(r => r.tipo === 'DESPESA')
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl">
-      <div className="px-6 py-4 border-b border-white/10">
-        <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-          <Table2 className="w-4 h-4 text-neutral-400" />
+    <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl">
+      <div className="px-6 py-4 border-b border-neutral-200 dark:border-white/10">
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
+          <Table2 className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
           Matriz Analítica Detalhada — Valores Acumulados
         </h3>
         <p className="text-xs text-neutral-500 mt-0.5">
@@ -539,7 +539,7 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-white/10 bg-white/[0.02]">
+            <tr className="border-b border-neutral-200 dark:border-white/10 bg-white/[0.02]">
               <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider min-w-[220px]">Categoria</th>
               <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">Previsto Acum.</th>
               <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">Realizado Acum.</th>
@@ -569,7 +569,7 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => row.hasChildren && toggle(row.categoriaId)}
-                        className={`p-0.5 rounded text-neutral-600 w-5 shrink-0 ${row.hasChildren ? 'hover:text-white cursor-pointer' : 'cursor-default'}`}
+                        className={`p-0.5 rounded text-neutral-600 w-5 shrink-0 ${row.hasChildren ? 'hover:text-neutral-900 dark:text-white cursor-pointer' : 'cursor-default'}`}
                       >
                         {row.hasChildren
                           ? expanded.has(row.categoriaId)
@@ -578,13 +578,13 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
                           : <span className="block w-3.5 h-3.5" />}
                       </button>
                       <span className="font-mono text-xs text-neutral-600 w-12 shrink-0">{row.codigoReduzido}</span>
-                      <span className={row.depth === 0 ? 'text-neutral-100 font-medium' : 'text-neutral-300'}>
+                      <span className={row.depth === 0 ? 'text-neutral-100 font-medium' : 'text-neutral-700 dark:text-neutral-300'}>
                         {row.categoriaNome}
                       </span>
                     </div>
                   </td>
 
-                  <td className="py-2.5 px-3 text-right tabular-nums text-sm text-neutral-400 whitespace-nowrap">
+                  <td className="py-2.5 px-3 text-right tabular-nums text-sm text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
                     {row.previsto > 0 ? BRL.format(row.previsto) : <span className="text-neutral-700">—</span>}
                   </td>
 
@@ -592,7 +592,7 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
                     {BRL.format(row.realizado)}
                   </td>
 
-                  <td className="py-2.5 px-3 text-right tabular-nums text-sm text-neutral-300 whitespace-nowrap">
+                  <td className="py-2.5 px-3 text-right tabular-nums text-sm text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
                     {row.orcamentoAnualTotal > 0 ? BRL.format(row.orcamentoAnualTotal) : <span className="text-neutral-700">—</span>}
                   </td>
 
@@ -617,7 +617,7 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
                   <div className="flex items-center gap-2">
                     <span className="block w-5 shrink-0" />
                     <span className="font-mono text-xs text-neutral-500 w-12 shrink-0">---</span>
-                    <span className="text-neutral-300 font-bold text-xs uppercase tracking-widest">Resultado Líquido</span>
+                    <span className="text-neutral-700 dark:text-neutral-300 font-bold text-xs uppercase tracking-widest">Resultado Líquido</span>
                   </div>
                 </td>
                 <td className={`py-3.5 px-3 text-right tabular-nums font-bold whitespace-nowrap ${valColor(res.previsto)}`}>
@@ -704,13 +704,13 @@ export function GestaoCCView({
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Gestão por Centro de Custo</h1>
-          <p className="text-neutral-400">Extrato de caixa mensal e análise orçamentária por centro de custo.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white mb-2">Gestão por Centro de Custo</h1>
+          <p className="text-neutral-600 dark:text-neutral-400">Extrato de caixa mensal e análise orçamentária por centro de custo.</p>
         </div>
         <button
           onClick={handleExportPdf}
           disabled={exporting || !gestaoDados}
-          className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-medium rounded-xl transition-all shadow-lg shadow-emerald-500/20 text-sm shrink-0 mt-1 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-neutral-900 dark:text-white font-medium rounded-xl transition-all shadow-lg shadow-emerald-500/20 text-sm shrink-0 mt-1 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Printer className={`w-4 h-4 ${exporting ? 'animate-spin' : ''}`} />
           {exporting ? 'Gerando...' : 'Gerar PDF'}
@@ -718,15 +718,15 @@ export function GestaoCCView({
       </div>
 
       {/* ── Filtros (4 colunas) ─────────────────────────────────────────────── */}
-      <div className="no-print grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-xl">
+      <div className="no-print grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 p-4 rounded-2xl backdrop-blur-xl">
         {/* CC */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider ml-1">Centro de Custo</label>
           <div className="relative">
             <select value={selectedCCId} onChange={e => router.push(buildUrl({ cc: e.target.value }))}
-              className="w-full bg-white/5 border border-white/10 text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer hover:bg-white/10">
+              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
               {centrosCusto.length === 0 && <option value="">Nenhum CC cadastrado</option>}
-              {centrosCusto.map(cc => <option key={cc.id} value={cc.id} className="bg-neutral-900">{cc.nome}</option>)}
+              {centrosCusto.map(cc => <option key={cc.id} value={cc.id} className="bg-white dark:bg-neutral-950">{cc.nome}</option>)}
             </select>
             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
           </div>
@@ -739,9 +739,9 @@ export function GestaoCCView({
           </label>
           <div className="relative">
             <select value={selectedSimId} onChange={e => router.push(buildUrl({ sim: e.target.value }))}
-              className="w-full bg-white/5 border border-white/10 text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer hover:bg-white/10">
-              <option value="" className="bg-neutral-900">Sem orçamento</option>
-              {simulacoes.map(s => <option key={s.id} value={s.id} className="bg-neutral-900">{s.nome}</option>)}
+              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
+              <option value="" className="bg-white dark:bg-neutral-950">Sem orçamento</option>
+              {simulacoes.map(s => <option key={s.id} value={s.id} className="bg-white dark:bg-neutral-950">{s.nome}</option>)}
             </select>
             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
           </div>
@@ -752,8 +752,8 @@ export function GestaoCCView({
           <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider ml-1">Início</label>
           <div className="relative">
             <select value={inicioStr} onChange={e => router.push(buildUrl({ inicio: e.target.value }))}
-              className="w-full bg-white/5 border border-white/10 text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer hover:bg-white/10">
-              {MONTH_OPTIONS.map(o => <option key={o.value} value={o.value} className="bg-neutral-900">{o.label}</option>)}
+              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
+              {MONTH_OPTIONS.map(o => <option key={o.value} value={o.value} className="bg-white dark:bg-neutral-950">{o.label}</option>)}
             </select>
             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
           </div>
@@ -764,8 +764,8 @@ export function GestaoCCView({
           <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider ml-1">Fim</label>
           <div className="relative">
             <select value={fimStr} onChange={e => router.push(buildUrl({ fim: e.target.value }))}
-              className="w-full bg-white/5 border border-white/10 text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer hover:bg-white/10">
-              {MONTH_OPTIONS.map(o => <option key={o.value} value={o.value} className="bg-neutral-900">{o.label}</option>)}
+              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
+              {MONTH_OPTIONS.map(o => <option key={o.value} value={o.value} className="bg-white dark:bg-neutral-950">{o.label}</option>)}
             </select>
             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
           </div>
@@ -787,7 +787,7 @@ export function GestaoCCView({
               <Wallet className="w-4 h-4 text-emerald-400" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">{gestaoDados.centroCustoNome}</h2>
+              <h2 className="text-lg font-bold text-neutral-900 dark:text-white">{gestaoDados.centroCustoNome}</h2>
               <p className="text-sm text-neutral-500">{periodoLabel}</p>
             </div>
           </div>
@@ -825,13 +825,13 @@ export function GestaoCCView({
           <MatrizCC matriz={gestaoDados.matriz} temSimulacao={temSim} />
 
           {/* ── Extrato Mensal ────────────────────────────────────────────── */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl">
-            <div className="px-4 py-4 border-b border-white/10 flex items-center justify-between">
+          <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl">
+            <div className="px-4 py-4 border-b border-neutral-200 dark:border-white/10 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-white">Extrato de Caixa Mensal</h3>
+                <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Extrato de Caixa Mensal</h3>
                 <p className="text-xs text-neutral-500 mt-0.5">Clique em um mês para ver o detalhamento por categoria</p>
               </div>
-              <span className="text-xs text-neutral-600 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
+              <span className="text-xs text-neutral-600 bg-white/60 dark:bg-white/5 px-2.5 py-1 rounded-lg border border-neutral-200 dark:border-white/10">
                 {gestaoDados.meses.length} meses
               </span>
             </div>
@@ -839,13 +839,13 @@ export function GestaoCCView({
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/10 bg-white/[0.02]">
+                  <tr className="border-b border-neutral-200 dark:border-white/10 bg-white/[0.02]">
                     <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider min-w-[160px]">Mês</th>
                     <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">Saldo Inicial</th>
                     <th className="text-right px-3 py-3 text-xs font-semibold text-emerald-600 uppercase tracking-wider whitespace-nowrap">↑ Entradas</th>
                     <th className="text-right px-3 py-3 text-xs font-semibold text-red-600 uppercase tracking-wider whitespace-nowrap">↓ Saídas</th>
                     <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">Resultado</th>
-                    <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider whitespace-nowrap">Saldo Final</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider whitespace-nowrap">Saldo Final</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -857,7 +857,7 @@ export function GestaoCCView({
                     <MesRow key={`${mes.ano}-${mes.mes}`} mes={mes} temSimulacao={temSim} />
                   ))}
                   <tr className="border-t-2 border-white/20 bg-gradient-to-r from-emerald-950/40 to-transparent">
-                    <td className="px-4 py-3.5 text-xs font-bold text-neutral-300 uppercase tracking-wider">◆ Total do Período</td>
+                    <td className="px-4 py-3.5 text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">◆ Total do Período</td>
                     <td className="px-3 py-3.5 text-right tabular-nums text-sm text-neutral-500 font-medium">{BRL.format(gestaoDados.saldoInicial)}</td>
                     <td className="px-3 py-3.5 text-right tabular-nums text-sm font-bold text-emerald-400">+ {BRL.format(gestaoDados.totalEntradas)}</td>
                     <td className="px-3 py-3.5 text-right tabular-nums text-sm font-bold text-red-400">− {BRL.format(gestaoDados.totalSaidas)}</td>
@@ -900,13 +900,13 @@ export function GestaoCCView({
             return (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Acima do Orçamento */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
+                <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 backdrop-blur-xl">
                   <div className="flex items-center gap-2 mb-5">
                     <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center">
                       <AlertTriangle className="w-4 h-4 text-amber-400" />
                     </div>
                     <div>
-                      <h3 className="text-base font-semibold text-white">Despesas Acima do Orçamento</h3>
+                      <h3 className="text-base font-semibold text-neutral-900 dark:text-white">Despesas Acima do Orçamento</h3>
                       <p className="text-xs text-neutral-500">Categorias que extrapolaram o previsto, por valor de excesso</p>
                     </div>
                   </div>
@@ -928,7 +928,7 @@ export function GestaoCCView({
                             <div className="flex items-center justify-between mb-1">
                               <div className="flex items-center gap-2 min-w-0">
                                 <span className="text-xs font-mono text-neutral-600 shrink-0">{String(i + 1).padStart(2, '0')}</span>
-                                <span className="text-sm text-neutral-200 truncate">{item.categoriaNome}</span>
+                                <span className="text-sm text-neutral-800 dark:text-neutral-200 truncate">{item.categoriaNome}</span>
                               </div>
                               <div className="flex items-center gap-3 shrink-0 ml-3">
                                 <span className="text-xs text-amber-400 font-bold">+{PCT.format(pctExcesso)}%</span>
@@ -936,7 +936,7 @@ export function GestaoCCView({
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                              <div className="flex-1 h-1.5 bg-white/60 dark:bg-white/5 rounded-full overflow-hidden">
                                 <div
                                   className="h-full bg-gradient-to-r from-amber-500 to-red-500 rounded-full transition-all"
                                   style={{ width: `${barW}%` }}
@@ -955,13 +955,13 @@ export function GestaoCCView({
                 </div>
 
                 {/* Despesas Não Previstas */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
+                <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 backdrop-blur-xl">
                   <div className="flex items-center gap-2 mb-5">
                     <div className="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center">
                       <CircleDollarSign className="w-4 h-4 text-red-400" />
                     </div>
                     <div>
-                      <h3 className="text-base font-semibold text-white">Despesas Não Previstas</h3>
+                      <h3 className="text-base font-semibold text-neutral-900 dark:text-white">Despesas Não Previstas</h3>
                       <p className="text-xs text-neutral-500">Gastos em categorias sem orçamento (extras), por valor</p>
                     </div>
                   </div>
@@ -982,11 +982,11 @@ export function GestaoCCView({
                             <div className="flex items-center justify-between mb-1">
                               <div className="flex items-center gap-2 min-w-0">
                                 <span className="text-xs font-mono text-neutral-600 shrink-0">{String(i + 1).padStart(2, '0')}</span>
-                                <span className="text-sm text-neutral-200 truncate">{item.categoriaNome}</span>
+                                <span className="text-sm text-neutral-800 dark:text-neutral-200 truncate">{item.categoriaNome}</span>
                               </div>
                               <span className="text-sm font-bold text-red-400 tabular-nums shrink-0 ml-3">{BRL.format(item.realizado)}</span>
                             </div>
-                            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                            <div className="h-1.5 bg-white/60 dark:bg-white/5 rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-gradient-to-r from-red-500/80 to-red-400 rounded-full transition-all"
                                 style={{ width: `${barW}%` }}

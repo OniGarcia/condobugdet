@@ -130,13 +130,13 @@ export function InsightsCards({
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
       {/* Rank Negativo - Piores (%) */}
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
+      <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 backdrop-blur-xl">
         <div className="flex items-center gap-2 mb-5">
           <div className="p-2 bg-red-500/10 rounded-xl border border-red-500/10">
             <TrendingDown size={16} className="text-red-400" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-white">Top 5 — Acima do Orçamento</h3>
+            <h3 className="text-base font-semibold text-neutral-900 dark:text-white">Top 5 — Acima do Orçamento</h3>
             <p className="text-xs text-neutral-500">Despesas planejadas que mais extrapolaram (%)</p>
           </div>
         </div>
@@ -152,14 +152,14 @@ export function InsightsCards({
               return (
                 <div key={entry.id} className="flex flex-col gap-1">
                   <div className="flex justify-between items-baseline">
-                    <span className="text-sm text-neutral-300 truncate flex-1 mr-3">
+                    <span className="text-sm text-neutral-700 dark:text-neutral-300 truncate flex-1 mr-3">
                       <span className="text-neutral-500 font-mono text-xs mr-2">#{i + 1}</span>
                       {entry.nome}
                     </span>
                     <span className="text-sm font-semibold text-red-400 shrink-0">+{BRL.format(entry.variacao)}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div className="flex-1 h-1.5 bg-white/60 dark:bg-white/5 rounded-full overflow-hidden">
                       <div className="h-full bg-red-500/60 rounded-full transition-all" style={{ width: `${barPct}%` }} />
                     </div>
                     <span className="text-xs text-red-400/70 w-12 text-right">{entry.pct.toFixed(0)}%</span>
@@ -172,13 +172,13 @@ export function InsightsCards({
       </div>
 
       {/* Rank Despesas Não Previstas (Extras) */}
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
+      <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 backdrop-blur-xl">
         <div className="flex items-center gap-2 mb-5">
           <div className="p-2 bg-amber-500/10 rounded-xl border border-amber-500/10">
             <TrendingDown size={16} className="text-amber-400" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-white">Top 5 — Despesas Não Previstas</h3>
+            <h3 className="text-base font-semibold text-neutral-900 dark:text-white">Top 5 — Despesas Não Previstas</h3>
             <p className="text-xs text-neutral-500">Gastos em categorias com orçamento zero (Extras)</p>
           </div>
         </div>
@@ -194,14 +194,14 @@ export function InsightsCards({
               return (
                 <div key={entry.id} className="flex flex-col gap-1">
                   <div className="flex justify-between items-baseline">
-                    <span className="text-sm text-neutral-300 truncate flex-1 mr-3">
+                    <span className="text-sm text-neutral-700 dark:text-neutral-300 truncate flex-1 mr-3">
                       <span className="text-neutral-500 font-mono text-xs mr-2">#{i + 1}</span>
                       {entry.nome}
                     </span>
                     <span className="text-sm font-semibold text-amber-400 shrink-0">+{BRL.format(entry.realizado)}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div className="flex-1 h-1.5 bg-white/60 dark:bg-white/5 rounded-full overflow-hidden">
                       <div className="h-full bg-amber-500/60 rounded-full transition-all" style={{ width: `${barPct}%` }} />
                     </div>
                     <span className="text-xs text-amber-400/70 w-12 text-right">Extra</span>

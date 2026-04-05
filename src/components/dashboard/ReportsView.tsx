@@ -63,13 +63,13 @@ export function ReportsView({
       <div className="no-print flex flex-col gap-4">
         <div className="flex justify-between items-end">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Relatórios Gerenciais</h1>
-            <p className="text-neutral-400">Geração de relatórios financeiros consolidados e por centro de custo.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white mb-2">Relatórios Gerenciais</h1>
+            <p className="text-neutral-600 dark:text-neutral-400">Geração de relatórios financeiros consolidados e por centro de custo.</p>
           </div>
           <div className="flex gap-3">
             <button
               onClick={handlePrint}
-              className="flex items-center gap-2 px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-all shadow-lg shadow-emerald-500/20"
+              className="flex items-center gap-2 px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-neutral-900 dark:text-white font-medium rounded-lg transition-all shadow-lg shadow-emerald-500/20"
             >
               <Printer className="w-4 h-4" />
               Gerar PDF / Imprimir
@@ -77,7 +77,7 @@ export function ReportsView({
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row items-end gap-4 bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-xl">
+        <div className="flex flex-col lg:flex-row items-end gap-4 bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 p-4 rounded-2xl backdrop-blur-xl">
           {/* Simulação */}
           <div className="flex-[2] min-w-0 w-full space-y-1.5">
             <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider ml-1">Simulação</label>
@@ -93,14 +93,14 @@ export function ReportsView({
               <select
                 value={selectedCCId}
                 onChange={(e) => handleCCChange(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer hover:bg-white/10"
+                className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10"
               >
-                <option value="all" className="bg-neutral-900">Todos os Lançamentos</option>
+                <option value="all" className="bg-white dark:bg-neutral-950">Todos os Lançamentos</option>
                 {centrosCusto.map(cc => (
-                  <option key={cc.id} value={cc.id} className="bg-neutral-900">{cc.nome}</option>
+                  <option key={cc.id} value={cc.id} className="bg-white dark:bg-neutral-950">{cc.nome}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none group-hover:text-neutral-300 transition-colors" />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none group-hover:text-neutral-700 dark:text-neutral-300 transition-colors" />
             </div>
           </div>
 
@@ -131,8 +131,8 @@ export function ReportsView({
         <div className="hidden print:flex justify-between items-start border-b-2 border-neutral-900 pb-6 mb-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-6 h-6 rounded bg-neutral-900 flex items-center justify-center">
-                <LayoutDashboard className="w-3.5 h-3.5 text-white" />
+              <div className="w-6 h-6 rounded bg-white dark:bg-neutral-950 flex items-center justify-center">
+                <LayoutDashboard className="w-3.5 h-3.5 text-neutral-900 dark:text-white" />
               </div>
               <h2 className="text-xl font-bold text-neutral-900">CondoBudget</h2>
             </div>
@@ -142,7 +142,7 @@ export function ReportsView({
             </p>
           </div>
           <div className="text-right">
-            <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest">Centro de Custo</p>
+            <p className="text-xs font-bold text-neutral-600 dark:text-neutral-400 uppercase tracking-widest">Centro de Custo</p>
             <p className="text-lg font-bold text-neutral-900">{selectedCC?.nome ?? 'Consolidado Geral'}</p>
             <p className="text-xs text-neutral-500 mt-2">Gerado em: {new Date().toLocaleDateString('pt-BR')}</p>
           </div>
@@ -166,7 +166,7 @@ export function ReportsView({
 
         {/* 2. Analytical Matrix (Table) */}
         <div className="break-inside-avoid">
-          <h3 className="text-lg font-bold text-white print:text-neutral-900 mb-4 flex items-center gap-2">
+          <h3 className="text-lg font-bold text-neutral-900 dark:text-white print:text-neutral-900 mb-4 flex items-center gap-2">
             <FileText className="w-5 h-5 print:hidden" />
             Matriz Analítica Detalhada
           </h3>

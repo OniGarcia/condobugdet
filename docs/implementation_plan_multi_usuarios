@@ -1,0 +1,77 @@
+# Plan: Multi-User & Multi-Condominium Support (Multi-Tenancy)
+
+Este plano descreve as mudanças arquiteturais necessárias para transformar o sistema atual em um ambiente multi-inquilino (multi-tenant), permitindo que usuários gerenciem múltiplos condomínios com controle de acesso centralizado.
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Estratégia de Migração de Dados**: Como o banco atual não possui `condominio_id`, precisaremos atribuir todos os registros existentes a um "Condomínio Inicial" padrão.
+> **Lock-in de Segurança (RLS)**: Uma vez ativado o Row Level Security no Supabase, o sistema deixará de exibir dados até que cada consulta seja atualizada para incluir o contexto do usuário.
+
+## Proposed Changes
+
+### 1. Banco de Dados (Supabase/PostgreSQL)
+
+#### [NEW] `supabase/migrations/20260403000000_multi_tenancy.sql`
+- **Tabela `condos`**: Armazena os dados básicos do condomínio (ID, nome, CNPJ).
+- **Tabela `profiles`**: Estende os usuários do `auth.users` (nome, avatar, cargo).
+- **Table: `public.memberships`**: Tabela de ligação N:N entre usuários e condomínios, incluindo o `role` (Admin, Editor, Viewer).
+- **Alteração de tabelas existentes**: Adição da coluna `condo_id` em:
+  - `categorias` (com suporte a `condo_id` NULL para categorias globais/compartilhadas)
+  - `orcamentos_simulacoes`
+  - `orcamento_previsto`
+  - `dados_realizados`
+  - `cost_centers`
+- **Enable RLS**: Implementação de políticas de segurança no banco de dados.
+
+---
+
+### 2. Autenticação e Middleware (Next.js)
+
+#### [NEW] `src/middleware.ts`
+- Verificar se o usuário está logado.
+- Redirecionar para `/login` se não houver sessão ativa.
+- Verificar se um `condo_id` está selecionado (via cookie); se não, redirecionar para a página de seleção.
+
+#### [MODIFY] `src/lib/supabase/server.ts`
+- Adicionar helper para obter o `condo_id` atual de forma segura no lado do servidor.
+
+---
+
+### 3. Interface do Usuário (UI/UX)
+
+#### [NEW] `src/app/select-condo/page.tsx`
+- Dashboard inicial pós-login para escolher qual condomínio acessar.
+
+#### [MODIFY] `src/app/(dashboard)/layout.tsx`
+- Adicionar um seletor no topo ou lateral da barra de menu para trocar de condomínio sem precisar deslogar.
+- Exibir nome do usuário e condomínio ativo.
+
+---
+
+### 4. Lógica de Negócio (Server Actions)
+
+#### [MODIFY] `src/actions/*.ts`
+- Atualizar todas as ações de leitura/escrita para sempre incluir o `condo_id` ativo.
+- Validar se o usuário possui permissão para a operação desejada no condomínio específico.
+
+## Decisões Tomadas
+
+- **Convites**: Administradores de condomínio terão autonomia para convidar novos membros.
+- **Perfis**: Implementaremos 3 níveis: **Viewer** (Leitura), **Editor** (Edição de orçamentos/realizado) e **Admin** (Gestão total + Convites).
+- **Plano de Contas**: Suportaremos categorias compartilhadas (globais) e categorias específicas por condomínio.
+
+## Open Questions
+
+- Nenhuma no momento. O usuário autorizou o prosseguimento com base nas definições acima.
+
+## Verification Plan
+
+### Automated Tests (Supabase RLS)
+- Criar script SQL para validar que o Usuário A não consegue ler o `condo_id` do Usuário B, mesmo conhecendo o UUID.
+
+### Manual Verification
+1. Logar como Usuário 1.
+2. Criar um dado no Condomínio A.
+3. Trocar para o Condomínio B (se tiver acesso) e verificar que o dado do "A" sumiu.
+4. Tentar acessar via URL direta um recurso do Condomínio C (onde não tem acesso) e verificar o erro de permissão.

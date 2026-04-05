@@ -105,12 +105,12 @@ export function ComparativeTable({
     : `${mesAlvo}/${anoAlvo}`
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
+    <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 backdrop-blur-xl">
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-base font-semibold text-white">Matriz Analítica</h3>
+          <h3 className="text-base font-semibold text-neutral-900 dark:text-white">Matriz Analítica</h3>
           <p className="text-xs text-neutral-500 mt-0.5">
-            Mês de referência: <span className="text-neutral-300 font-medium">{mesLabel}</span>
+            Mês de referência: <span className="text-neutral-700 dark:text-neutral-300 font-medium">{mesLabel}</span>
             {view === 'acumulado' && (() => {
             const ini = inicio ?? { ano: anoAlvo, mes: 1 }
             const iniLabel = `${NOMES_MESES[ini.mes - 1]}/${ini.ano}`
@@ -120,13 +120,13 @@ export function ComparativeTable({
         </div>
 
         {/* Toggle Mês / Acumulado */}
-        <div className="flex bg-white/5 border border-white/10 rounded-lg p-0.5 shrink-0">
+        <div className="flex bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-lg p-0.5 shrink-0">
           <button
             onClick={() => setView('mes')}
             className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
               view === 'mes'
-                ? 'bg-emerald-500 text-white shadow'
-                : 'text-neutral-400 hover:text-white'
+                ? 'bg-emerald-500 text-neutral-900 dark:text-white shadow'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:text-white'
             }`}
           >
             Mês
@@ -135,8 +135,8 @@ export function ComparativeTable({
             onClick={() => setView('acumulado')}
             className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
               view === 'acumulado'
-                ? 'bg-emerald-500 text-white shadow'
-                : 'text-neutral-400 hover:text-white'
+                ? 'bg-emerald-500 text-neutral-900 dark:text-white shadow'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:text-white'
             }`}
           >
             Acumulado
@@ -147,32 +147,32 @@ export function ComparativeTable({
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-white/10">
-              <th className="text-left text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 pr-4 min-w-[200px]">
+            <tr className="border-b border-neutral-200 dark:border-white/10">
+              <th className="text-left text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wider pb-3 pr-4 min-w-[200px]">
                 Categoria
               </th>
 
               {view === 'mes' ? (
                 <>
-                  <th className="text-right text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 px-3 whitespace-nowrap">
+                  <th className="text-right text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wider pb-3 px-3 whitespace-nowrap">
                     Mês Previsto
                   </th>
-                  <th className="text-right text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 px-3 whitespace-nowrap">
+                  <th className="text-right text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wider pb-3 px-3 whitespace-nowrap">
                     Mês Realizado
                   </th>
                 </>
               ) : (
                 <>
-                  <th className="text-right text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 px-3 whitespace-nowrap">
+                  <th className="text-right text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wider pb-3 px-3 whitespace-nowrap">
                     YTD Previsto
                   </th>
-                  <th className="text-right text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 px-3 whitespace-nowrap">
+                  <th className="text-right text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wider pb-3 px-3 whitespace-nowrap">
                     YTD Realizado
                   </th>
-                  <th className="text-right text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 px-3 whitespace-nowrap">
+                  <th className="text-right text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wider pb-3 px-3 whitespace-nowrap">
                     Orç. Anual
                   </th>
-                  <th className="text-right text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 pl-3 whitespace-nowrap">
+                  <th className="text-right text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wider pb-3 pl-3 whitespace-nowrap">
                     <span className="flex items-center justify-end gap-1">
                       Saldo Ano
                       <span
@@ -204,7 +204,7 @@ export function ComparativeTable({
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => row.hasChildren && toggle(row.categoriaId)}
-                        className={`p-0.5 rounded text-neutral-600 w-5 shrink-0 ${row.hasChildren ? 'hover:text-white cursor-pointer' : 'cursor-default'}`}
+                        className={`p-0.5 rounded text-neutral-600 w-5 shrink-0 ${row.hasChildren ? 'hover:text-neutral-900 dark:text-white cursor-pointer' : 'cursor-default'}`}
                       >
                         {row.hasChildren
                           ? expanded.has(row.categoriaId)
@@ -213,7 +213,7 @@ export function ComparativeTable({
                           : <span className="w-3.5 h-3.5 block" />}
                       </button>
                       <span className="font-mono text-xs text-neutral-500 w-12 shrink-0">{row.codigoReduzido}</span>
-                      <span className={row.depth === 0 ? 'text-neutral-100 font-medium' : 'text-neutral-300'}>
+                      <span className={row.depth === 0 ? 'text-neutral-100 font-medium' : 'text-neutral-700 dark:text-neutral-300'}>
                         {row.categoriaNome}
                       </span>
                     </div>
@@ -221,22 +221,22 @@ export function ComparativeTable({
 
                   {view === 'mes' ? (
                     <>
-                      <td className="py-2.5 px-3 text-right text-neutral-400 tabular-nums whitespace-nowrap">
+                      <td className="py-2.5 px-3 text-right text-neutral-600 dark:text-neutral-400 tabular-nums whitespace-nowrap">
                         {BRL.format(row.previstoMes)}
                       </td>
-                      <td className="py-2.5 px-3 text-right text-neutral-300 tabular-nums whitespace-nowrap">
+                      <td className="py-2.5 px-3 text-right text-neutral-700 dark:text-neutral-300 tabular-nums whitespace-nowrap">
                         {BRL.format(row.realizadoMes)}
                       </td>
                     </>
                   ) : (
                     <>
-                      <td className="py-2.5 px-3 text-right text-neutral-400 tabular-nums whitespace-nowrap">
+                      <td className="py-2.5 px-3 text-right text-neutral-600 dark:text-neutral-400 tabular-nums whitespace-nowrap">
                         {BRL.format(row.previstoAcumuladoYTD)}
                       </td>
-                      <td className="py-2.5 px-3 text-right text-neutral-300 tabular-nums whitespace-nowrap">
+                      <td className="py-2.5 px-3 text-right text-neutral-700 dark:text-neutral-300 tabular-nums whitespace-nowrap">
                         {BRL.format(row.realizadoAcumuladoYTD)}
                       </td>
-                      <td className="py-2.5 px-3 text-right text-neutral-300 tabular-nums whitespace-nowrap">
+                      <td className="py-2.5 px-3 text-right text-neutral-700 dark:text-neutral-300 tabular-nums whitespace-nowrap">
                         {BRL.format(row.orcamentoAnualTotal)}
                       </td>
                       <td className="py-2.5 pl-3 text-right tabular-nums whitespace-nowrap">
@@ -265,7 +265,7 @@ export function ComparativeTable({
                   <div className="flex items-center gap-2">
                     <span className="w-5 shrink-0" />
                     <span className="font-mono text-xs text-neutral-500 w-12 shrink-0">---</span>
-                    <span className="text-white font-bold text-xs uppercase tracking-widest">
+                    <span className="text-neutral-900 dark:text-white font-bold text-xs uppercase tracking-widest">
                       Resultado
                     </span>
                   </div>

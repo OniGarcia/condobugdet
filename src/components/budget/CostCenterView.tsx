@@ -29,11 +29,14 @@ export function CostCenterView({
   data,
   allFlat,
   categoriaTree,
+  role = 'viewer',
 }: {
   data: CentroCusto[]
   allFlat: Categoria[]
   categoriaTree: Categoria[]
+  role?: string
 }) {
+  const canEdit = role === 'admin' || role === 'editor'
   const [modal, setModal] = useState<ModalState>({ type: 'none' })
   const [isPending, startTransition] = useTransition()
 
@@ -50,18 +53,20 @@ export function CostCenterView({
     <div className="flex flex-col gap-4">
       {/* Action Bar */}
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-white">Centros de Custo</h2>
-        <button
-          onClick={() => setModal({ type: 'create' })}
-          className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-lg text-sm font-medium transition-colors border border-emerald-500/20"
-        >
-          <Plus className="w-4 h-4" />
-          Novo Centro de Custo
-        </button>
+        <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Centros de Custo</h2>
+        {canEdit && (
+          <button
+            onClick={() => setModal({ type: 'create' })}
+            className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-lg text-sm font-medium transition-colors border border-emerald-500/20"
+          >
+            <Plus className="w-4 h-4" />
+            Novo Centro de Custo
+          </button>
+        )}
       </div>
 
       {/* List */}
-      <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl">
+      <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl">
         {data.length === 0 ? (
           <div className="text-center p-12 text-neutral-500 text-sm">
             <Boxes className="w-8 h-8 mx-auto mb-3 opacity-30" />
@@ -70,7 +75,7 @@ export function CostCenterView({
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/10">
+              <tr className="border-b border-neutral-200 dark:border-white/10">
                 <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Nome</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Descrição</th>
                 <th className="text-right px-5 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Saldo Inicial</th>
@@ -80,9 +85,9 @@ export function CostCenterView({
             </thead>
             <tbody className="divide-y divide-white/5">
               {data.map(centro => (
-                <tr key={centro.id} className="group hover:bg-white/5 transition-colors">
-                  <td className="px-5 py-3.5 font-medium text-neutral-200">{centro.nome}</td>
-                  <td className="px-5 py-3.5 text-neutral-400">{centro.descricao ?? <span className="italic text-neutral-600">—</span>}</td>
+                <tr key={centro.id} className="group hover:bg-white/60 dark:bg-white/5 transition-colors">
+                  <td className="px-5 py-3.5 font-medium text-neutral-800 dark:text-neutral-200">{centro.nome}</td>
+                  <td className="px-5 py-3.5 text-neutral-600 dark:text-neutral-400">{centro.descricao ?? <span className="italic text-neutral-600">—</span>}</td>
                   <td className="px-5 py-3.5 text-right font-mono text-emerald-400 text-sm">
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(centro.saldo_inicial ?? 0)}
                   </td>
@@ -96,23 +101,25 @@ export function CostCenterView({
                     </button>
                   </td>
                   <td className="px-5 py-3.5">
-                    <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => setModal({ type: 'edit', centro })}
-                        className="p-1.5 text-neutral-500 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
-                        title="Editar"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => setModal({ type: 'delete', centro })}
-                        disabled={isPending}
-                        className="p-1.5 text-neutral-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors disabled:opacity-30"
-                        title="Excluir"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                    {canEdit && (
+                      <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => setModal({ type: 'edit', centro })}
+                          className="p-1.5 text-neutral-500 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
+                          title="Editar"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setModal({ type: 'delete', centro })}
+                          disabled={isPending}
+                          className="p-1.5 text-neutral-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors disabled:opacity-30"
+                          title="Excluir"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -189,33 +196,33 @@ function CostCenterFormModal({
 
   return (
     <Overlay onClose={onClose}>
-      <div className="bg-neutral-900 border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl">
-        <h3 className="text-lg font-semibold text-white mb-5">
+      <div className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+        <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-5">
           {isEdit ? 'Editar Centro de Custo' : 'Novo Centro de Custo'}
         </h3>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-neutral-400 mb-1.5">Nome</label>
+            <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">Nome</label>
             <input
               value={nome}
               onChange={e => setNome(e.target.value)}
               placeholder="ex: Taxa Condominial"
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-800 dark:text-neutral-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-neutral-400 mb-1.5">Descrição <span className="text-neutral-600">(opcional)</span></label>
+            <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">Descrição <span className="text-neutral-600">(opcional)</span></label>
             <textarea
               value={descricao}
               onChange={e => setDescricao(e.target.value)}
               placeholder="Descreva o agrupamento..."
               rows={3}
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none"
+              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-800 dark:text-neutral-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-neutral-400 mb-1.5">
+            <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">
               Saldo Inicial <span className="text-neutral-600">(R$)</span>
             </label>
             <input
@@ -224,14 +231,14 @@ function CostCenterFormModal({
               value={saldoInicial}
               onChange={e => setSaldoInicial(e.target.value)}
               placeholder="0.00"
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-800 dark:text-neutral-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
             />
             <p className="text-xs text-neutral-600 mt-1">Valor financeiro disponível no início do período deste centro de custo.</p>
           </div>
         </div>
 
         <div className="flex justify-end gap-2 mt-6">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-neutral-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:text-white rounded-lg hover:bg-white/60 dark:bg-white/5 transition-colors">
             Cancelar
           </button>
           <button
@@ -241,7 +248,7 @@ function CostCenterFormModal({
               saldo_inicial: parseFloat(saldoInicial) || 0,
             })}
             disabled={isPending || !nome.trim()}
-            className="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-neutral-900 dark:text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
           >
             {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
             {isEdit ? 'Salvar' : 'Criar'}
@@ -285,20 +292,20 @@ function CategorySelectorModal({
 
   return (
     <Overlay onClose={onClose}>
-      <div className="bg-neutral-900 border border-white/10 rounded-2xl p-6 w-full max-w-2xl shadow-2xl flex flex-col max-h-[80vh]">
+      <div className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 w-full max-w-2xl shadow-2xl flex flex-col max-h-[80vh]">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-white">Associar Categorias</h3>
-            <p className="text-sm text-neutral-400 mt-0.5">Centro: <span className="text-neutral-200 font-medium">{centro.nome}</span></p>
+            <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">Associar Categorias</h3>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-0.5">Centro: <span className="text-neutral-800 dark:text-neutral-200 font-medium">{centro.nome}</span></p>
           </div>
-          <button onClick={onClose} className="p-1.5 text-neutral-500 hover:text-white rounded-lg hover:bg-white/5 transition-colors">
+          <button onClick={onClose} className="p-1.5 text-neutral-500 hover:text-neutral-900 dark:text-white rounded-lg hover:bg-white/60 dark:bg-white/5 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
 
         <p className="text-xs text-neutral-500 mb-3">{selected.size} categorias selecionadas</p>
 
-        <div className="flex-1 overflow-y-auto bg-white/5 border border-white/10 rounded-xl p-2 space-y-0.5">
+        <div className="flex-1 overflow-y-auto bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-xl p-2 space-y-0.5">
           {categoriaTree.length === 0 ? (
             <p className="text-center p-8 text-neutral-500 text-sm">Nenhuma categoria cadastrada.</p>
           ) : (
@@ -315,13 +322,13 @@ function CategorySelectorModal({
         </div>
 
         <div className="flex justify-end gap-2 mt-4">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-neutral-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:text-white rounded-lg hover:bg-white/60 dark:bg-white/5 transition-colors">
             Cancelar
           </button>
           <button
             onClick={() => onSave(Array.from(selected))}
             disabled={isPending}
-            className="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-neutral-900 dark:text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
           >
             {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
             Salvar Associações
@@ -348,12 +355,12 @@ function CategoryCheckNode({
   return (
     <div>
       <div
-        className="flex items-center gap-2 py-1.5 px-2 rounded-xl hover:bg-white/5 group transition-colors cursor-pointer"
+        className="flex items-center gap-2 py-1.5 px-2 rounded-xl hover:bg-white/60 dark:bg-white/5 group transition-colors cursor-pointer"
         style={{ paddingLeft: `${(depth * 1.25) + 0.5}rem` }}
         onClick={() => onToggle(node)}
       >
         <button
-          className="p-0.5 rounded text-neutral-600 hover:text-white transition-colors w-5 shrink-0"
+          className="p-0.5 rounded text-neutral-600 hover:text-neutral-900 dark:text-white transition-colors w-5 shrink-0"
           onClick={e => { e.stopPropagation(); hasChildren && setIsExpanded(!isExpanded) }}
         >
           {hasChildren ? (
@@ -375,7 +382,7 @@ function CategoryCheckNode({
 
         <span className={cn(
           'flex-1 text-sm truncate',
-          depth === 0 ? 'text-emerald-200 font-semibold' : 'text-neutral-300'
+          depth === 0 ? 'text-emerald-200 font-semibold' : 'text-neutral-700 dark:text-neutral-300'
         )}>
           {node.nome_conta}
         </span>
@@ -385,7 +392,7 @@ function CategoryCheckNode({
             'w-4 h-4 rounded border shrink-0 flex items-center justify-center transition-colors',
             isChecked
               ? 'bg-emerald-500 border-emerald-500'
-              : 'border-white/20 bg-white/5 hover:border-emerald-500/50'
+              : 'border-white/20 bg-white/60 dark:bg-white/5 hover:border-emerald-500/50'
           )}
           onClick={e => { e.stopPropagation(); onToggle(node) }}
         >
@@ -423,22 +430,22 @@ function ConfirmModal({
 }) {
   return (
     <Overlay onClose={onCancel}>
-      <div className="bg-neutral-900 border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+      <div className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
         <div className="flex gap-3 items-start mb-4">
           <div className="p-2 bg-red-500/10 rounded-xl shrink-0">
             <AlertTriangle className="w-5 h-5 text-red-400" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-white mb-1">{title}</h3>
-            <p className="text-sm text-neutral-400">{message}</p>
+            <h3 className="text-base font-semibold text-neutral-900 dark:text-white mb-1">{title}</h3>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">{message}</p>
           </div>
         </div>
         <div className="flex justify-end gap-2">
-          <button onClick={onCancel} className="px-4 py-2 text-sm text-neutral-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors">Cancelar</button>
+          <button onClick={onCancel} className="px-4 py-2 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:text-white rounded-lg hover:bg-white/60 dark:bg-white/5 transition-colors">Cancelar</button>
           <button
             onClick={onConfirm}
             disabled={isPending}
-            className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+            className="px-5 py-2 bg-red-600 hover:bg-red-700 text-neutral-900 dark:text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
           >
             {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
             {confirmLabel}

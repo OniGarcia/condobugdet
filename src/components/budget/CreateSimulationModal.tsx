@@ -47,7 +47,7 @@ export function CreateSimulationModal() {
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-1.5 px-4 py-2 bg-neutral-800 text-white hover:bg-neutral-700 rounded-lg text-sm font-medium transition-colors border border-white/10 shadow-sm"
+        className="flex items-center gap-1.5 px-4 py-2 bg-neutral-800 text-neutral-900 dark:text-white hover:bg-neutral-700 rounded-lg text-sm font-medium transition-colors border border-neutral-200 dark:border-white/10 shadow-sm"
       >
         <Plus className="w-4 h-4 text-emerald-400" />
         Nova Simulação
@@ -56,13 +56,13 @@ export function CreateSimulationModal() {
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !isLoading && setIsOpen(false)} />
-          <div className="relative bg-neutral-900 border border-white/10 rounded-2xl w-full max-w-md shadow-2xl p-6 overflow-hidden">
+          <div className="relative bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-white/10 rounded-2xl w-full max-w-md shadow-2xl p-6 overflow-hidden">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-white">Nova Simulação</h3>
+              <h3 className="text-xl font-bold text-neutral-900 dark:text-white">Nova Simulação</h3>
               <button 
                 onClick={() => setIsOpen(false)}
                 disabled={isLoading}
-                className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/5 transition-colors disabled:opacity-50"
+                className="p-1.5 rounded-lg text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:text-white hover:bg-white/60 dark:bg-white/5 transition-colors disabled:opacity-50"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -70,30 +70,30 @@ export function CreateSimulationModal() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-1.5">Nome do Período/Cenário</label>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">Nome do Período/Cenário</label>
                 <input 
                   type="text" 
                   required
                   value={nome}
                   onChange={e => setNome(e.target.value)}
                   placeholder="Ex: Orçamento Base 2026"
-                  className="w-full bg-black/40 border border-white/10 text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-neutral-600"
+                  className="w-full bg-black/40 border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-neutral-600"
                 />
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1.5">Mês Inicial</label>
+                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">Mês Inicial</label>
                   <select 
                     value={mesInicio}
                     onChange={e => setMesInicio(Number(e.target.value))}
-                    className="w-full bg-black/40 border border-white/10 text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                    className="w-full bg-black/40 border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                   >
                     {mesesOptions.map(m => <option key={m.val} value={m.val}>{m.label}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1.5">Ano Inicial</label>
+                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">Ano Inicial</label>
                   <input 
                     type="number" 
                     required
@@ -101,13 +101,13 @@ export function CreateSimulationModal() {
                     onChange={e => setAnoInicio(Number(e.target.value))}
                     min={2020}
                     max={2050}
-                    className="w-full bg-black/40 border border-white/10 text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                    className="w-full bg-black/40 border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-1.5">Duração (Meses)</label>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">Duração (Meses)</label>
                 <input 
                   type="number" 
                   required
@@ -115,7 +115,7 @@ export function CreateSimulationModal() {
                   onChange={e => setDuracao(Math.max(1, Number(e.target.value)))}
                   min={1}
                   max={120}
-                  className="w-full bg-black/40 border border-white/10 text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                  className="w-full bg-black/40 border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                 />
               </div>
 
@@ -124,14 +124,14 @@ export function CreateSimulationModal() {
                   type="button"
                   onClick={() => setIsOpen(false)}
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2.5 bg-transparent border border-white/10 hover:bg-white/5 text-white font-medium rounded-lg transition-all"
+                  className="flex-1 px-4 py-2.5 bg-transparent border border-neutral-200 dark:border-white/10 hover:bg-white/60 dark:bg-white/5 text-neutral-900 dark:text-white font-medium rounded-lg transition-all"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2.5 flex justify-center items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg shadow-lg shadow-emerald-500/20 transition-all border border-emerald-400 disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 flex justify-center items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-neutral-900 dark:text-white font-medium rounded-lg shadow-lg shadow-emerald-500/20 transition-all border border-emerald-400 disabled:opacity-50"
                 >
                   {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Criar Período'}
                 </button>

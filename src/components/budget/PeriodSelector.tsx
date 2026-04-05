@@ -46,27 +46,27 @@ export function PeriodSelector({
     <Form action={targetPath} className="flex items-center gap-2">
       {simulacaoId && <input type="hidden" name="simulacao" value={simulacaoId} />}
       {selectedCC && selectedCC !== 'all' && <input type="hidden" name="cc" value={selectedCC} />}
-      <span className="text-sm text-neutral-400 whitespace-nowrap">De:</span>
+      <span className="text-sm text-neutral-600 dark:text-neutral-400 whitespace-nowrap">De:</span>
       <select
         name="inicio"
         defaultValue={selectedInicio}
-        className="bg-white/5 border border-white/10 text-neutral-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer"
+        className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-700 dark:text-neutral-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer"
       >
         {meses.map(m => (
-          <option key={m.value} value={m.value} className="bg-neutral-900 text-white">
+          <option key={m.value} value={m.value} className="bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white">
             {m.label}
           </option>
         ))}
       </select>
 
-      <span className="text-sm text-neutral-400 whitespace-nowrap">Até:</span>
+      <span className="text-sm text-neutral-600 dark:text-neutral-400 whitespace-nowrap">Até:</span>
       <select
         name="fim"
         defaultValue={selectedFim}
-        className="bg-white/5 border border-white/10 text-neutral-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer"
+        className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-700 dark:text-neutral-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer"
       >
         {meses.map(m => (
-          <option key={m.value} value={m.value} className="bg-neutral-900 text-white">
+          <option key={m.value} value={m.value} className="bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white">
             {m.label}
           </option>
         ))}

@@ -6,14 +6,16 @@ import { ChevronDown, ChevronRight, Folder, FolderOpen, FileText, Save, Loader2,
 import { bulkUpsertRealizados } from '@/actions/realizado'
 import { parseBalanceteExcel } from '@/actions/parseBalanceteExcel'
 
-export function RealizadoGrid({ 
-  categorias, 
-  realizados, 
-  ano 
-}: { 
-  categorias: Categoria[], 
-  realizados: any[], 
-  ano: number 
+export function RealizadoGrid({
+  categorias,
+  realizados,
+  ano,
+  canEdit = true,
+}: {
+  categorias: Categoria[],
+  realizados: any[],
+  ano: number,
+  canEdit?: boolean,
 }) {
   const nomeMeses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
   
@@ -153,43 +155,45 @@ export function RealizadoGrid({
   }
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl shrink-0 h-full flex flex-col min-w-0 flex-1 relative">
-      <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5 flex-wrap gap-4">
-        <h2 className="text-lg font-semibold text-white">Lançamentos Reais - {ano}</h2>
+    <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl shrink-0 h-full flex flex-col min-w-0 flex-1 relative">
+      <div className="p-4 border-b border-neutral-200 dark:border-white/10 flex justify-between items-center bg-white/60 dark:bg-white/5 flex-wrap gap-4">
+        <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Lançamentos Reais - {ano}</h2>
         
-        <div className="flex gap-2">
-          {/* Hidden File Input */}
-          <input 
-            type="file" 
-            accept=".xlsx" 
-            onChange={handleImportExcel} 
-            ref={fileInputRef} 
-            className="hidden" 
-          />
-          <button 
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isImporting || isSaving}
-            className="flex items-center gap-2 px-3 py-2 bg-indigo-900/50 hover:bg-indigo-800/50 text-indigo-300 font-medium rounded-lg transition-all border border-indigo-500/20 disabled:opacity-50"
-          >
-            {isImporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-            Importar Balancete
-          </button>
-          
-          <div className="w-px bg-white/10 mx-1 self-stretch my-1" />
+        {canEdit && (
+          <div className="flex gap-2">
+            {/* Hidden File Input */}
+            <input
+              type="file"
+              accept=".xlsx"
+              onChange={handleImportExcel}
+              ref={fileInputRef}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isImporting || isSaving}
+              className="flex items-center gap-2 px-3 py-2 bg-indigo-900/50 hover:bg-indigo-800/50 text-indigo-300 font-medium rounded-lg transition-all border border-indigo-500/20 disabled:opacity-50"
+            >
+              {isImporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+              Importar Balancete
+            </button>
 
-          <button 
-            onClick={handleSave}
-            disabled={!isDirty || isSaving}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-medium rounded-lg shadow-lg shadow-indigo-500/20 transition-all border border-indigo-400 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed ml-2"
-          >
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {isSaving ? "Salvando..." : "Salvar Dados"}
-          </button>
-        </div>
+            <div className="w-px bg-white/10 mx-1 self-stretch my-1" />
+
+            <button
+              onClick={handleSave}
+              disabled={!isDirty || isSaving}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-neutral-900 dark:text-white font-medium rounded-lg shadow-lg shadow-indigo-500/20 transition-all border border-indigo-400 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed ml-2"
+            >
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {isSaving ? "Salvando..." : "Salvar Dados"}
+            </button>
+          </div>
+        )}
 
         {/* Floating Success Toast */}
         {showSuccess && (
-          <div className="absolute top-16 right-4 z-50 flex items-center gap-3 px-4 py-3 bg-indigo-500 text-white rounded-xl shadow-2xl shadow-indigo-500/40 animate-in fade-in slide-in-from-top-4 duration-300 border border-indigo-400">
+          <div className="absolute top-16 right-4 z-50 flex items-center gap-3 px-4 py-3 bg-indigo-500 text-neutral-900 dark:text-white rounded-xl shadow-2xl shadow-indigo-500/40 animate-in fade-in slide-in-from-top-4 duration-300 border border-indigo-400">
             <CheckCircle2 className="w-5 h-5" />
             <span className="font-bold">Realizado Salvo com Sucesso!</span>
           </div>
@@ -200,34 +204,35 @@ export function RealizadoGrid({
         <table className="w-full text-left text-sm whitespace-nowrap">
           <thead className="sticky top-0 z-20 shadow-sm">
             <tr>
-              <th className="px-4 py-3 font-medium text-neutral-400 bg-[#121212] border-b border-white/10 border-r sticky left-0 z-30 w-[400px]">
+              <th className="px-4 py-3 font-medium text-neutral-600 dark:text-neutral-400 bg-[#121212] border-b border-neutral-200 dark:border-white/10 border-r sticky left-0 z-30 w-[400px]">
                 Categoria
               </th>
               {columns.map((m) => (
-                <th key={`${m.mes}-${m.ano}`} className="px-4 py-3 font-medium text-neutral-400 text-center bg-[#121212] border-b border-white/10 border-r last:border-r-0 min-w-32 backdrop-blur-xl">
+                <th key={`${m.mes}-${m.ano}`} className="px-4 py-3 font-medium text-neutral-600 dark:text-neutral-400 text-center bg-[#121212] border-b border-neutral-200 dark:border-white/10 border-r last:border-r-0 min-w-32 backdrop-blur-xl">
                   {nomeMeses[m.mes - 1]}/{String(m.ano).slice(-2)}
                 </th>
               ))}
-              <th suppressHydrationWarning className="px-4 py-3 font-bold text-white text-center bg-[#1a1a1a] border-b border-white/10 min-w-32 sticky right-0 z-20 backdrop-blur-xl">
+              <th suppressHydrationWarning className="px-4 py-3 font-bold text-neutral-900 dark:text-white text-center bg-[#1a1a1a] border-b border-neutral-200 dark:border-white/10 min-w-32 sticky right-0 z-20 backdrop-blur-xl">
                 TOTAL
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/10">
             {categorias.map(cat => (
-              <RealizadoRow 
-                key={cat.id} 
-                categoria={cat} 
-                columns={columns} 
-                localState={localState} 
+              <RealizadoRow
+                key={cat.id}
+                categoria={cat}
+                columns={columns}
+                localState={localState}
                 onUpdate={handleUpdate}
-                level={0} 
+                level={0}
+                canEdit={canEdit}
               />
             ))}
 
             {/* Resultado Row */}
             <tr className="bg-indigo-500/10 font-bold border-t-2 border-indigo-500/30">
-              <td className="px-4 py-4 sticky left-0 z-10 bg-[#0d0d1e] border-r border-white/10 text-indigo-400">
+              <td className="px-4 py-4 sticky left-0 z-10 bg-[#0d0d1e] border-r border-neutral-200 dark:border-white/10 text-indigo-400">
                 <div className="flex gap-2 items-center">
                   <span className="w-5 shrink-0" />
                   <CheckCircle2 className="w-4 h-4" />
@@ -235,7 +240,7 @@ export function RealizadoGrid({
                 </div>
               </td>
               {columnResults.map((res, i) => (
-                <td key={`result-${i}`} suppressHydrationWarning className={`px-4 py-4 text-right font-mono border-r border-white/10 ${res >= 0 ? 'text-indigo-400' : 'text-red-400'}`}>
+                <td key={`result-${i}`} suppressHydrationWarning className={`px-4 py-4 text-right font-mono border-r border-neutral-200 dark:border-white/10 ${res >= 0 ? 'text-indigo-400' : 'text-red-400'}`}>
                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(res)}
                 </td>
               ))}
@@ -250,18 +255,20 @@ export function RealizadoGrid({
   )
 }
 
-function RealizadoRow({ 
-  categoria, 
-  columns, 
+function RealizadoRow({
+  categoria,
+  columns,
   localState,
   onUpdate,
-  level = 0
-}: { 
-  categoria: Categoria, 
-  columns: {mes: number, ano: number}[], 
+  level = 0,
+  canEdit = true,
+}: {
+  categoria: Categoria,
+  columns: {mes: number, ano: number}[],
   localState: Record<string, number>,
   onUpdate: (catId: string, ano: number, mes: number, valor: number) => void,
-  level?: number
+  level?: number,
+  canEdit?: boolean,
 }) {
   const isParent = !!(categoria.children && categoria.children.length > 0)
   const [isExpanded, setIsExpanded] = useState(false)
@@ -278,14 +285,14 @@ function RealizadoRow({
 
   return (
     <>
-      <tr className="hover:bg-white/5 transition-colors group">
+      <tr className="hover:bg-white/60 dark:bg-white/5 transition-colors group">
         <td 
-          className="px-4 py-3 font-medium sticky left-0 z-10 bg-[#121212] group-hover:bg-[#1a1c23] transition-colors border-r border-white/10"
+          className="px-4 py-3 font-medium sticky left-0 z-10 bg-[#121212] group-hover:bg-[#1a1c23] transition-colors border-r border-neutral-200 dark:border-white/10"
           style={{ paddingLeft: `${(level * 1.5) + 0.5}rem` }}
         >
           <div className="flex gap-2 items-center">
             <button
-              className="p-0.5 rounded text-neutral-600 hover:text-white transition-colors w-5 shrink-0"
+              className="p-0.5 rounded text-neutral-600 hover:text-neutral-900 dark:text-white transition-colors w-5 shrink-0"
               onClick={() => isParent && setIsExpanded(!isExpanded)}
             >
               {isParent ? (
@@ -305,7 +312,7 @@ function RealizadoRow({
             </div>
 
             <span className="text-neutral-500 font-mono text-xs w-10 shrink-0">{categoria.codigo_reduzido}</span>
-            <span className={level === 0 ? "text-indigo-300 font-semibold truncate" : "text-neutral-300 truncate"}>
+            <span className={level === 0 ? "text-indigo-300 font-semibold truncate" : "text-neutral-700 dark:text-neutral-300 truncate"}>
               {categoria.nome_conta}
             </span>
           </div>
@@ -316,13 +323,13 @@ function RealizadoRow({
           const valorFormatado = isParent ? computeParentSum(categoria.id, col.ano, col.mes, categoria) : (localState[key] || 0)
           
           return (
-            <td key={key} suppressHydrationWarning className="px-4 py-2 text-center border-r border-white/10 last:border-r-0 hover:bg-white/5 transition-colors">
-              {isParent ? (
+            <td key={key} suppressHydrationWarning className="px-4 py-2 text-center border-r border-neutral-200 dark:border-white/10 last:border-r-0 hover:bg-white/60 dark:bg-white/5 transition-colors">
+              {isParent || !canEdit ? (
                 <span className="text-neutral-500 text-sm font-mono block w-full text-right p-1.5 opacity-50">
                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valorFormatado)}
                 </span>
               ) : (
-                <EditableCell 
+                <EditableCell
                   valor={valorFormatado}
                   onChange={(v) => onUpdate(categoria.id, col.ano, col.mes, v)}
                 />
@@ -332,7 +339,7 @@ function RealizadoRow({
         })}
 
         {/* Total Column Cell */}
-        <td suppressHydrationWarning className="px-4 py-2 text-right border-l border-white/10 sticky right-0 z-10 bg-[#121212] group-hover:bg-[#1a1c23] transition-colors font-bold text-white font-mono">
+        <td suppressHydrationWarning className="px-4 py-2 text-right border-l border-neutral-200 dark:border-white/10 sticky right-0 z-10 bg-[#121212] group-hover:bg-[#1a1c23] transition-colors font-bold text-neutral-900 dark:text-white font-mono">
           {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
              columns.reduce((acc, col) => {
                const val = isParent ? computeParentSum(categoria.id, col.ano, col.mes, categoria) : (localState[`${categoria.id}_${col.ano}_${col.mes}`] || 0)
@@ -343,13 +350,14 @@ function RealizadoRow({
       </tr>
       
       {isExpanded && categoria.children?.map(child => (
-        <RealizadoRow 
-          key={child.id} 
-          categoria={child} 
-          columns={columns} 
-          localState={localState} 
+        <RealizadoRow
+          key={child.id}
+          categoria={child}
+          columns={columns}
+          localState={localState}
           onUpdate={onUpdate}
-          level={level + 1} 
+          level={level + 1}
+          canEdit={canEdit}
         />
       ))}
     </>
@@ -387,7 +395,7 @@ function EditableCell({ valor, onChange }: { valor: number, onChange: (v: number
     <div 
       onClick={() => setIsEditing(true)}
       suppressHydrationWarning
-      className={`w-full cursor-pointer rounded px-2 py-1 text-right text-sm font-mono transition-colors ${valor > 0 ? 'text-white font-medium bg-indigo-500/5 hover:bg-indigo-500/10' : 'text-neutral-500 hover:bg-white/10'}`}
+      className={`w-full cursor-pointer rounded px-2 py-1 text-right text-sm font-mono transition-colors ${valor > 0 ? 'text-neutral-900 dark:text-white font-medium bg-indigo-500/5 hover:bg-indigo-500/10' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/10'}`}
     >
       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(val) || 0)}
     </div>
