@@ -52,7 +52,7 @@ export function RenameSimulationModal({
               value={nome}
               onChange={e => setNome(e.target.value)}
               placeholder="Ex: Orçamento Revisado v2"
-              className="w-full bg-black/40 border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+              className="w-full bg-black/40 border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
             />
           </div>
 
@@ -67,7 +67,7 @@ export function RenameSimulationModal({
             <button 
               type="submit"
               disabled={isSaving || !nome.trim() || nome === simulacao.nome}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-neutral-900 dark:text-white font-bold rounded-lg shadow-lg shadow-emerald-500/20 transition-all border border-emerald-400"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-neutral-900 dark:text-white font-bold rounded-lg shadow-lg shadow-sky-500/20 transition-all border border-sky-400"
             >
               {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
               {isSaving ? 'Salvando...' : 'Salvar Nome'}

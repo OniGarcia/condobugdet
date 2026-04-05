@@ -49,7 +49,7 @@ function UserMembershipList({
         return (
           <li
             key={u.id}
-            className={`flex items-center gap-3 rounded-xl px-3 py-2 transition-colors cursor-pointer ${checked ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/5 hover:bg-neutral-100 dark:hover:bg-white/10'}`}
+            className={`flex items-center gap-3 rounded-xl px-3 py-2 transition-colors cursor-pointer ${checked ? 'bg-sky-500/10 border border-sky-500/20' : 'bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/5 hover:bg-neutral-100 dark:hover:bg-white/10'}`}
             onClick={() => toggle(u.id)}
           >
             <input
@@ -57,7 +57,7 @@ function UserMembershipList({
               checked={checked}
               onChange={() => toggle(u.id)}
               onClick={(e) => e.stopPropagation()}
-              className="accent-emerald-500 w-4 h-4 flex-shrink-0"
+              className="accent-sky-500 w-4 h-4 flex-shrink-0"
             />
             <div className="flex-1 min-w-0">
               <p className="text-sm text-neutral-800 dark:text-neutral-100 truncate">{u.nome ?? u.email}</p>
@@ -115,7 +115,7 @@ function CreateCondoModal({
                 required
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
                 placeholder="Nome do condomínio"
               />
             </div>
@@ -125,7 +125,7 @@ function CreateCondoModal({
                 type="text"
                 value={cnpj}
                 onChange={(e) => setCnpj(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
                 placeholder="00.000.000/0000-00"
               />
             </div>
@@ -150,7 +150,7 @@ function CreateCondoModal({
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-emerald-600 transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-sky-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-sky-600 transition-colors disabled:opacity-50"
             >
               {loading ? 'Criando...' : 'Criar'}
             </button>
@@ -210,7 +210,7 @@ function EditCondoModal({
                 required
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
               />
             </div>
             <div>
@@ -219,7 +219,7 @@ function EditCondoModal({
                 type="text"
                 value={cnpj}
                 onChange={(e) => setCnpj(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
                 placeholder="00.000.000/0000-00"
               />
             </div>
@@ -244,7 +244,7 @@ function EditCondoModal({
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-emerald-600 transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-sky-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-sky-600 transition-colors disabled:opacity-50"
             >
               {loading ? 'Salvando...' : 'Salvar'}
             </button>
@@ -287,7 +287,7 @@ function CondoRow({
           <Users className="w-3.5 h-3.5" />
           <span className="text-xs">{condo.memberships.length}</span>
         </div>
-        <span className={`text-xs font-medium px-2 py-1 rounded-full ${condo.ativo ? 'bg-emerald-500/10 text-emerald-400' : 'bg-neutral-200 dark:bg-neutral-700/50 text-neutral-500'}`}>
+        <span className={`text-xs font-medium px-2 py-1 rounded-full ${condo.ativo ? 'bg-sky-500/10 text-sky-400' : 'bg-neutral-200 dark:bg-neutral-700/50 text-neutral-500'}`}>
           {condo.ativo ? 'Ativo' : 'Inativo'}
         </span>
         <div className="flex items-center gap-1.5">
@@ -301,7 +301,7 @@ function CondoRow({
           <button
             onClick={handleToggle}
             disabled={loading}
-            className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${condo.ativo ? 'text-emerald-500 hover:text-amber-400 hover:bg-amber-400/10' : 'text-neutral-500 hover:text-emerald-400 hover:bg-emerald-400/10'}`}
+            className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${condo.ativo ? 'text-sky-500 hover:text-amber-400 hover:bg-amber-400/10' : 'text-neutral-500 hover:text-sky-400 hover:bg-sky-400/10'}`}
             title={condo.ativo ? 'Desativar' : 'Ativar'}
           >
             {condo.ativo ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
@@ -336,7 +336,7 @@ export function CondosClient({
       <div className="flex items-center gap-3 flex-wrap">
         <button
           onClick={() => setCreateOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-emerald-600 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-sky-600 transition-colors"
         >
           <Plus className="w-4 h-4" />
           Novo Condomínio
@@ -347,7 +347,7 @@ export function CondosClient({
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filter === f ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-white/60 dark:bg-white/5 text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/10'}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filter === f ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30' : 'bg-white/60 dark:bg-white/5 text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/10'}`}
             >
               {f === 'all' ? 'Todos' : f === 'ativo' ? 'Ativos' : 'Inativos'}
             </button>

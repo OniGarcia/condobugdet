@@ -50,7 +50,7 @@ export function PeriodSelector({
       <select
         name="inicio"
         defaultValue={selectedInicio}
-        className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-700 dark:text-neutral-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer"
+        className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-700 dark:text-neutral-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 outline-none transition-all cursor-pointer"
       >
         {meses.map(m => (
           <option key={m.value} value={m.value} className="bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white">
@@ -63,7 +63,7 @@ export function PeriodSelector({
       <select
         name="fim"
         defaultValue={selectedFim}
-        className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-700 dark:text-neutral-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer"
+        className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-700 dark:text-neutral-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 outline-none transition-all cursor-pointer"
       >
         {meses.map(m => (
           <option key={m.value} value={m.value} className="bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white">
@@ -74,7 +74,7 @@ export function PeriodSelector({
 
       <button
         type="submit"
-        className="px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-sm font-medium rounded-lg transition-all border border-emerald-500/20"
+        className="px-4 py-2 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 text-sm font-medium rounded-lg transition-all border border-sky-500/20"
       >
         Filtrar
       </button>

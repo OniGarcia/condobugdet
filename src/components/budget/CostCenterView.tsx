@@ -57,7 +57,7 @@ export function CostCenterView({
         {canEdit && (
           <button
             onClick={() => setModal({ type: 'create' })}
-            className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-lg text-sm font-medium transition-colors border border-emerald-500/20"
+            className="flex items-center gap-2 px-3 py-1.5 bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 rounded-lg text-sm font-medium transition-colors border border-sky-500/20"
           >
             <Plus className="w-4 h-4" />
             Novo Centro de Custo
@@ -88,13 +88,13 @@ export function CostCenterView({
                 <tr key={centro.id} className="group hover:bg-white/60 dark:bg-white/5 transition-colors">
                   <td className="px-5 py-3.5 font-medium text-neutral-800 dark:text-neutral-200">{centro.nome}</td>
                   <td className="px-5 py-3.5 text-neutral-600 dark:text-neutral-400">{centro.descricao ?? <span className="italic text-neutral-600">—</span>}</td>
-                  <td className="px-5 py-3.5 text-right font-mono text-emerald-400 text-sm">
+                  <td className="px-5 py-3.5 text-right font-mono text-sky-400 text-sm">
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(centro.saldo_inicial ?? 0)}
                   </td>
                   <td className="px-5 py-3.5 text-right">
                     <button
                       onClick={() => setModal({ type: 'categories', centro })}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg text-xs font-medium transition-colors border border-indigo-500/20"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 rounded-lg text-xs font-medium transition-colors border border-violet-500/20"
                     >
                       <Boxes className="w-3.5 h-3.5" />
                       {centro.categoria_ids?.length ?? 0} categorias
@@ -208,7 +208,7 @@ function CostCenterFormModal({
               value={nome}
               onChange={e => setNome(e.target.value)}
               placeholder="ex: Taxa Condominial"
-              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-800 dark:text-neutral-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-800 dark:text-neutral-200 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
             />
           </div>
           <div>
@@ -218,7 +218,7 @@ function CostCenterFormModal({
               onChange={e => setDescricao(e.target.value)}
               placeholder="Descreva o agrupamento..."
               rows={3}
-              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-800 dark:text-neutral-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none"
+              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-800 dark:text-neutral-200 focus:ring-2 focus:ring-sky-500 outline-none transition-all resize-none"
             />
           </div>
           <div>
@@ -231,7 +231,7 @@ function CostCenterFormModal({
               value={saldoInicial}
               onChange={e => setSaldoInicial(e.target.value)}
               placeholder="0.00"
-              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-800 dark:text-neutral-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-800 dark:text-neutral-200 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
             />
             <p className="text-xs text-neutral-600 mt-1">Valor financeiro disponível no início do período deste centro de custo.</p>
           </div>
@@ -248,7 +248,7 @@ function CostCenterFormModal({
               saldo_inicial: parseFloat(saldoInicial) || 0,
             })}
             disabled={isPending || !nome.trim()}
-            className="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-neutral-900 dark:text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="px-5 py-2 bg-sky-500 hover:bg-sky-600 text-neutral-900 dark:text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
           >
             {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
             {isEdit ? 'Salvar' : 'Criar'}
@@ -328,7 +328,7 @@ function CategorySelectorModal({
           <button
             onClick={() => onSave(Array.from(selected))}
             disabled={isPending}
-            className="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-neutral-900 dark:text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="px-5 py-2 bg-sky-500 hover:bg-sky-600 text-neutral-900 dark:text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
           >
             {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
             Salvar Associações
@@ -373,8 +373,8 @@ function CategoryCheckNode({
         <div className="shrink-0">
           {hasChildren
             ? isExpanded
-              ? <FolderOpen className="w-4 h-4 text-emerald-400" />
-              : <Folder className="w-4 h-4 text-emerald-500" />
+              ? <FolderOpen className="w-4 h-4 text-sky-400" />
+              : <Folder className="w-4 h-4 text-sky-500" />
             : <FileText className="w-4 h-4 text-neutral-600" />}
         </div>
 
@@ -382,7 +382,7 @@ function CategoryCheckNode({
 
         <span className={cn(
           'flex-1 text-sm truncate',
-          depth === 0 ? 'text-emerald-200 font-semibold' : 'text-neutral-700 dark:text-neutral-300'
+          depth === 0 ? 'text-sky-200 font-semibold' : 'text-neutral-700 dark:text-neutral-300'
         )}>
           {node.nome_conta}
         </span>
@@ -391,8 +391,8 @@ function CategoryCheckNode({
           className={cn(
             'w-4 h-4 rounded border shrink-0 flex items-center justify-center transition-colors',
             isChecked
-              ? 'bg-emerald-500 border-emerald-500'
-              : 'border-white/20 bg-white/60 dark:bg-white/5 hover:border-emerald-500/50'
+              ? 'bg-sky-500 border-sky-500'
+              : 'border-white/20 bg-white/60 dark:bg-white/5 hover:border-sky-500/50'
           )}
           onClick={e => { e.stopPropagation(); onToggle(node) }}
         >

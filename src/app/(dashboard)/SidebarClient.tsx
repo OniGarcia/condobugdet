@@ -47,11 +47,11 @@ export default function SidebarClient({
         className={cn(
           "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all outline-none",
           isActive 
-            ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
+            ? "bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400"
             : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-white/60 dark:bg-white/5"
         )}
       >
-        <Icon className={cn("w-4 h-4", isActive ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-500 dark:text-neutral-400")} />
+        <Icon className={cn("w-4 h-4", isActive ? "text-sky-600 dark:text-sky-400" : "text-neutral-500 dark:text-neutral-400")} />
         {children}
       </Link>
     )
@@ -92,12 +92,12 @@ export default function SidebarClient({
         {currentCondo && (
           <Link
             href="/select-condo"
-            className="mx-4 mt-4 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:hover:bg-emerald-500/15 transition-all group"
+            className="mx-4 mt-4 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-sky-50 border border-sky-200 hover:bg-sky-100 dark:bg-sky-500/10 dark:border-sky-500/20 dark:hover:bg-sky-500/15 transition-all group"
           >
-            <Building2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+            <Building2 className="w-4 h-4 text-sky-600 dark:text-sky-400 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-emerald-800 dark:text-emerald-300 truncate">{currentCondo.nome}</p>
-              <p className="text-xs text-emerald-600 dark:text-emerald-500 capitalize">{currentCondo.role}</p>
+              <p className="text-xs font-medium text-sky-800 dark:text-sky-300 truncate">{currentCondo.nome}</p>
+              <p className="text-xs text-sky-600 dark:text-sky-500 capitalize">{currentCondo.role}</p>
             </div>
           </Link>
         )}

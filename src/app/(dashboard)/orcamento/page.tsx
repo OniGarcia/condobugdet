@@ -42,7 +42,7 @@ export default async function OrcamentoPage({ searchParams }: { searchParams: Pr
 
           <button
            disabled={!activeSim}
-           className="px-5 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-medium rounded-lg transition-all border border-emerald-500/20 disabled:opacity-50"
+           className="px-5 py-2 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 font-medium rounded-lg transition-all border border-sky-500/20 disabled:opacity-50"
           >
             Exportar XLS
           </button>

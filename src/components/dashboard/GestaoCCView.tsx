@@ -30,7 +30,7 @@ for (let ano = 2023; ano <= 2030; ano++) {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function valColor(v: number, neutral = 'text-neutral-600 dark:text-neutral-400') {
-  if (v > 0) return 'text-emerald-400'
+  if (v > 0) return 'text-sky-400'
   if (v < 0) return 'text-red-400'
   return neutral
 }
@@ -43,7 +43,7 @@ function pctStatus(pct: number | null, tipo: CategoriaTipo): 'good' | 'warn' | '
 }
 
 function variacaoColor(variacao: number): string {
-  if (variacao > 0) return 'text-emerald-400'
+  if (variacao > 0) return 'text-sky-400'
   if (variacao < 0) return 'text-red-400'
   return 'text-neutral-500'
 }
@@ -64,31 +64,31 @@ function KPICard({
   const status = tipo ? pctStatus(pct, tipo) : null
 
   const mainColor = isBalance
-    ? realizado >= 0 ? 'text-emerald-400' : 'text-red-400'
-    : tipo === 'RECEITA' ? 'text-emerald-400'
+    ? realizado >= 0 ? 'text-sky-400' : 'text-red-400'
+    : tipo === 'RECEITA' ? 'text-sky-400'
     : tipo === 'DESPESA' ? 'text-red-400'
-    : realizado >= 0 ? 'text-emerald-400' : 'text-red-400'
+    : realizado >= 0 ? 'text-sky-400' : 'text-red-400'
 
   const bgColor = isBalance
-    ? realizado >= 0 ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-red-500/5 border-red-500/30'
-    : tipo === 'RECEITA' ? 'bg-emerald-500/5 border-neutral-200 dark:border-white/10'
+    ? realizado >= 0 ? 'bg-sky-500/5 border-sky-500/30' : 'bg-red-500/5 border-red-500/30'
+    : tipo === 'RECEITA' ? 'bg-sky-500/5 border-neutral-200 dark:border-white/10'
     : tipo === 'DESPESA' ? 'bg-red-500/5 border-neutral-200 dark:border-white/10'
     : 'bg-sky-500/5 border-neutral-200 dark:border-white/10'
 
   const iconColor = isBalance
-    ? realizado >= 0 ? 'text-emerald-400' : 'text-red-400'
-    : tipo === 'RECEITA' ? 'text-emerald-400'
+    ? realizado >= 0 ? 'text-sky-400' : 'text-red-400'
+    : tipo === 'RECEITA' ? 'text-sky-400'
     : tipo === 'DESPESA' ? 'text-red-400'
     : 'text-sky-400'
 
   return (
     <div className={`flex flex-col gap-2.5 p-5 rounded-2xl border ${bgColor} backdrop-blur-xl h-full`}>
       <div className="flex items-center justify-between">
-        <div className={`w-8 h-8 rounded-xl ${isBalance ? 'bg-emerald-500/10' : tipo === 'RECEITA' ? 'bg-emerald-500/10' : tipo === 'DESPESA' ? 'bg-red-500/10' : 'bg-sky-500/10'} flex items-center justify-center`}>
+        <div className={`w-8 h-8 rounded-xl ${isBalance ? 'bg-sky-500/10' : tipo === 'RECEITA' ? 'bg-sky-500/10' : tipo === 'DESPESA' ? 'bg-red-500/10' : 'bg-sky-500/10'} flex items-center justify-center`}>
           <Icon className={`w-4 h-4 ${iconColor}`} />
         </div>
         {isBalance && (
-          <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">FINAL</span>
+          <span className="text-[10px] font-bold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full">FINAL</span>
         )}
       </div>
 
@@ -107,13 +107,13 @@ function KPICard({
                 {/* Barra de progresso */}
                 <div className="w-full h-1 bg-white/60 dark:bg-white/5 rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all ${status === 'good' ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                    className={`h-full rounded-full transition-all ${status === 'good' ? 'bg-sky-500' : 'bg-amber-500'}`}
                     style={{ width: `${Math.min(pct, 100)}%` }}
                   />
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-neutral-600">Execução</span>
-                  <span className={`text-xs font-bold ${status === 'good' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  <span className={`text-xs font-bold ${status === 'good' ? 'text-sky-400' : 'text-amber-400'}`}>
                     {PCT.format(pct)}%
                   </span>
                 </div>
@@ -156,7 +156,7 @@ function MesRow({ mes, temSimulacao }: { mes: GestaoCCMes; temSimulacao: boolean
         <td className="py-3 px-3 text-right tabular-nums text-sm">
           {mes.entradas > 0
             ? <div>
-                <span className="text-emerald-400 font-medium block">+ {BRL.format(mes.entradas)}</span>
+                <span className="text-sky-400 font-medium block">+ {BRL.format(mes.entradas)}</span>
                 {temSimulacao && mes.entradasPrevisto > 0 && (
                   <span className="text-[10px] text-neutral-600">prev: {BRL.format(mes.entradasPrevisto)}</span>
                 )}
@@ -185,7 +185,7 @@ function MesRow({ mes, temSimulacao }: { mes: GestaoCCMes; temSimulacao: boolean
         </td>
 
         <td className="py-3 pl-3 pr-4 text-right">
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-lg text-sm font-bold tabular-nums ${saldoPositivo ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-lg text-sm font-bold tabular-nums ${saldoPositivo ? 'bg-sky-500/10 text-sky-400' : 'bg-red-500/10 text-red-400'}`}>
             {BRL.format(mes.saldoFinal)}
           </span>
         </td>
@@ -211,7 +211,7 @@ function MesRow({ mes, temSimulacao }: { mes: GestaoCCMes; temSimulacao: boolean
                       <td className="px-4 py-2 font-mono text-neutral-600">{cat.codigoReduzido}</td>
                       <td className="px-3 py-2 text-neutral-700 dark:text-neutral-300">{cat.categoriaNome}</td>
                       <td className="px-3 py-2 text-right">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold ${cat.tipo === 'RECEITA' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold ${cat.tipo === 'RECEITA' ? 'bg-sky-500/10 text-sky-400' : 'bg-red-500/10 text-red-400'}`}>
                           {cat.tipo === 'RECEITA' ? '↑' : '↓'} {cat.tipo === 'RECEITA' ? 'Entrada' : 'Saída'}
                         </span>
                       </td>
@@ -220,7 +220,7 @@ function MesRow({ mes, temSimulacao }: { mes: GestaoCCMes; temSimulacao: boolean
                           {cat.previsto > 0 ? BRL.format(cat.previsto) : <span className="text-neutral-700">—</span>}
                         </td>
                       )}
-                      <td className={`px-4 py-2 text-right tabular-nums font-medium ${cat.tipo === 'RECEITA' ? 'text-emerald-400' : 'text-red-400'}`}>
+                      <td className={`px-4 py-2 text-right tabular-nums font-medium ${cat.tipo === 'RECEITA' ? 'text-sky-400' : 'text-red-400'}`}>
                         {BRL.format(cat.valor)}
                       </td>
                     </tr>
@@ -366,7 +366,7 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
                     {row.previsto > 0 ? BRL.format(row.previsto) : <span className="text-neutral-700">—</span>}
                   </td>
 
-                  <td className={`py-2.5 px-3 text-right tabular-nums text-sm font-medium whitespace-nowrap ${row.tipo === 'RECEITA' ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <td className={`py-2.5 px-3 text-right tabular-nums text-sm font-medium whitespace-nowrap ${row.tipo === 'RECEITA' ? 'text-sky-400' : 'text-red-400'}`}>
                     {BRL.format(row.realizado)}
                   </td>
 
@@ -379,7 +379,7 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
                     {row.pct !== null ? (
                       <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-bold ${
                         status === 'good'
-                          ? 'bg-emerald-500/10 text-emerald-400'
+                          ? 'bg-sky-500/10 text-sky-400'
                           : 'bg-amber-500/10 text-amber-400'
                       }`}>
                         {status === 'good' ? <CheckCircle2 className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
@@ -393,7 +393,7 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
 
             {/* Resultado Líquido */}
             {hasResultado && (
-              <tr className="bg-gradient-to-r from-emerald-950/40 to-transparent border-t-2 border-white/20">
+              <tr className="bg-gradient-to-r from-sky-950/40 to-transparent border-t-2 border-white/20">
                 <td className="py-3.5 pl-4 pr-3">
                   <div className="flex items-center gap-2">
                     <span className="block w-5 shrink-0" />
@@ -415,7 +415,7 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
                   {resultado.previsto !== 0 && (
                     <span className={`inline-flex px-2.5 py-1 rounded-lg text-sm font-bold ${
                       resultado.realizado >= resultado.previsto
-                        ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                        ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30'
                         : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
                     }`}>
                       {PCT.format((resultado.realizado / resultado.previsto) * 100)}%
@@ -434,7 +434,7 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
 // ─── Helpers de semáforo ─────────────────────────────────────────────────────
 function saldoColorClass(status: StatusSemaforo): string {
   switch (status) {
-    case 'VERDE':    return 'text-emerald-400'
+    case 'VERDE':    return 'text-sky-400'
     case 'AMARELO':  return 'text-amber-400'
     case 'VERMELHO': return 'text-red-400'
   }
@@ -442,7 +442,7 @@ function saldoColorClass(status: StatusSemaforo): string {
 
 function saldoBgClass(status: StatusSemaforo): string {
   switch (status) {
-    case 'VERDE':    return 'bg-emerald-500/10'
+    case 'VERDE':    return 'bg-sky-500/10'
     case 'AMARELO':  return 'bg-amber-500/10'
     case 'VERMELHO': return 'bg-red-500/10'
   }
@@ -588,7 +588,7 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
                     {row.previsto > 0 ? BRL.format(row.previsto) : <span className="text-neutral-700">—</span>}
                   </td>
 
-                  <td className={`py-2.5 px-3 text-right tabular-nums text-sm font-medium whitespace-nowrap ${row.tipo === 'RECEITA' ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <td className={`py-2.5 px-3 text-right tabular-nums text-sm font-medium whitespace-nowrap ${row.tipo === 'RECEITA' ? 'text-sky-400' : 'text-red-400'}`}>
                     {BRL.format(row.realizado)}
                   </td>
 
@@ -612,7 +612,7 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
 
             {/* Resultado Líquido */}
             {hasResultado && (
-              <tr className="bg-gradient-to-r from-emerald-950/40 to-transparent border-t-2 border-white/20">
+              <tr className="bg-gradient-to-r from-sky-950/40 to-transparent border-t-2 border-white/20">
                 <td className="py-3.5 pl-4 pr-3">
                   <div className="flex items-center gap-2">
                     <span className="block w-5 shrink-0" />
@@ -631,7 +631,7 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
                 </td>
                 <td className="py-3.5 pl-3 pr-4 text-right tabular-nums whitespace-nowrap">
                   <span className={`inline-flex items-center gap-2 px-2 py-0.5 rounded font-bold ${
-                    res.saldoAno >= 0 ? 'text-emerald-400 bg-emerald-500/10' : 'text-red-400 bg-red-500/10'
+                    res.saldoAno >= 0 ? 'text-sky-400 bg-sky-500/10' : 'text-red-400 bg-red-500/10'
                   }`}>
                     {BRL.format(res.saldoAno)}
                   </span>
@@ -710,7 +710,7 @@ export function GestaoCCView({
         <button
           onClick={handleExportPdf}
           disabled={exporting || !gestaoDados}
-          className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-neutral-900 dark:text-white font-medium rounded-xl transition-all shadow-lg shadow-emerald-500/20 text-sm shrink-0 mt-1 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-5 py-2.5 bg-sky-500 hover:bg-sky-600 active:scale-95 text-neutral-900 dark:text-white font-medium rounded-xl transition-all shadow-lg shadow-sky-500/20 text-sm shrink-0 mt-1 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Printer className={`w-4 h-4 ${exporting ? 'animate-spin' : ''}`} />
           {exporting ? 'Gerando...' : 'Gerar PDF'}
@@ -724,7 +724,7 @@ export function GestaoCCView({
           <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider ml-1">Centro de Custo</label>
           <div className="relative">
             <select value={selectedCCId} onChange={e => router.push(buildUrl({ cc: e.target.value }))}
-              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
+              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-sky-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
               {centrosCusto.length === 0 && <option value="">Nenhum CC cadastrado</option>}
               {centrosCusto.map(cc => <option key={cc.id} value={cc.id} className="bg-white dark:bg-neutral-950">{cc.nome}</option>)}
             </select>
@@ -739,7 +739,7 @@ export function GestaoCCView({
           </label>
           <div className="relative">
             <select value={selectedSimId} onChange={e => router.push(buildUrl({ sim: e.target.value }))}
-              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
+              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-sky-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
               <option value="" className="bg-white dark:bg-neutral-950">Sem orçamento</option>
               {simulacoes.map(s => <option key={s.id} value={s.id} className="bg-white dark:bg-neutral-950">{s.nome}</option>)}
             </select>
@@ -752,7 +752,7 @@ export function GestaoCCView({
           <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider ml-1">Início</label>
           <div className="relative">
             <select value={inicioStr} onChange={e => router.push(buildUrl({ inicio: e.target.value }))}
-              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
+              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-sky-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
               {MONTH_OPTIONS.map(o => <option key={o.value} value={o.value} className="bg-white dark:bg-neutral-950">{o.label}</option>)}
             </select>
             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
@@ -764,7 +764,7 @@ export function GestaoCCView({
           <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider ml-1">Fim</label>
           <div className="relative">
             <select value={fimStr} onChange={e => router.push(buildUrl({ fim: e.target.value }))}
-              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
+              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-sky-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
               {MONTH_OPTIONS.map(o => <option key={o.value} value={o.value} className="bg-white dark:bg-neutral-950">{o.label}</option>)}
             </select>
             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
@@ -783,8 +783,8 @@ export function GestaoCCView({
         <div ref={printRef} className="flex flex-col gap-8">
           {/* ── Header do CC ─────────────────────────────────────────────── */}
           <div className="flex items-center gap-3 px-1">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-              <Wallet className="w-4 h-4 text-emerald-400" />
+            <div className="w-9 h-9 rounded-xl bg-sky-500/10 flex items-center justify-center">
+              <Wallet className="w-4 h-4 text-sky-400" />
             </div>
             <div>
               <h2 className="text-lg font-bold text-neutral-900 dark:text-white">{gestaoDados.centroCustoNome}</h2>
@@ -842,7 +842,7 @@ export function GestaoCCView({
                   <tr className="border-b border-neutral-200 dark:border-white/10 bg-white/[0.02]">
                     <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider min-w-[160px]">Mês</th>
                     <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">Saldo Inicial</th>
-                    <th className="text-right px-3 py-3 text-xs font-semibold text-emerald-600 uppercase tracking-wider whitespace-nowrap">↑ Entradas</th>
+                    <th className="text-right px-3 py-3 text-xs font-semibold text-sky-600 uppercase tracking-wider whitespace-nowrap">↑ Entradas</th>
                     <th className="text-right px-3 py-3 text-xs font-semibold text-red-600 uppercase tracking-wider whitespace-nowrap">↓ Saídas</th>
                     <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">Resultado</th>
                     <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider whitespace-nowrap">Saldo Final</th>
@@ -856,18 +856,18 @@ export function GestaoCCView({
                   {gestaoDados.meses.map(mes => (
                     <MesRow key={`${mes.ano}-${mes.mes}`} mes={mes} temSimulacao={temSim} />
                   ))}
-                  <tr className="border-t-2 border-white/20 bg-gradient-to-r from-emerald-950/40 to-transparent">
+                  <tr className="border-t-2 border-white/20 bg-gradient-to-r from-sky-950/40 to-transparent">
                     <td className="px-4 py-3.5 text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">◆ Total do Período</td>
                     <td className="px-3 py-3.5 text-right tabular-nums text-sm text-neutral-500 font-medium">{BRL.format(gestaoDados.saldoInicial)}</td>
-                    <td className="px-3 py-3.5 text-right tabular-nums text-sm font-bold text-emerald-400">+ {BRL.format(gestaoDados.totalEntradas)}</td>
+                    <td className="px-3 py-3.5 text-right tabular-nums text-sm font-bold text-sky-400">+ {BRL.format(gestaoDados.totalEntradas)}</td>
                     <td className="px-3 py-3.5 text-right tabular-nums text-sm font-bold text-red-400">− {BRL.format(gestaoDados.totalSaidas)}</td>
-                    <td className={`px-3 py-3.5 text-right tabular-nums text-sm font-bold ${gestaoDados.resultado >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <td className={`px-3 py-3.5 text-right tabular-nums text-sm font-bold ${gestaoDados.resultado >= 0 ? 'text-sky-400' : 'text-red-400'}`}>
                       {gestaoDados.resultado > 0 ? '+' : ''}{BRL.format(gestaoDados.resultado)}
                     </td>
                     <td className="px-4 py-3.5 text-right">
                       <span className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold ${
                         gestaoDados.saldoFinal >= 0
-                          ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                          ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30'
                           : 'bg-red-500/15 text-red-300 border border-red-500/30'
                       }`}>
                         {BRL.format(gestaoDados.saldoFinal)}
@@ -913,7 +913,7 @@ export function GestaoCCView({
 
                   {acimaOrc.length === 0 ? (
                     <div className="flex items-center gap-2 py-6 justify-center text-neutral-500">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                      <CheckCircle2 className="w-4 h-4 text-sky-500" />
                       <p className="text-sm">Nenhuma despesa acima do orçamento.</p>
                     </div>
                   ) : (
@@ -968,7 +968,7 @@ export function GestaoCCView({
 
                   {naoPrevistas.length === 0 ? (
                     <div className="flex items-center gap-2 py-6 justify-center text-neutral-500">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                      <CheckCircle2 className="w-4 h-4 text-sky-500" />
                       <p className="text-sm">Nenhuma despesa não prevista no período.</p>
                     </div>
                   ) : (

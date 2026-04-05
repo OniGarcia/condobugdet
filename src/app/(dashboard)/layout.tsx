@@ -23,7 +23,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex font-sans selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-background text-foreground flex font-sans selection:bg-sky-500/30">
       <SidebarClient 
         currentCondo={currentCondo}
         currentUser={currentUser}
@@ -34,8 +34,8 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       {/* Main Content Area */}
       <main className="flex-1 ml-64 min-h-screen relative p-8">
         {/* Background glow effects - No Print */}
-        <div className="no-print absolute top-0 right-0 -z-10 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
-        <div className="no-print absolute bottom-0 left-0 -z-10 w-[500px] h-[500px] bg-teal-500/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="no-print absolute top-0 right-0 -z-10 w-[500px] h-[500px] bg-sky-500/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="no-print absolute bottom-0 left-0 -z-10 w-[500px] h-[500px] bg-violet-500/10 rounded-full blur-[120px] pointer-events-none" />
         
         {children}
       </main>

@@ -47,9 +47,9 @@ export function CreateSimulationModal() {
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-1.5 px-4 py-2 bg-neutral-800 text-neutral-900 dark:text-white hover:bg-neutral-700 rounded-lg text-sm font-medium transition-colors border border-neutral-200 dark:border-white/10 shadow-sm"
+        className="flex items-center gap-1.5 px-4 py-2 bg-sky-800 hover:bg-sky-900 text-white rounded-lg text-sm font-medium transition-colors border border-sky-700 shadow-sm"
       >
-        <Plus className="w-4 h-4 text-emerald-400" />
+        <Plus className="w-4 h-4 text-sky-400" />
         Nova Simulação
       </button>
 
@@ -77,7 +77,7 @@ export function CreateSimulationModal() {
                   value={nome}
                   onChange={e => setNome(e.target.value)}
                   placeholder="Ex: Orçamento Base 2026"
-                  className="w-full bg-black/40 border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-neutral-600"
+                  className="w-full bg-black/40 border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-sky-500 outline-none transition-all placeholder:text-neutral-600"
                 />
               </div>
               
@@ -87,7 +87,7 @@ export function CreateSimulationModal() {
                   <select 
                     value={mesInicio}
                     onChange={e => setMesInicio(Number(e.target.value))}
-                    className="w-full bg-black/40 border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                    className="w-full bg-black/40 border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
                   >
                     {mesesOptions.map(m => <option key={m.val} value={m.val}>{m.label}</option>)}
                   </select>
@@ -101,7 +101,7 @@ export function CreateSimulationModal() {
                     onChange={e => setAnoInicio(Number(e.target.value))}
                     min={2020}
                     max={2050}
-                    className="w-full bg-black/40 border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                    className="w-full bg-black/40 border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
                   />
                 </div>
               </div>
@@ -115,7 +115,7 @@ export function CreateSimulationModal() {
                   onChange={e => setDuracao(Math.max(1, Number(e.target.value)))}
                   min={1}
                   max={120}
-                  className="w-full bg-black/40 border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                  className="w-full bg-black/40 border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
                 />
               </div>
 
@@ -131,7 +131,7 @@ export function CreateSimulationModal() {
                 <button 
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2.5 flex justify-center items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-neutral-900 dark:text-white font-medium rounded-lg shadow-lg shadow-emerald-500/20 transition-all border border-emerald-400 disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 flex justify-center items-center gap-2 bg-sky-500 hover:bg-sky-600 text-neutral-900 dark:text-white font-medium rounded-lg shadow-lg shadow-sky-500/20 transition-all border border-sky-400 disabled:opacity-50"
                 >
                   {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Criar Período'}
                 </button>

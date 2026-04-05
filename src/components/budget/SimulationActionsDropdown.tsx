@@ -59,14 +59,14 @@ export function SimulationActionsDropdown({ simulacao }: { simulacao: OrcamentoS
               onClick={() => { setIsOpen(false); setShowRename(true); }}
               className="w-full flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:text-white hover:bg-white/60 dark:bg-white/5 rounded-lg transition-colors"
             >
-              <Edit2 className="w-4 h-4 text-emerald-400" />
+              <Edit2 className="w-4 h-4 text-sky-400" />
               Renomear Cenário
             </button>
             <button 
               onClick={() => { setIsOpen(false); setShowClone(true); }}
               className="w-full flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:text-white hover:bg-white/60 dark:bg-white/5 rounded-lg transition-colors"
             >
-              <Copy className="w-4 h-4 text-indigo-400" />
+              <Copy className="w-4 h-4 text-violet-400" />
               Clonar como Novo
             </button>
             

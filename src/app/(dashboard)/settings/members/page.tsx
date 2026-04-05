@@ -3,8 +3,8 @@ import { getMembers } from '@/actions/members'
 import { InviteButton, MemberActions } from './MembersClient'
 
 const roleLabels: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  admin: { label: 'Admin', icon: Shield, color: 'text-emerald-400' },
-  editor: { label: 'Editor', icon: Pencil, color: 'text-indigo-400' },
+  admin: { label: 'Admin', icon: Shield, color: 'text-sky-400' },
+  editor: { label: 'Editor', icon: Pencil, color: 'text-violet-400' },
   viewer: { label: 'Visualizador', icon: Eye, color: 'text-neutral-600 dark:text-neutral-400' },
 }
 

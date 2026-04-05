@@ -37,7 +37,7 @@ export function SettingsTabs({
             href={href}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
               active
-                ? 'border-emerald-500 text-emerald-400'
+                ? 'border-sky-500 text-sky-400'
                 : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-800 dark:text-neutral-200 hover:border-white/20'
             }`}
           >

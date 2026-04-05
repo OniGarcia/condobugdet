@@ -6,7 +6,9 @@
       "Bash(node -e \"const v = require\\('./node_modules/tailwindcss/package.json'\\); console.log\\(v.version\\)\")",
       "Bash(node -e \"const v = require\\('./node_modules/next-themes/package.json'\\); console.log\\(v.version\\)\")",
       "Bash(grep -v \"^$\")",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "WebFetch(domain:www.cs8gestao.com.br)",
+      "Read(//c/Users/jonatas.garcia/.claude/plans/**)"
     ]
   }
 }

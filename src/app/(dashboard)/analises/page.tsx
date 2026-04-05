@@ -87,7 +87,7 @@ export default async function AnalisesPage({
           </div>
           <div className="flex gap-3 items-center">
             <SimulationSelector simulacoes={simulacoes} selectedId={activeSim?.id} targetPath="/analises" />
-            <button className="px-5 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-medium rounded-lg transition-all border border-emerald-500/20">
+            <button className="px-5 py-2 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 font-medium rounded-lg transition-all border border-sky-500/20">
               Exportar CSV
             </button>
           </div>
@@ -117,7 +117,7 @@ export default async function AnalisesPage({
         ) : (
           <div className="h-full flex flex-col items-center justify-center bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl text-neutral-600 dark:text-neutral-400">
             <p className="mb-4">Nenhuma simulação de orçamento encontrada.</p>
-            <a href="/orcamento" className="px-5 py-2 bg-emerald-500 text-neutral-900 dark:text-white rounded-lg hover:bg-emerald-600 font-medium">
+            <a href="/orcamento" className="px-5 py-2 bg-sky-500 text-neutral-900 dark:text-white rounded-lg hover:bg-sky-600 font-medium">
               Ir para Orçamentos
             </a>
           </div>

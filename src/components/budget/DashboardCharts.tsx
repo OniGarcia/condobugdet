@@ -136,8 +136,8 @@ export function DashboardCharts({
           title="Receitas Previstas" 
           value={totRecPrev} 
           realValue={totRecReal}
-          icon={<TrendingUp size={18} className="text-emerald-400" />} 
-          color="emerald" 
+          icon={<TrendingUp size={18} className="text-sky-400" />}
+          color="sky"
           type="RECEITA"
         />
         <KPICard 
@@ -152,8 +152,8 @@ export function DashboardCharts({
           title="Resultado Projetado" 
           value={resPrev} 
           realValue={resReal}
-          icon={<Activity size={18} className="text-indigo-400" />} 
-          color="indigo" 
+          icon={<Activity size={18} className="text-violet-400" />}
+          color="violet"
           type="RESULTADO"
         />
         <KPICard
@@ -261,13 +261,13 @@ function KPICard({
   icon: React.ReactNode
   success?: boolean
   isPercent?: boolean
-  color: 'emerald' | 'red' | 'indigo' | 'blue'
+  color: 'sky' | 'red' | 'violet' | 'blue'
   type?: 'RECEITA' | 'DESPESA' | 'RESULTADO'
 }) {
   const colorMap = {
-    emerald: 'from-emerald-500/10',
+    sky: 'from-sky-500/10',
     red: 'from-red-500/10',
-    indigo: 'from-indigo-500/10',
+    violet: 'from-violet-500/10',
     blue: 'from-blue-500/10',
   }
 
@@ -286,19 +286,19 @@ function KPICard({
   if (type === 'RECEITA') {
     if (realValue !== undefined) {
       const isGood = realValue >= value
-      varColor = isGood ? 'text-emerald-400' : 'text-red-400'
+      varColor = isGood ? 'text-sky-400' : 'text-red-400'
       ArrowIcon = isGood ? TrendingUp : TrendingDown
     }
   } else if (type === 'DESPESA') {
     if (realValue !== undefined) {
       const isGood = realValue <= value
-      varColor = isGood ? 'text-emerald-400' : 'text-red-400'
+      varColor = isGood ? 'text-sky-400' : 'text-red-400'
       ArrowIcon = realValue > value ? TrendingUp : TrendingDown
     }
   } else if (type === 'RESULTADO') {
      if (realValue !== undefined) {
         const isGood = realValue >= value
-        varColor = isGood ? 'text-emerald-400' : 'text-red-400'
+        varColor = isGood ? 'text-sky-400' : 'text-red-400'
         ArrowIcon = isGood ? TrendingUp : TrendingDown
      }
   }
@@ -309,7 +309,7 @@ function KPICard({
 
   const valueColor =
     success !== undefined 
-      ? (success ? 'text-emerald-400' : 'text-red-400')
+      ? (success ? 'text-sky-400' : 'text-red-400')
       : 'text-neutral-900 dark:text-white'
 
   return (

@@ -44,7 +44,7 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <div className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
-          <h3 className="text-base font-semibold mb-3 text-emerald-400">Usuário criado!</h3>
+          <h3 className="text-base font-semibold mb-3 text-sky-400">Usuário criado!</h3>
           <div className="space-y-3 text-sm mb-4">
             <div>
               <p className="text-neutral-600 dark:text-neutral-400">Nome</p>
@@ -62,7 +62,7 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
           </div>
           <button
             onClick={onClose}
-            className="w-full px-4 py-2.5 rounded-xl bg-emerald-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-emerald-600 transition-colors"
+            className="w-full px-4 py-2.5 rounded-xl bg-sky-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-sky-600 transition-colors"
           >
             Fechar
           </button>
@@ -88,7 +88,7 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
               required
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
               placeholder="Nome completo"
             />
           </div>
@@ -99,7 +99,7 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
               placeholder="nome@email.com"
             />
           </div>
@@ -111,7 +111,7 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
               minLength={6}
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
               placeholder="Mínimo 6 caracteres"
             />
             <p className="text-xs text-neutral-500 mt-1">Anote para entregar ao usuário</p>
@@ -128,7 +128,7 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-emerald-600 transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-sky-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-sky-600 transition-colors disabled:opacity-50"
             >
               {loading ? 'Criando...' : 'Criar'}
             </button>
@@ -190,7 +190,7 @@ function AssignCondoModal({
               required
               value={condoId}
               onChange={(e) => setCondoId(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
             >
               <option value="">Selecione...</option>
               {availableCondos.map((c) => (
@@ -206,7 +206,7 @@ function AssignCondoModal({
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as MemberRole)}
-              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
             >
               <option value="viewer">Visualizador</option>
               <option value="editor">Editor</option>
@@ -225,7 +225,7 @@ function AssignCondoModal({
             <button
               type="submit"
               disabled={loading || !condoId || availableCondos.length === 0}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-emerald-600 transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-sky-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-sky-600 transition-colors disabled:opacity-50"
             >
               {loading ? 'Salvando...' : 'Atribuir'}
             </button>
@@ -319,7 +319,7 @@ function UserDetailModal({
                 type="text"
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
               />
             </div>
             <div>
@@ -328,7 +328,7 @@ function UserDetailModal({
                 type="text"
                 value={cargo}
                 onChange={(e) => setCargo(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
                 placeholder="Ex: Síndico, Administrador..."
               />
             </div>
@@ -336,11 +336,11 @@ function UserDetailModal({
               <button
                 type="submit"
                 disabled={savingProfile}
-                className="px-4 py-2 rounded-xl bg-emerald-500 text-neutral-900 dark:text-white text-xs font-medium hover:bg-emerald-600 transition-colors disabled:opacity-50"
+                className="px-4 py-2 rounded-xl bg-sky-500 text-neutral-900 dark:text-white text-xs font-medium hover:bg-sky-600 transition-colors disabled:opacity-50"
               >
                 {savingProfile ? 'Salvando...' : 'Salvar Perfil'}
               </button>
-              {profileMsg && <p className="text-xs text-emerald-400">{profileMsg}</p>}
+              {profileMsg && <p className="text-xs text-sky-400">{profileMsg}</p>}
             </div>
           </form>
 
@@ -350,7 +350,7 @@ function UserDetailModal({
               <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Condomínios</p>
               <button
                 onClick={() => setAssignOpen(true)}
-                className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
+                className="flex items-center gap-1 text-xs text-sky-400 hover:text-sky-300 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" /> Atribuir
               </button>
@@ -441,12 +441,12 @@ export function UsersClient({ users, condos }: { users: GlobalUser[]; condos: Co
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nome ou e-mail..."
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
           />
         </div>
         <button
           onClick={() => setCreateOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-emerald-600 transition-colors flex-shrink-0"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-sky-600 transition-colors flex-shrink-0"
         >
           <UserPlus className="w-4 h-4" />
           Novo Usuário

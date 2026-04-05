@@ -69,7 +69,7 @@ export function ReportsView({
           <div className="flex gap-3">
             <button
               onClick={handlePrint}
-              className="flex items-center gap-2 px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-neutral-900 dark:text-white font-medium rounded-lg transition-all shadow-lg shadow-emerald-500/20"
+              className="flex items-center gap-2 px-5 py-2 bg-sky-500 hover:bg-sky-600 text-neutral-900 dark:text-white font-medium rounded-lg transition-all shadow-lg shadow-sky-500/20"
             >
               <Printer className="w-4 h-4" />
               Gerar PDF / Imprimir
@@ -93,7 +93,7 @@ export function ReportsView({
               <select
                 value={selectedCCId}
                 onChange={(e) => handleCCChange(e.target.value)}
-                className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10"
+                className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-sky-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10"
               >
                 <option value="all" className="bg-white dark:bg-neutral-950">Todos os Lançamentos</option>
                 {centrosCusto.map(cc => (

@@ -11,12 +11,12 @@ export default async function SelectCondoPage() {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center font-sans">
-      <div className="absolute top-0 right-0 -z-10 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 -z-10 w-[500px] h-[500px] bg-teal-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-0 right-0 -z-10 w-[500px] h-[500px] bg-sky-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 -z-10 w-[500px] h-[500px] bg-violet-500/10 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="w-full max-w-md">
         <div className="flex items-center gap-3 mb-8 justify-center">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-violet-500 flex items-center justify-center shadow-lg shadow-sky-500/20">
             <Wallet className="w-5 h-5 text-white" />
           </div>
           <h1 className="font-semibold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
@@ -44,8 +44,8 @@ export default async function SelectCondoPage() {
                     type="submit"
                     className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-left group"
                   >
-                    <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                      <Building2 className="w-4 h-4 text-emerald-400" />
+                    <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-sky-500/20 to-violet-500/20 border border-sky-500/20 flex items-center justify-center flex-shrink-0">
+                      <Building2 className="w-4 h-4 text-sky-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-neutral-100 truncate">{condo.nome}</p>

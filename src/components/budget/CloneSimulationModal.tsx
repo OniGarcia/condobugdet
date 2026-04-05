@@ -56,7 +56,7 @@ export function CloneSimulationModal({
               value={nome}
               onChange={e => setNome(e.target.value)}
               placeholder="Ex: Orçamento Cenário B"
-              className="w-full bg-black/40 border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+              className="w-full bg-black/40 border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-violet-500 outline-none transition-all"
             />
           </div>
 
@@ -71,7 +71,7 @@ export function CloneSimulationModal({
             <button 
               type="submit"
               disabled={isCloning || !nome.trim()}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-neutral-900 dark:text-white font-bold rounded-lg shadow-lg shadow-indigo-500/20 transition-all border border-indigo-400"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-violet-500 hover:bg-violet-600 disabled:opacity-50 text-neutral-900 dark:text-white font-bold rounded-lg shadow-lg shadow-violet-500/20 transition-all border border-violet-400"
             >
               {isCloning ? <Loader2 className="w-5 h-5 animate-spin" /> : <Copy className="w-5 h-5" />}
               {isCloning ? 'Clonando...' : 'Criar Cópia'}

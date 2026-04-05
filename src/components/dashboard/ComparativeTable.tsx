@@ -12,7 +12,7 @@ type ViewMode = 'mes' | 'acumulado'
 
 function saldoColorClass(status: StatusSemaforo): string {
   switch (status) {
-    case 'VERDE':    return 'text-emerald-400'
+    case 'VERDE':    return 'text-sky-400'
     case 'AMARELO':  return 'text-amber-400'
     case 'VERMELHO': return 'text-red-400'
   }
@@ -20,20 +20,20 @@ function saldoColorClass(status: StatusSemaforo): string {
 
 function saldoBgClass(status: StatusSemaforo): string {
   switch (status) {
-    case 'VERDE':    return 'bg-emerald-500/10'
+    case 'VERDE':    return 'bg-sky-500/10'
     case 'AMARELO':  return 'bg-amber-500/10'
     case 'VERMELHO': return 'bg-red-500/10'
   }
 }
 
 function resultadoColor(value: number): string {
-  if (value > 0) return 'text-emerald-400'
+  if (value > 0) return 'text-sky-400'
   if (value < 0) return 'text-red-400'
   return 'text-amber-400'
 }
 
 function resultadoBg(value: number): string {
-  if (value > 0) return 'bg-emerald-500/10'
+  if (value > 0) return 'bg-sky-500/10'
   if (value < 0) return 'bg-red-500/10'
   return 'bg-amber-500/10'
 }
@@ -125,7 +125,7 @@ export function ComparativeTable({
             onClick={() => setView('mes')}
             className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
               view === 'mes'
-                ? 'bg-emerald-500 text-neutral-900 dark:text-white shadow'
+                ? 'bg-sky-500 text-neutral-900 dark:text-white shadow'
                 : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:text-white'
             }`}
           >
@@ -135,7 +135,7 @@ export function ComparativeTable({
             onClick={() => setView('acumulado')}
             className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
               view === 'acumulado'
-                ? 'bg-emerald-500 text-neutral-900 dark:text-white shadow'
+                ? 'bg-sky-500 text-neutral-900 dark:text-white shadow'
                 : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:text-white'
             }`}
           >

@@ -9,12 +9,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center font-sans">
-      <div className="absolute top-0 right-0 -z-10 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 -z-10 w-[500px] h-[500px] bg-teal-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-0 right-0 -z-10 w-[500px] h-[500px] bg-sky-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 -z-10 w-[500px] h-[500px] bg-violet-500/10 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-3 mb-8 justify-center">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-violet-500 flex items-center justify-center shadow-lg shadow-sky-500/20">
             <Wallet className="w-5 h-5 text-white" />
           </div>
           <h1 className="font-semibold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
@@ -37,7 +37,7 @@ export default function LoginPage() {
                 type="email"
                 required
                 autoComplete="email"
-                className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-neutral-100 placeholder:text-neutral-500 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-neutral-100 placeholder:text-neutral-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                 placeholder="seu@email.com"
               />
             </div>
@@ -52,7 +52,7 @@ export default function LoginPage() {
                 type="password"
                 required
                 autoComplete="current-password"
-                className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-neutral-100 placeholder:text-neutral-500 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-neutral-100 placeholder:text-neutral-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                 placeholder="••••••••"
               />
             </div>
@@ -64,7 +64,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={pending}
-              className="w-full mt-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+              className="w-full mt-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-teal-500 text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-sky-500/20 disabled:opacity-50"
             >
               {pending ? 'Entrando...' : 'Entrar'}
             </button>

@@ -247,9 +247,9 @@ export function BudgetGrid({
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isImporting || isSaving}
-              className="flex items-center gap-2 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 font-medium rounded-lg transition-all border border-neutral-200 dark:border-white/10 disabled:opacity-50"
+              className="flex items-center gap-2 px-3 py-2 bg-sky-800 hover:bg-sky-900 text-white font-medium rounded-lg transition-all border border-sky-700 disabled:opacity-50"
             >
-              {isImporting ? <Loader2 className="w-4 h-4 animate-spin text-emerald-400" /> : <Upload className="w-4 h-4 text-emerald-400" />}
+              {isImporting ? <Loader2 className="w-4 h-4 animate-spin text-sky-400" /> : <Upload className="w-4 h-4 text-sky-400" />}
               Importar XLS (Média)
             </button>
 
@@ -258,7 +258,7 @@ export function BudgetGrid({
             <button
               onClick={handleMasterReplicate}
               disabled={isSaving}
-              className="flex items-center gap-2 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 text-emerald-400 font-medium rounded-lg transition-all border border-emerald-500/20 disabled:opacity-50"
+              className="flex items-center gap-2 px-3 py-2 bg-sky-800 hover:bg-sky-900 text-white font-medium rounded-lg transition-all border border-sky-700 disabled:opacity-50"
               title="Copia os valores do 1º mês para toda a linha para Múltiplas Contas"
             >
               <ListChecks className="w-4 h-4" />
@@ -268,7 +268,7 @@ export function BudgetGrid({
             <button
               onClick={handleSave}
               disabled={!isDirty || isSaving}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-neutral-900 dark:text-white font-medium rounded-lg shadow-lg shadow-emerald-500/20 transition-all border border-emerald-400 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed ml-2"
+              className="flex items-center gap-2 px-4 py-2 bg-sky-800 hover:bg-sky-900 text-white font-medium rounded-lg shadow-lg shadow-sky-800/20 transition-all border border-sky-700 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed ml-2"
             >
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {isSaving ? "Salvando..." : "Salvar Orçamento"}
@@ -278,7 +278,7 @@ export function BudgetGrid({
 
         {/* Floating Success Toast */}
         {showSuccess && (
-          <div className="absolute top-16 right-4 z-50 flex items-center gap-3 px-4 py-3 bg-emerald-500 text-neutral-900 dark:text-white rounded-xl shadow-2xl shadow-emerald-500/40 animate-in fade-in slide-in-from-top-4 duration-300 border border-emerald-400">
+          <div className="absolute top-16 right-4 z-50 flex items-center gap-3 px-4 py-3 bg-sky-800 text-white rounded-xl shadow-2xl shadow-sky-800/40 animate-in fade-in slide-in-from-top-4 duration-300 border border-sky-700">
             <CheckCircle2 className="w-5 h-5" />
             <span className="font-bold">Orçamento Salvo com Sucesso!</span>
           </div>
@@ -292,7 +292,7 @@ export function BudgetGrid({
               <th className="px-4 py-3 font-medium text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-[#121212] border-b border-neutral-200 dark:border-white/10 border-r sticky left-0 z-30 w-80">
                 Categoria
               </th>
-              <th className="px-4 py-3 font-medium text-emerald-400 bg-emerald-50 dark:bg-[#06241a] border-b border-neutral-200 dark:border-white/10 border-r text-center w-28 backdrop-blur-xl sticky left-80 z-20">
+              <th className="px-4 py-3 font-medium text-sky-400 bg-sky-50 dark:bg-[#061824] border-b border-neutral-200 dark:border-white/10 border-r text-center w-28 backdrop-blur-xl sticky left-80 z-20">
                 Ações
               </th>
               {columns.map((m, i) => (
@@ -320,21 +320,21 @@ export function BudgetGrid({
             ))}
             
             {/* Resultado Row */}
-            <tr className="bg-emerald-500/10 font-bold border-t-2 border-emerald-500/30">
-              <td className="px-4 py-4 sticky left-0 z-10 bg-emerald-50 dark:bg-[#06241a] border-r border-neutral-200 dark:border-white/10 text-emerald-400">
+            <tr className="bg-sky-500/10 font-bold border-t-2 border-sky-500/30">
+              <td className="px-4 py-4 sticky left-0 z-10 bg-sky-50 dark:bg-[#061824] border-r border-neutral-200 dark:border-white/10 text-sky-400">
                 <div className="flex gap-2 items-center">
                   <span className="w-5 shrink-0" />
                   <CheckCircle2 className="w-4 h-4" />
                   <span>RESULTADO (Receitas - Despesas)</span>
                 </div>
               </td>
-              <td className="px-4 py-4 text-center bg-emerald-50 dark:bg-[#0d1613] border-r border-neutral-200 dark:border-white/10 sticky left-80 z-10" />
+              <td className="px-4 py-4 text-center bg-sky-50 dark:bg-[#0d1318] border-r border-neutral-200 dark:border-white/10 sticky left-80 z-10" />
               {columnResults.map((res, i) => (
-                <td key={`result-${i}`} suppressHydrationWarning className={`px-4 py-4 text-right font-mono border-r border-neutral-200 dark:border-white/10 ${res >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                <td key={`result-${i}`} suppressHydrationWarning className={`px-4 py-4 text-right font-mono border-r border-neutral-200 dark:border-white/10 ${res >= 0 ? 'text-sky-400' : 'text-red-400'}`}>
                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(res)}
                 </td>
               ))}
-              <td suppressHydrationWarning className={`px-4 py-4 text-right font-mono sticky right-0 z-10 bg-emerald-50 dark:bg-[#06241a] ${grandTotalResult >= 0 ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold'}`}>
+              <td suppressHydrationWarning className={`px-4 py-4 text-right font-mono sticky right-0 z-10 bg-sky-50 dark:bg-[#061824] ${grandTotalResult >= 0 ? 'text-sky-400 font-bold' : 'text-red-400 font-bold'}`}>
                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(grandTotalResult)}
               </td>
             </tr>
@@ -397,25 +397,25 @@ function BudgetRow({
             <div className="text-neutral-500 shrink-0">
               {isParent
                 ? isExpanded
-                  ? <FolderOpen className="w-4 h-4 text-emerald-400" />
-                  : <Folder className="w-4 h-4 text-emerald-500" />
+                  ? <FolderOpen className="w-4 h-4 text-sky-400" />
+                  : <Folder className="w-4 h-4 text-sky-500" />
                 : <FileText className="w-4 h-4 text-neutral-600" />
               }
             </div>
 
             <span className="text-neutral-500 font-mono text-xs w-10 shrink-0">{categoria.codigo_reduzido}</span>
-            <span className={level === 0 ? "text-emerald-300 font-semibold truncate" : "text-neutral-700 dark:text-neutral-300 truncate"}>
+            <span className={level === 0 ? "text-sky-300 font-semibold truncate" : "text-neutral-700 dark:text-neutral-300 truncate"}>
               {categoria.nome_conta}
             </span>
           </div>
         </td>
         
         {/* Acoes: Now the very first column after Categoria */}
-        <td className="px-4 py-2 text-center bg-emerald-50 dark:bg-[#0d1613] border-r border-neutral-200 dark:border-white/10 sticky left-80 z-10 group-hover:bg-emerald-100 dark:group-hover:bg-[#11241c] transition-colors">
+        <td className="px-4 py-2 text-center bg-sky-50 dark:bg-[#0d1318] border-r border-neutral-200 dark:border-white/10 sticky left-80 z-10 group-hover:bg-sky-100 dark:group-hover:bg-[#111824] transition-colors">
           {canEdit && !isParent && columns.length > 0 && (
             <button
               onClick={() => onReplicate(categoria.id, localState[`${categoria.id}_${columns[0].ano}_${columns[0].mes}`] || 0)}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-neutral-800/80 text-emerald-400/80 hover:text-emerald-400 hover:bg-neutral-700/80 rounded block text-[10px] uppercase font-bold tracking-wider transition-colors border border-emerald-500/10 mx-auto disabled:opacity-30 disabled:cursor-not-allowed"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-sky-800/80 text-white/80 hover:text-white hover:bg-sky-900 rounded block text-[10px] uppercase font-bold tracking-wider transition-colors border border-sky-700/50 mx-auto disabled:opacity-30 disabled:cursor-not-allowed"
               title="Copiar 1º mês para toda a linha"
             >
               <Copy className="w-3.5 h-3.5" />
@@ -496,13 +496,13 @@ function EditableCell({ valor, onChange }: { valor: number, onChange: (v: number
       onBlur={handleBlur}
       onKeyDown={e => e.key === 'Enter' && handleBlur()}
       autoFocus
-      className="w-full bg-black/60 border border-emerald-500 rounded px-2 py-1 text-right text-sm font-mono text-emerald-100 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-inner"
+      className="w-full bg-black/60 border border-sky-500 rounded px-2 py-1 text-right text-sm font-mono text-sky-100 focus:outline-none focus:ring-1 focus:ring-sky-500 shadow-inner"
     />
   ) : (
     <div 
       onClick={() => setIsEditing(true)}
       suppressHydrationWarning
-      className={`w-full cursor-pointer rounded px-2 py-1 text-right text-sm font-mono transition-colors ${valor > 0 ? 'text-neutral-900 dark:text-white font-medium bg-emerald-500/5 hover:bg-emerald-500/10' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/10'}`}
+      className={`w-full cursor-pointer rounded px-2 py-1 text-right text-sm font-mono transition-colors ${valor > 0 ? 'text-neutral-900 dark:text-white font-medium bg-sky-500/5 hover:bg-sky-500/10' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/10'}`}
     >
       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(val) || 0)}
     </div>

@@ -218,7 +218,7 @@ export function RealizadoGrid({
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isImporting || isSaving}
-              className="flex items-center gap-2 px-3 py-2 bg-indigo-900/50 hover:bg-indigo-800/50 text-indigo-300 font-medium rounded-lg transition-all border border-indigo-500/20 disabled:opacity-50"
+              className="flex items-center gap-2 px-3 py-2 bg-sky-800 hover:bg-sky-900 text-white font-medium rounded-lg transition-all border border-sky-700 disabled:opacity-50"
             >
               {isImporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
               Importar Balancete
@@ -229,7 +229,7 @@ export function RealizadoGrid({
             <button
               onClick={handleMasterReplicate}
               disabled={isSaving}
-              className="flex items-center gap-2 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 text-indigo-400 font-medium rounded-lg transition-all border border-indigo-500/20 disabled:opacity-50"
+              className="flex items-center gap-2 px-3 py-2 bg-sky-800 hover:bg-sky-900 text-white font-medium rounded-lg transition-all border border-sky-700 disabled:opacity-50"
               title="Copia o valor do 1º mês para toda a linha para Múltiplas Contas"
             >
               <ListChecks className="w-4 h-4" />
@@ -239,7 +239,7 @@ export function RealizadoGrid({
             <button
               onClick={handleSave}
               disabled={!isDirty || isSaving}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-neutral-900 dark:text-white font-medium rounded-lg shadow-lg shadow-indigo-500/20 transition-all border border-indigo-400 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed ml-2"
+              className="flex items-center gap-2 px-4 py-2 bg-sky-800 hover:bg-sky-900 text-white font-medium rounded-lg shadow-lg shadow-sky-800/20 transition-all border border-sky-700 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed ml-2"
             >
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {isSaving ? "Salvando..." : "Salvar Dados"}
@@ -249,7 +249,7 @@ export function RealizadoGrid({
 
         {/* Floating Success Toast */}
         {showSuccess && (
-          <div className="absolute top-16 right-4 z-50 flex items-center gap-3 px-4 py-3 bg-indigo-500 text-neutral-900 dark:text-white rounded-xl shadow-2xl shadow-indigo-500/40 animate-in fade-in slide-in-from-top-4 duration-300 border border-indigo-400">
+          <div className="absolute top-16 right-4 z-50 flex items-center gap-3 px-4 py-3 bg-sky-800 text-white rounded-xl shadow-2xl shadow-sky-800/40 animate-in fade-in slide-in-from-top-4 duration-300 border border-sky-700">
             <CheckCircle2 className="w-5 h-5" />
             <span className="font-bold">Realizado Salvo com Sucesso!</span>
           </div>
@@ -263,7 +263,7 @@ export function RealizadoGrid({
               <th className="px-4 py-3 font-medium text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-[#121212] border-b border-neutral-200 dark:border-white/10 border-r sticky left-0 z-30 w-80">
                 Categoria
               </th>
-              <th className="px-4 py-3 font-medium text-indigo-400 bg-indigo-50 dark:bg-[#0d0d1e] border-b border-neutral-200 dark:border-white/10 border-r text-center w-28 backdrop-blur-xl sticky left-80 z-20">
+              <th className="px-4 py-3 font-medium text-violet-400 bg-violet-50 dark:bg-[#120d1e] border-b border-neutral-200 dark:border-white/10 border-r text-center w-28 backdrop-blur-xl sticky left-80 z-20">
                 Ações
               </th>
               {columns.map((m) => (
@@ -291,21 +291,21 @@ export function RealizadoGrid({
             ))}
 
             {/* Resultado Row */}
-            <tr className="bg-indigo-500/10 font-bold border-t-2 border-indigo-500/30">
-              <td className="px-4 py-4 sticky left-0 z-10 bg-indigo-50 dark:bg-[#0d0d1e] border-r border-neutral-200 dark:border-white/10 text-indigo-400">
+            <tr className="bg-violet-500/10 font-bold border-t-2 border-violet-500/30">
+              <td className="px-4 py-4 sticky left-0 z-10 bg-violet-50 dark:bg-[#120d1e] border-r border-neutral-200 dark:border-white/10 text-violet-400">
                 <div className="flex gap-2 items-center">
                   <span className="w-5 shrink-0" />
                   <CheckCircle2 className="w-4 h-4" />
                   <span>RESULTADO (Receitas - Despesas)</span>
                 </div>
               </td>
-              <td className="px-4 py-4 text-center bg-indigo-50 dark:bg-[#0d0d1e] border-r border-neutral-200 dark:border-white/10 sticky left-80 z-10" />
+              <td className="px-4 py-4 text-center bg-violet-50 dark:bg-[#120d1e] border-r border-neutral-200 dark:border-white/10 sticky left-80 z-10" />
               {columnResults.map((res, i) => (
-                <td key={`result-${i}`} suppressHydrationWarning className={`px-4 py-4 text-right font-mono border-r border-neutral-200 dark:border-white/10 ${res >= 0 ? 'text-indigo-400' : 'text-red-400'}`}>
+                <td key={`result-${i}`} suppressHydrationWarning className={`px-4 py-4 text-right font-mono border-r border-neutral-200 dark:border-white/10 ${res >= 0 ? 'text-violet-400' : 'text-red-400'}`}>
                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(res)}
                 </td>
               ))}
-              <td suppressHydrationWarning className={`px-4 py-4 text-right font-mono sticky right-0 z-10 bg-indigo-50 dark:bg-[#0d0d1e] ${grandTotalResult >= 0 ? 'text-indigo-400 font-bold' : 'text-red-400 font-bold'}`}>
+              <td suppressHydrationWarning className={`px-4 py-4 text-right font-mono sticky right-0 z-10 bg-violet-50 dark:bg-[#120d1e] ${grandTotalResult >= 0 ? 'text-violet-400 font-bold' : 'text-red-400 font-bold'}`}>
                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(grandTotalResult)}
               </td>
             </tr>
@@ -368,25 +368,25 @@ function RealizadoRow({
             <div className="text-neutral-500 shrink-0">
               {isParent
                 ? isExpanded
-                  ? <FolderOpen className="w-4 h-4 text-indigo-400" />
-                  : <Folder className="w-4 h-4 text-indigo-500" />
+                  ? <FolderOpen className="w-4 h-4 text-violet-400" />
+                  : <Folder className="w-4 h-4 text-violet-500" />
                 : <FileText className="w-4 h-4 text-neutral-600" />
               }
             </div>
 
             <span className="text-neutral-500 font-mono text-xs w-10 shrink-0">{categoria.codigo_reduzido}</span>
-            <span className={level === 0 ? "text-indigo-300 font-semibold truncate" : "text-neutral-700 dark:text-neutral-300 truncate"}>
+            <span className={level === 0 ? "text-violet-300 font-semibold truncate" : "text-neutral-700 dark:text-neutral-300 truncate"}>
               {categoria.nome_conta}
             </span>
           </div>
         </td>
 
         {/* Acoes: Now the very first column after Categoria */}
-        <td className="px-4 py-2 text-center bg-indigo-50 dark:bg-[#0d0d1e] border-r border-neutral-200 dark:border-white/10 sticky left-80 z-10 group-hover:bg-indigo-100 dark:group-hover:bg-[#11241c] transition-colors">
+        <td className="px-4 py-2 text-center bg-violet-50 dark:bg-[#120d1e] border-r border-neutral-200 dark:border-white/10 sticky left-80 z-10 group-hover:bg-violet-100 dark:group-hover:bg-[#1a0d24] transition-colors">
           {canEdit && !isParent && columns.length > 0 && (
             <button
               onClick={() => onReplicate(categoria.id, localState[`${categoria.id}_${columns[0].ano}_${columns[0].mes}`] || 0)}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-neutral-800/80 text-indigo-400/80 hover:text-indigo-400 hover:bg-neutral-700/80 rounded block text-[10px] uppercase font-bold tracking-wider transition-colors border border-indigo-500/10 mx-auto disabled:opacity-30 disabled:cursor-not-allowed"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-sky-800/80 text-white/80 hover:text-white hover:bg-sky-900 rounded block text-[10px] uppercase font-bold tracking-wider transition-colors border border-sky-700/50 mx-auto disabled:opacity-30 disabled:cursor-not-allowed"
               title="Copiar 1º mês para toda a linha"
             >
               <Copy className="w-3.5 h-3.5" />
@@ -467,13 +467,13 @@ function EditableCell({ valor, onChange }: { valor: number, onChange: (v: number
       onBlur={handleBlur}
       onKeyDown={e => e.key === 'Enter' && handleBlur()}
       autoFocus
-      className="w-full bg-black/60 border border-indigo-500 rounded px-2 py-1 text-right text-sm font-mono text-indigo-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-inner"
+      className="w-full bg-black/60 border border-violet-500 rounded px-2 py-1 text-right text-sm font-mono text-violet-100 focus:outline-none focus:ring-1 focus:ring-violet-500 shadow-inner"
     />
   ) : (
     <div 
       onClick={() => setIsEditing(true)}
       suppressHydrationWarning
-      className={`w-full cursor-pointer rounded px-2 py-1 text-right text-sm font-mono transition-colors ${valor > 0 ? 'text-neutral-900 dark:text-white font-medium bg-indigo-500/5 hover:bg-indigo-500/10' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/10'}`}
+      className={`w-full cursor-pointer rounded px-2 py-1 text-right text-sm font-mono transition-colors ${valor > 0 ? 'text-neutral-900 dark:text-white font-medium bg-violet-500/5 hover:bg-violet-500/10' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/10'}`}
     >
       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(val) || 0)}
     </div>

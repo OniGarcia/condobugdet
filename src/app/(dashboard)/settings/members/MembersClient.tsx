@@ -37,7 +37,7 @@ function InviteButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-emerald-600 transition-colors"
+        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-sky-600 transition-colors"
       >
         <UserPlus className="w-4 h-4" />
         Convidar Membro
@@ -46,7 +46,7 @@ function InviteButton() {
       {successInfo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
-            <h3 className="text-base font-semibold mb-3 text-emerald-400">Membro adicionado!</h3>
+            <h3 className="text-base font-semibold mb-3 text-sky-400">Membro adicionado!</h3>
             <div className="space-y-3 text-sm">
               <div>
                 <p className="text-neutral-600 dark:text-neutral-400">E-mail</p>
@@ -65,7 +65,7 @@ function InviteButton() {
             </div>
             <button
               onClick={() => { setSuccessInfo(null); setOpen(false) }}
-              className="w-full mt-4 px-4 py-2.5 rounded-xl bg-emerald-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-emerald-600 transition-colors"
+              className="w-full mt-4 px-4 py-2.5 rounded-xl bg-sky-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-sky-600 transition-colors"
             >
               Fechar
             </button>
@@ -85,7 +85,7 @@ function InviteButton() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
                   placeholder="nome@email.com"
                 />
               </div>
@@ -94,7 +94,7 @@ function InviteButton() {
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as MemberRole)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
                 >
                   <option value="viewer">Visualizador — Somente leitura</option>
                   <option value="editor">Editor — Edita orçamentos e realizado</option>
@@ -107,7 +107,7 @@ function InviteButton() {
                   type="text"
                   value={tempPassword}
                   onChange={(e) => setTempPassword(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
                   placeholder="Mudar@123"
                 />
                 <p className="text-xs text-neutral-500 mt-1">O usuário deve trocar após o primeiro acesso</p>
@@ -124,7 +124,7 @@ function InviteButton() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-emerald-600 transition-colors disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-sky-500 text-neutral-900 dark:text-white text-sm font-medium hover:bg-sky-600 transition-colors disabled:opacity-50"
                 >
                   {loading ? 'Criando...' : 'Convidar'}
                 </button>
@@ -159,7 +159,7 @@ function MemberActions({ membershipId, currentRole }: { membershipId: string; cu
         value={currentRole}
         onChange={(e) => handleRoleChange(e.target.value as MemberRole)}
         disabled={loading}
-        className="px-2 py-1.5 rounded-lg bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-xs text-neutral-700 dark:text-neutral-300 outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-50"
+        className="px-2 py-1.5 rounded-lg bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-xs text-neutral-700 dark:text-neutral-300 outline-none focus:ring-1 focus:ring-sky-500 disabled:opacity-50"
       >
         <option value="viewer">Viewer</option>
         <option value="editor">Editor</option>

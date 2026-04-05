@@ -51,7 +51,7 @@ function YearSelector({ years, selectedYear }: { years: number[], selectedYear: 
           href={`/realizado?ano=${y}`}
           className={`px-4 py-2 text-sm font-medium transition-colors ${
             y === selectedYear 
-              ? 'bg-indigo-500 text-neutral-900 dark:text-white' 
+              ? 'bg-sky-800 text-white'
               : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/10 hover:text-neutral-900 dark:text-white block'
           }`}
         >

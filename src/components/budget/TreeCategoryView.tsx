@@ -123,7 +123,7 @@ export function TreeCategoryView({ data, allFlat, role = 'viewer' }: { data: Cat
             </button>
             <button
               onClick={() => setModal({ type: 'create', parentId: null, parentCodigo: null })}
-              className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-lg text-sm font-medium transition-colors border border-emerald-500/20"
+              className="flex items-center gap-2 px-3 py-1.5 bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 rounded-lg text-sm font-medium transition-colors border border-sky-500/20"
             >
               <Plus className="w-4 h-4" />
               Nova Categoria
@@ -134,7 +134,7 @@ export function TreeCategoryView({ data, allFlat, role = 'viewer' }: { data: Cat
 
       {/* Import Result Banner */}
       {importResult && (
-        <div className="flex items-start gap-3 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-sm text-emerald-300">
+        <div className="flex items-start gap-3 p-4 bg-sky-500/10 border border-sky-500/20 rounded-xl text-sm text-sky-300">
           <Check className="w-4 h-4 mt-0.5 shrink-0" />
           <div className="flex-1">
             <span className="font-medium">Importação concluída!</span>{' '}
@@ -264,8 +264,8 @@ function CategoryNode({
         <div className="text-neutral-500 shrink-0">
           {hasChildren
             ? isExpanded
-              ? <FolderOpen className="w-4 h-4 text-emerald-400" />
-              : <Folder className="w-4 h-4 text-emerald-500" />
+              ? <FolderOpen className="w-4 h-4 text-sky-400" />
+              : <Folder className="w-4 h-4 text-sky-500" />
             : <FileText className="w-4 h-4 text-neutral-600" />
           }
         </div>
@@ -274,14 +274,14 @@ function CategoryNode({
 
         <span className={cn(
           'flex-1 text-sm truncate',
-          depth === 0 ? 'text-emerald-200 font-semibold' : 'text-neutral-700 dark:text-neutral-300'
+          depth === 0 ? 'text-sky-200 font-semibold' : 'text-neutral-700 dark:text-neutral-300'
         )}>
           {node.nome_conta}
         </span>
 
         <span className={cn(
           'text-xs px-1.5 py-0.5 rounded-md shrink-0 font-medium opacity-0 group-hover:opacity-100 transition-opacity',
-          node.tipo === 'RECEITA' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+          node.tipo === 'RECEITA' ? 'bg-sky-500/10 text-sky-400' : 'bg-red-500/10 text-red-400'
         )}>
           {node.tipo}
         </span>
@@ -290,7 +290,7 @@ function CategoryNode({
           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={() => onAddChild(node)}
-              className="p-1.5 text-neutral-500 hover:text-emerald-400 hover:bg-emerald-400/10 rounded-lg transition-colors"
+              className="p-1.5 text-neutral-500 hover:text-sky-400 hover:bg-sky-400/10 rounded-lg transition-colors"
               title="Adicionar Sub-categoria"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -369,7 +369,7 @@ function CategoryFormModal({
                 onChange={e => setCodigo(`${parentSuffix}${e.target.value}`)}
                 placeholder="ex: 1, 1.1, 2.3.1"
                 disabled={isEdit}
-                className="flex-1 bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-800 dark:text-neutral-200 font-mono focus:ring-2 focus:ring-emerald-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-800 dark:text-neutral-200 font-mono focus:ring-2 focus:ring-sky-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -380,7 +380,7 @@ function CategoryFormModal({
               value={nome}
               onChange={e => setNome(e.target.value)}
               placeholder="ex: Taxa Condominial"
-              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-800 dark:text-neutral-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-800 dark:text-neutral-200 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
             />
           </div>
 
@@ -395,7 +395,7 @@ function CategoryFormModal({
                     'flex-1 py-2 rounded-lg text-sm font-medium transition-colors border',
                     tipo === t
                       ? t === 'RECEITA'
-                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                        ? 'bg-sky-500/20 text-sky-400 border-sky-500/40'
                         : 'bg-red-500/20 text-red-400 border-red-500/40'
                       : 'bg-white/60 dark:bg-white/5 text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/10'
                   )}
@@ -414,7 +414,7 @@ function CategoryFormModal({
           <button
             onClick={() => onSubmit({ codigo_reduzido: codigo, nome_conta: nome, tipo })}
             disabled={isPending || !nome || !codigo}
-            className="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-neutral-900 dark:text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="px-5 py-2 bg-sky-500 hover:bg-sky-600 text-neutral-900 dark:text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
           >
             {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
             {isEdit ? 'Salvar' : 'Criar'}
@@ -451,7 +451,7 @@ function ConfirmModal({
             disabled={isPending}
             className={cn(
               'px-5 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50',
-              danger ? 'bg-red-600 hover:bg-red-700 text-neutral-900 dark:text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-neutral-900 dark:text-white'
+              danger ? 'bg-red-600 hover:bg-red-700 text-neutral-900 dark:text-white' : 'bg-sky-500 hover:bg-sky-600 text-neutral-900 dark:text-white'
             )}
           >
             {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
