@@ -686,7 +686,7 @@ export function GestaoCCView({
     for (const [k, v] of Object.entries(updates)) {
       v === undefined ? params.delete(k) : params.set(k, v)
     }
-    return `/gestao-cc?${params.toString()}`
+    return `/dashboard?${params.toString()}`
   }
 
   const inicioStr = `${filterInicio.ano}-${String(filterInicio.mes).padStart(2, '0')}`
