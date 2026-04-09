@@ -101,20 +101,17 @@ export function ForecastGrid({
 
   // Re-sync when projetados prop changes (after save / reload)
   useEffect(() => {
-    setLocalState(prev => {
-      const next = { ...prev }
-      // Reset future months to orcados, then overlay projetados
-      orcamentos.forEach(o => {
-        if (!isPast(o.ano, o.mes, cutoffAno, cutoffMes)) {
-          const key = `${o.categoria_id}_${o.ano}_${o.mes}`
-          if (!(key in next)) next[key] = Number(o.valor_previsto)
-        }
-      })
-      projetados.forEach(p => {
-        next[`${p.categoria_id}_${p.ano}_${p.mes}`] = Number(p.valor_projetado)
-      })
-      return next
+    const next: Record<string, number> = {}
+    // Rebuild from scratch: base = orcados for future months, then overlay projetados
+    orcamentos.forEach(o => {
+      if (!isPast(o.ano, o.mes, cutoffAno, cutoffMes)) {
+        next[`${o.categoria_id}_${o.ano}_${o.mes}`] = Number(o.valor_previsto)
+      }
     })
+    projetados.forEach(p => {
+      next[`${p.categoria_id}_${p.ano}_${p.mes}`] = Number(p.valor_projetado)
+    })
+    setLocalState(next)
     setIsDirty(false)
   }, [projetados]) // eslint-disable-line react-hooks/exhaustive-deps
 
