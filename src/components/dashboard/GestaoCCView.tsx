@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   CentroCusto, GestaoCCResult, GestaoCCMes,
@@ -8,8 +8,8 @@ import {
 } from '@/types'
 import {
   Wallet, TrendingUp, TrendingDown, Scale, BarChart3,
-  ChevronDown, ChevronRight, ArrowUpCircle, ArrowDownCircle,
-  CircleDollarSign, AlertTriangle, CheckCircle2, Info, Printer, Table2,
+  ChevronDown, ChevronRight, ChevronLeft, ArrowUpCircle, ArrowDownCircle,
+  CircleDollarSign, AlertTriangle, CheckCircle2, Info, Printer, Table2, Building2,
 } from 'lucide-react'
 import { exportElementToPdf } from '@/lib/exportPdf'
 
@@ -653,6 +653,8 @@ interface GestaoCCViewProps {
   selectedSimId: string
   filterInicio: { ano: number; mes: number }
   filterFim: { ano: number; mes: number }
+  cutoffAno: number
+  cutoffMes: number
   gestaoDados: GestaoCCResult | null
 }
 
@@ -660,12 +662,26 @@ export function GestaoCCView({
   centrosCusto, simulacoes,
   selectedCCId, selectedSimId,
   filterInicio, filterFim,
+  cutoffAno, cutoffMes,
   gestaoDados,
 }: GestaoCCViewProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const printRef = useRef<HTMLDivElement>(null)
   const [exporting, setExporting] = useState(false)
+  const [isFilterExpanded, setIsFilterExpanded] = useState(true)
+
+  // Persistência do estado de expansão
+  useEffect(() => {
+    const saved = localStorage.getItem('dashboardFilterExpanded')
+    if (saved !== null) {
+      setIsFilterExpanded(saved === 'true')
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('dashboardFilterExpanded', String(isFilterExpanded))
+  }, [isFilterExpanded])
 
   const handleExportPdf = useCallback(async () => {
     if (!printRef.current || exporting) return
@@ -689,8 +705,37 @@ export function GestaoCCView({
     return `/dashboard?${params.toString()}`
   }
 
-  const inicioStr = `${filterInicio.ano}-${String(filterInicio.mes).padStart(2, '0')}`
-  const fimStr    = `${filterFim.ano}-${String(filterFim.mes).padStart(2, '0')}`
+  const activeSim = simulacoes.find(s => s.id === selectedSimId)
+
+  const handleCutoffChange = (ano: number, mes: number) => {
+    router.push(buildUrl({ cutoff: `${ano}-${String(mes).padStart(2, '0')}` }))
+  }
+
+  const periodMonths: { ano: number; mes: number }[] = []
+  if (activeSim) {
+    let curr = new Date(activeSim.ano_inicio, activeSim.mes_inicio - 1, 1)
+    const end = new Date(activeSim.ano_fim, activeSim.mes_fim - 1, 1)
+    while (curr <= end) {
+      periodMonths.push({ ano: curr.getFullYear(), mes: curr.getMonth() + 1 })
+      curr.setMonth(curr.getMonth() + 1)
+    }
+  } else {
+    // Fallback se não houver simulação (opções genéricas ao redor do atual)
+    const now = new Date()
+    for (let i = -6; i <= 6; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1)
+      periodMonths.push({ ano: d.getFullYear(), mes: d.getMonth() + 1 })
+    }
+  }
+
+  const moveCutoff = (delta: number) => {
+    const idx = periodMonths.findIndex(m => m.ano === cutoffAno && m.mes === cutoffMes)
+    if (idx === -1) return
+    const next = periodMonths[idx + delta]
+    if (next) handleCutoffChange(next.ano, next.mes)
+  }
+
+  const cutoffStr = `${cutoffAno}-${String(cutoffMes).padStart(2, '0')}`
 
   const periodoLabel = gestaoDados
     ? `${MESES_FULL[gestaoDados.periodo.mesInicio - 1]}/${gestaoDados.periodo.anoInicio} → ${MESES_FULL[gestaoDados.periodo.mesFim - 1]}/${gestaoDados.periodo.anoFim}`
@@ -718,67 +763,83 @@ export function GestaoCCView({
       </div>
 
       {/* ── Filtros (4 colunas) ─────────────────────────────────────────────── */}
-      <div className="no-print grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 p-4 rounded-2xl backdrop-blur-xl">
-        {/* CC */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider ml-1">Centro de Custo</label>
-          <div className="relative">
-            <select value={selectedCCId} onChange={e => router.push(buildUrl({ cc: e.target.value }))}
-              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-sky-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
-              {centrosCusto.length === 0 && <option value="">Nenhum CC cadastrado</option>}
-              {centrosCusto.map(cc => <option key={cc.id} value={cc.id} className="bg-white dark:bg-neutral-950">{cc.nome}</option>)}
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
+      {/* ── Filtros Colapsáveis ─────────────────────────────────────────────── */}
+      <div className="bg-white dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl">
+        <button
+          onClick={() => setIsFilterExpanded(!isFilterExpanded)}
+          className="w-full flex items-center justify-between px-5 py-3 text-sm font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors"
+        >
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-neutral-500">
+            {isFilterExpanded ? <ChevronDown className="w-4 h-4 text-sky-500" /> : <ChevronRight className="w-4 h-4 text-sky-500" />}
+            Configurações
           </div>
-        </div>
+          <div className="text-xs text-neutral-400 font-normal">
+            {gestaoDados?.centroCustoNome ?? 'Selecione um CC'} · {temSim ? (simulacoes.find(s => s.id === selectedSimId)?.nome ?? 'Sem orçamento') : 'Sem orçamento'}
+          </div>
+        </button>
 
-        {/* Simulação */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider ml-1">
-            Simulação (Previsto)
-          </label>
-          <div className="relative">
-            <select value={selectedSimId} onChange={e => {
-                const sim = simulacoes.find(s => s.id === e.target.value)
-                const updates: Record<string, string | undefined> = { sim: e.target.value || undefined }
-                if (sim) {
-                  if (sim.centro_custo_id) updates.cc = sim.centro_custo_id
-                  updates.inicio = `${sim.ano_inicio}-${String(sim.mes_inicio).padStart(2, '0')}`
-                  updates.fim    = `${sim.ano_fim}-${String(sim.mes_fim).padStart(2, '0')}`
-                }
-                router.push(buildUrl(updates))
-              }}
-              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-sky-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
-              <option value="" className="bg-white dark:bg-neutral-950">Sem orçamento</option>
-              {simulacoes.map(s => <option key={s.id} value={s.id} className="bg-white dark:bg-neutral-950">{s.nome}</option>)}
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
-          </div>
-        </div>
+        {isFilterExpanded && (
+          <div className="no-print flex flex-wrap items-end gap-6 px-5 pb-5 pt-2 border-t border-neutral-100 dark:border-white/5">
+            {/* Simulação */}
+            <div className="space-y-1.5 flex-1 min-w-[240px]">
+              <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest ml-1">
+                Orçamento Previsto
+              </label>
+              <div className="relative">
+                <select value={selectedSimId} onChange={e => {
+                    const sim = simulacoes.find(s => s.id === e.target.value)
+                    const updates: Record<string, string | undefined> = { sim: e.target.value || undefined }
+                    if (sim) {
+                      if (sim.centro_custo_id) updates.cc = sim.centro_custo_id
+                    }
+                    router.push(buildUrl(updates))
+                  }}
+                  className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2 text-sm appearance-none focus:ring-2 focus:ring-sky-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
+                  <option value="" className="bg-white dark:bg-neutral-950">Sem orçamento</option>
+                  {simulacoes.map(s => <option key={s.id} value={s.id} className="bg-white dark:bg-neutral-950">{s.nome}</option>)}
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
+              </div>
+            </div>
 
-        {/* Início */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider ml-1">Início</label>
-          <div className="relative">
-            <select value={inicioStr} onChange={e => router.push(buildUrl({ inicio: e.target.value }))}
-              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-sky-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
-              {MONTH_OPTIONS.map(o => <option key={o.value} value={o.value} className="bg-white dark:bg-neutral-950">{o.label}</option>)}
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
+            {/* Corte do Realizado */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest ml-1">Corte do Realizado</label>
+              <div className="flex items-center gap-2 bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-xl px-3 py-1.5">
+                <button
+                  onClick={() => moveCutoff(-1)}
+                  className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors text-neutral-500"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <select
+                  value={cutoffStr}
+                  onChange={e => {
+                    const [a, m] = e.target.value.split('-').map(Number)
+                    handleCutoffChange(a, m)
+                  }}
+                  className="bg-transparent text-sm font-bold text-sky-600 dark:text-sky-400 outline-none cursor-pointer text-center appearance-none px-2"
+                >
+                  {periodMonths.map(({ ano, mes }) => (
+                    <option
+                      key={`${ano}-${mes}`}
+                      value={`${ano}-${String(mes).padStart(2, '0')}`}
+                      className="bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white"
+                    >
+                      {MESES_ABR[mes - 1]}/{ano}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => moveCutoff(1)}
+                  className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors text-neutral-500"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-
-        {/* Fim */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider ml-1">Fim</label>
-          <div className="relative">
-            <select value={fimStr} onChange={e => router.push(buildUrl({ fim: e.target.value }))}
-              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-sky-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
-              {MONTH_OPTIONS.map(o => <option key={o.value} value={o.value} className="bg-white dark:bg-neutral-950">{o.label}</option>)}
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
-          </div>
-        </div>
+        )}
       </div>
 
       {!gestaoDados && (
@@ -802,8 +863,8 @@ export function GestaoCCView({
           </div>
 
           {/* ── KPI Cards ─────────────────────────────────────────────────── */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-            <KPICard label="Saldo Inicial" realizado={gestaoDados.saldoInicial} icon={CircleDollarSign} />
+          {/* ── KPI Cards ─────────────────────────────────────────────────── */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <KPICard
               label="Total Entradas"
               realizado={gestaoDados.totalEntradas}
@@ -824,10 +885,6 @@ export function GestaoCCView({
               previsto={temSim ? gestaoDados.resultadoPrevisto : undefined}
               icon={Scale}
             />
-            {/* Saldo Final com destaque */}
-            <div className="col-span-2 lg:col-span-1 h-full">
-              <KPICard label="Saldo Final" realizado={gestaoDados.saldoFinal} icon={TrendingUp} isBalance />
-            </div>
           </div>
 
           {/* ── Matriz Previsto vs Realizado ─────────────────────────────── */}
