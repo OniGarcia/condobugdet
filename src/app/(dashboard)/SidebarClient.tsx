@@ -108,7 +108,8 @@ export default function SidebarClient({
         <NavLink href="/dashboard" icon={LayoutDashboard}>Dashboard</NavLink>
         <NavLink href="/orcamento" icon={Wallet}>Orçamento Previsto</NavLink>
         <NavLink href="/realizado" icon={Wallet}>Fluxo Realizado</NavLink>
-        
+        <NavLink href="/forecast" icon={TrendingUp}>Fluxo Projetado</NavLink>
+
         {/* CONFIGURAÇÕES */}
         {(currentCondo?.role === 'admin' || currentCondo?.role === 'gestor') && (
           <>

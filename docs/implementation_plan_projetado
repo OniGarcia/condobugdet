@@ -1,0 +1,172 @@
+# Forecasting & Fluxo Projetado — Plano de Implementação
+
+## Visão Geral
+
+Implementar uma nova tela **Fluxo Projetado (Forecast)** que combine:
+- Meses passados → usa o **Realizado** (com período configurável pelo usuário)
+- Meses futuros → usa valores **editáveis manualmente** (pré-populados com o Orçado como sugestão)
+
+KPIs de saída: Variação Orçado vs Realizado, Déficit/Superávit Projetado, Curva Acumulada.
+
+---
+
+## Decisões de Design
+
+> [!IMPORTANT]
+> **Abordagem "sem nova tabela pesada"**: O Forecast é calculado em memória no cliente a partir de 3 fontes de dados já existentes: `orcamento_previsto`, `dados_realizados` + uma nova tabela leve `fluxo_projetado` que armazena **só os meses futuros editados pelo usuário** por simulação. Isso evita duplicação de dados e mantém o sistema simples.
+
+> [!NOTE]
+> **Período de Corte (cutoff)**: Por padrão, a aplicação sugere o mês anterior ao atual como cutoff. O usuário pode alterar esse corte com um seletor na própria tela. Todos os meses **≤ cutoff** usam o Realizado; meses **> cutoff** usam o Projetado (editável, pré-populado com Orçado).
+
+---
+
+## Mudanças Propostas
+
+### 1. Banco de Dados (Supabase)
+
+#### [NEW] Migration: `20260409000000_fluxo_projetado.sql`
+
+Nova tabela para armazenar apenas os valores projetados (meses futuros editados):
+
+```sql
+CREATE TABLE public.fluxo_projetado (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    simulacao_id UUID NOT NULL REFERENCES public.orcamentos_simulacoes(id) ON DELETE CASCADE,
+    condo_id UUID NOT NULL REFERENCES public.condos(id) ON DELETE CASCADE,
+    categoria_id UUID NOT NULL REFERENCES public.categorias(id) ON DELETE RESTRICT,
+    ano INTEGER NOT NULL,
+    mes INTEGER NOT NULL CHECK (mes >= 1 AND mes <= 12),
+    valor_projetado NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    CONSTRAINT unq_projetado_categoria_data UNIQUE (simulacao_id, condo_id, categoria_id, ano, mes)
+);
+-- RLS e index seguem o mesmo padrão das outras tabelas
+```
+
+---
+
+### 2. Server Actions
+
+#### [NEW] `src/actions/projetado.ts`
+
+```typescript
+// Funções:
+getFluxoProjetado(simulacao_id): Promise<FluxoProjetado[]>
+bulkUpsertProjetado(simulacao_id, entries[]): Promise<{success} | {error}>
+```
+
+---
+
+### 3. Types
+
+#### [MODIFY] `src/types/index.ts`
+
+Adicionar interface:
+```typescript
+export interface FluxoProjetado {
+  id: string
+  simulacao_id: string
+  categoria_id: string
+  ano: number
+  mes: number
+  valor_projetado: number
+}
+```
+
+---
+
+### 4. Nova Rota / Página
+
+#### [NEW] `src/app/(dashboard)/forecast/page.tsx`
+
+**Server Component** que:
+1. Lê a simulação ativa (mesma lógica do `/dashboard`)
+2. Busca `orcamentos`, `realizados` e `projetados` em paralelo
+3. Detecta o cutoff padrão (mês anterior ao atual)
+4. Renderiza `<ForecastPage />` (Client Component) com todos os dados
+
+---
+
+### 5. Componentes
+
+#### [NEW] `src/components/budget/ForecastPage.tsx` (Client Component principal)
+
+Contém:
+- **Header com Seletor de Cutoff**: Pill/selector para escolher até qual mês usar o Realizado. Sugestão default = mês anterior ao atual.
+- **Tabs**: `Tabela` | `Gráficos`
+- Renderiza `<ForecastGrid />` ou `<ForecastCharts />`
+
+---
+
+#### [NEW] `src/components/budget/ForecastGrid.tsx`
+
+Tabela editável com a lógica Híbrida:
+
+| Coluna | Comportamento |
+|---|---|
+| Meses ≤ cutoff | Exibe o **Realizado** (fundo azul/realçado, não editável) |
+| Meses > cutoff | Exibe o **Projetado** (editável, pré-populado com o Orçado) |
+| Total | Soma do período completo |
+
+**Funcionalidades:**
+- Edição célula-a-célula para meses futuros
+- Botão "**Salvar Projeção**" (upsert na tabela `fluxo_projetado`)
+- Linha de RESULTADO ao final (Receitas - Despesas)
+- Linha de VARIAÇÃO vs Orçado (fundo diferenciado)
+- Indicador visual: 🟢 Superávit / 🔴 Déficit por mês
+
+---
+
+#### [NEW] `src/components/budget/ForecastCharts.tsx`
+
+Gráficos com seletor de comparação:
+
+**KPI Cards (topo):**
+| Card | Valor |
+|---|---|
+| Variação Orçado vs Realizado (YTD) | `(realizado - orçado) / orçado * 100%` |
+| Resultado Projetado do Período | Receitas Projetadas - Despesas Projetadas |
+| Déficit / Superávit | Valor absoluto + semáforo 🟢🔴 |
+| Execução% | Despesas Realizadas / Despesas Orçadas |
+
+**Gráfico 1: Curva Acumulada (linha inteira)**
+- 3 linhas: Orçado Acumulado | Realizado Acumulado | Projetado Acumulado
+- A linha do Projetado une-se ao Realizado no ponto de cutoff (visual contínuo)
+- Linha tracejada para meses futuros
+
+**Gráfico 2: Mensal (barras+linhas)**
+- O usuário escolhe o que comparar via toggle:
+  - Receitas: Orçado vs Realizado vs Projetado
+  - Despesas: Orçado vs Realizado vs Projetado
+  - Resultado: Orçado vs Realizado vs Projetado
+
+---
+
+### 6. Sidebar
+
+#### [MODIFY] `src/app/(dashboard)/SidebarClient.tsx`
+
+Adicionar novo link entre "Fluxo Realizado" e "Configurações":
+
+```tsx
+<NavLink href="/forecast" icon={TrendingUp}>Fluxo Projetado</NavLink>
+```
+
+---
+
+## Verificação
+
+### Testes Manuais
+1. Acessar `/forecast` → página carrega com cutoff pré-selecionado no mês anterior
+2. Alterar o cutoff → meses se recolorem (azul = realizado, verde = projetado editável)
+3. Editar células futuras → botão "Salvar" ativa
+4. Salvar → dados persistem no Supabase
+5. Recarregar página → valores salvos são exibidos
+6. Verificar KPIs: Déficit/Superávit bate com cálculo manual
+7. Verificar gráfico acumulado: linha projetada continua da linha realizada no cutoff
+
+### Build
+```bash
+npm run build
+```

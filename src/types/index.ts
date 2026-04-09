@@ -44,6 +44,18 @@ export interface DadosRealizados {
   criado_em: string;
 }
 
+export interface FluxoProjetado {
+  id: string;
+  simulacao_id: string;
+  condo_id: string;
+  categoria_id: string;
+  ano: number;
+  mes: number;
+  valor_projetado: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CentroCusto {
   id: string;
   nome: string;
