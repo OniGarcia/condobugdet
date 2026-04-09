@@ -764,7 +764,7 @@ export function GestaoCCView({
 
       {/* ── Filtros (4 colunas) ─────────────────────────────────────────────── */}
       {/* ── Filtros Colapsáveis ─────────────────────────────────────────────── */}
-      <div className="bg-white dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl">
+      <div className={`relative z-[45] bg-white dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl overflow-visible backdrop-blur-xl`}>
         <button
           onClick={() => setIsFilterExpanded(!isFilterExpanded)}
           className="w-full flex items-center justify-between px-5 py-3 text-sm font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors"
