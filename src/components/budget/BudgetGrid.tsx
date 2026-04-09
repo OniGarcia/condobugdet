@@ -2,9 +2,10 @@
 
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { Categoria, OrcamentoPrevisto, OrcamentoSimulacao } from '@/types'
-import { Copy, ChevronDown, ChevronRight, Folder, FolderOpen, FileText, Save, Loader2, Upload, ListChecks, CheckCircle2 } from 'lucide-react'
+import { Copy, ChevronDown, ChevronUp, ChevronRight, Folder, FolderOpen, FileText, Save, Loader2, Upload, ListChecks, CheckCircle2, PanelLeftClose, PanelLeftOpen, Download } from 'lucide-react'
 import { bulkUpsertOrcamentos } from '@/actions/orcamento'
 import { parseBudgetExcel } from '@/actions/parseBudgetExcel'
+import { cn } from '@/lib/utils'
 
 export function BudgetGrid({
   categorias,
@@ -12,15 +13,23 @@ export function BudgetGrid({
   simulacao,
   onUpdateParentSum,
   canEdit = true,
+  topControls,
+  metadata,
+  createModal,
 }: {
   categorias: Categoria[],
   orcamentos: OrcamentoPrevisto[],
   simulacao: OrcamentoSimulacao,
   onUpdateParentSum?: () => void,
   canEdit?: boolean,
+  topControls?: React.ReactNode,
+  metadata?: React.ReactNode,
+  createModal?: React.ReactNode,
 }) {
   const nomeMeses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
   
+  const [isFilterExpanded, setIsFilterExpanded] = useState(false)
+
   // Calculate columns based on simulation bounds
   const columns = useMemo(() => {
     const cols = []
@@ -90,7 +99,7 @@ export function BudgetGrid({
   const [showSuccess, setShowSuccess] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Sync state when props change (Simulation switch or after a server save)
+  // Sync state when props change
   useEffect(() => {
     const map: Record<string, number> = {}
     orcamentos.forEach(o => {
@@ -127,7 +136,6 @@ export function BudgetGrid({
     const firstCol = columns[0]
     setLocalState(prev => {
       const next = { ...prev }
-      // Get all categories that have a value in the first column
       const flatCats = extractLeaves(categorias)
       flatCats.forEach(cat => {
          const firstVal = next[`${cat.id}_${firstCol.ano}_${firstCol.mes}`] || 0
@@ -142,7 +150,6 @@ export function BudgetGrid({
     setIsDirty(true)
   }
 
-  // Recursive flat categories (Leaves only)
   const extractLeaves = (cats: Categoria[]): Categoria[] => {
      let arr: Categoria[] = [];
      cats.forEach(c => {
@@ -158,11 +165,7 @@ export function BudgetGrid({
   const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return;
-
-    if (!columns.length) {
-      alert("A simulação não possui meses configurados validos.")
-      return;
-    }
+    if (!columns.length) return;
 
     setIsImporting(true)
     const formData = new FormData()
@@ -176,16 +179,13 @@ export function BudgetGrid({
       const firstCol = columns[0]
       setLocalState(prev => {
         const next = { ...prev }
-        // Aloca os importados na primeira coluna
         res.data.forEach((imported: any) => {
            next[`${imported.categoria_id}_${firstCol.ano}_${firstCol.mes}`] = imported.valor
         })
         return next
       })
       setIsDirty(true)
-      alert(`${res.count} contas identificadas com médias e alocadas em ${nomeMeses[firstCol.mes - 1]}/${firstCol.ano}! Use o botão "Replicar Tudo" para preencher o resto dos meses.`)
     }
-    
     setIsImporting(false)
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
@@ -193,15 +193,9 @@ export function BudgetGrid({
   const handleSave = async () => {
     setIsSaving(true)
     const entries = []
-    
-    // We send everything that is in localState.
-    // Ideally we'd only send dirty ones, but bulk upserting current set is safe.
     for (const key in localState) {
       const [catId, anoStr, mesStr] = key.split('_')
       const valor = localState[key]
-      
-      // We only skip if it's explicitly 0 AND wasn't in the original database (to keep DB clean)
-      // But for now, sending all values > 0 or that were modified to 0 is safer.
       if (valor !== undefined) {
         entries.push({
           categoria_id: catId,
@@ -211,136 +205,179 @@ export function BudgetGrid({
         })
       }
     }
-    
-    if (entries.length === 0) {
-      setIsSaving(false)
-      setIsDirty(false)
-      return
-    }
-
     const res = await bulkUpsertOrcamentos(simulacao.id, entries)
     if (res.success) {
       setIsDirty(false)
       setShowSuccess(true)
       setTimeout(() => setShowSuccess(false), 3000)
-    } else {
-      alert("Erro ao salvar o orçamento: " + res.error)
     }
     setIsSaving(false)
   }
 
   return (
-    <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl shrink-0 h-full flex flex-col min-w-0 flex-1 relative">
-      <div className="p-4 border-b border-neutral-200 dark:border-white/10 flex justify-between items-center bg-white/60 dark:bg-white/5 flex-wrap gap-4">
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Configuração de {simulacao.nome}</h2>
-        
-        {canEdit && (
-          <div className="flex gap-2">
-            {/* Hidden File Input */}
-            <input
-              type="file"
-              accept=".xlsx"
-              onChange={handleImportExcel}
-              ref={fileInputRef}
-              className="hidden"
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isImporting || isSaving}
-              className="flex items-center gap-2 px-3 py-2 bg-sky-800 hover:bg-sky-900 text-white font-medium rounded-lg transition-all border border-sky-700 disabled:opacity-50"
-            >
-              {isImporting ? <Loader2 className="w-4 h-4 animate-spin text-sky-400" /> : <Upload className="w-4 h-4 text-sky-400" />}
-              Importar XLS (Média)
-            </button>
+    <div className="flex flex-col h-[calc(100vh-8rem)] bg-background w-full overflow-hidden">
+      {/* Dynamic Header Section */}
+      <header className="px-8 py-6 border-b border-neutral-200 dark:border-white/10 bg-white/50 dark:bg-black/20 backdrop-blur-xl shrink-0">
+        <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
+            <div className="flex-1">
+                <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white mb-1.5 font-sans">
+                    Previsão Orçamentária
+                </h1>
+                <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-2xl">
+                    Configure simulações de orçamento condominal para exercícios dinâmicos.
+                </p>
+                
+                {/* Collapse Toggle */}
+                <button 
+                    onClick={() => setIsFilterExpanded(!isFilterExpanded)}
+                    className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-sky-500 hover:text-sky-400 transition-colors bg-sky-500/5 px-2 py-1 rounded"
+                >
+                    {isFilterExpanded ? (
+                        <><ChevronUp className="w-3.5 h-3.5" /> Ocultar Configurações</>
+                    ) : (
+                        <><ChevronDown className="w-3.5 h-3.5" /> Mostrar Configurações</>
+                    )}
+                </button>
+            </div>
 
-            <div className="w-px bg-white/10 mx-1 self-stretch my-1" />
+            {/* Action Buttons Area */}
+            <div className="flex flex-wrap items-center gap-2 justify-end">
+                {createModal}
+                
+                <input type="file" accept=".xlsx" onChange={handleImportExcel} ref={fileInputRef} className="hidden" />
+                
+                {canEdit && (
+                    <>
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isImporting || isSaving}
+                            className="flex items-center gap-2 px-3 py-2 bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-700 dark:text-neutral-300 font-medium rounded-lg transition-all border border-neutral-200 dark:border-white/10 disabled:opacity-50 text-xs shadow-sm"
+                        >
+                            {isImporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5 text-sky-500" />}
+                            Importar XLS
+                        </button>
 
-            <button
-              onClick={handleMasterReplicate}
-              disabled={isSaving}
-              className="flex items-center gap-2 px-3 py-2 bg-sky-800 hover:bg-sky-900 text-white font-medium rounded-lg transition-all border border-sky-700 disabled:opacity-50"
-              title="Copia os valores do 1º mês para toda a linha para Múltiplas Contas"
-            >
-              <ListChecks className="w-4 h-4" />
-              Replicar Tudo
-            </button>
+                        <button
+                            onClick={handleMasterReplicate}
+                            disabled={isSaving}
+                            className="flex items-center gap-2 px-3 py-2 bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-700 dark:text-neutral-300 font-medium rounded-lg transition-all border border-neutral-200 dark:border-white/10 disabled:opacity-50 text-xs shadow-sm"
+                        >
+                            <ListChecks className="w-3.5 h-3.5 text-sky-500" />
+                            Replicar Tudo
+                        </button>
 
-            <button
-              onClick={handleSave}
-              disabled={!isDirty || isSaving}
-              className="flex items-center gap-2 px-4 py-2 bg-sky-800 hover:bg-sky-900 text-white font-medium rounded-lg shadow-lg shadow-sky-800/20 transition-all border border-sky-700 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed ml-2"
-            >
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {isSaving ? "Salvando..." : "Salvar Orçamento"}
-            </button>
-          </div>
-        )}
+                        <button
+                            disabled={!simulacao}
+                            className="flex items-center gap-2 px-3 py-2 bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-700 dark:text-neutral-300 font-medium rounded-lg transition-all border border-neutral-200 dark:border-white/10 disabled:opacity-50 text-xs shadow-sm"
+                        >
+                            <Download className="w-3.5 h-3.5 text-sky-500" />
+                            Exportar XLS
+                        </button>
 
-        {/* Floating Success Toast */}
-        {showSuccess && (
-          <div className="absolute top-16 right-4 z-50 flex items-center gap-3 px-4 py-3 bg-sky-800 text-white rounded-xl shadow-2xl shadow-sky-800/40 animate-in fade-in slide-in-from-top-4 duration-300 border border-sky-700">
-            <CheckCircle2 className="w-5 h-5" />
-            <span className="font-bold">Orçamento Salvo com Sucesso!</span>
-          </div>
-        )}
-      </div>
-      
-      <div className="flex-1 overflow-auto">
-        <table className="w-full text-left text-sm whitespace-nowrap">
-          <thead className="sticky top-0 z-20 shadow-sm">
-            <tr>
-              <th className="px-4 py-3 font-medium text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-[#121212] border-b border-neutral-200 dark:border-white/10 border-r sticky left-0 z-30 w-80">
-                Categoria
-              </th>
-              <th className="px-4 py-3 font-medium text-sky-400 bg-sky-50 dark:bg-[#061824] border-b border-neutral-200 dark:border-white/10 border-r text-center w-28 backdrop-blur-xl sticky left-80 z-20">
-                Ações
-              </th>
-              {columns.map((m, i) => (
-                <th key={`${m.mes}-${m.ano}`} className="px-4 py-3 font-medium text-neutral-600 dark:text-neutral-400 text-center bg-neutral-100 dark:bg-[#121212] border-b border-neutral-200 dark:border-white/10 border-r last:border-r-0 min-w-32 backdrop-blur-xl">
-                  {nomeMeses[m.mes - 1]}/{String(m.ano).slice(-2)}
-                </th>
-              ))}
-              <th suppressHydrationWarning className="px-4 py-3 font-bold text-neutral-900 dark:text-white text-center bg-neutral-100 dark:bg-[#1a1a1a] border-b border-neutral-200 dark:border-white/10 min-w-32 sticky right-0 z-20 backdrop-blur-xl">
-                TOTAL
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-neutral-200 dark:divide-white/10">
-            {categorias.map(cat => (
-              <BudgetRow
-                key={cat.id}
-                categoria={cat}
-                columns={columns}
-                localState={localState}
-                onUpdate={handleUpdate}
-                onReplicate={handleReplicate}
-                level={0}
-                canEdit={canEdit}
-              />
-            ))}
-            
-            {/* Resultado Row */}
-            <tr className="bg-sky-500/10 font-bold border-t-2 border-sky-500/30">
-              <td className="px-4 py-4 sticky left-0 z-10 bg-sky-50 dark:bg-[#061824] border-r border-neutral-200 dark:border-white/10 text-sky-400">
-                <div className="flex gap-2 items-center">
-                  <span className="w-5 shrink-0" />
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>RESULTADO (Receitas - Despesas)</span>
+                        <button
+                            onClick={handleSave}
+                            disabled={!isDirty || isSaving}
+                            className="flex items-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow-lg shadow-sky-500/20 transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed text-sm"
+                        >
+                            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                            {isSaving ? "Salvando..." : "Salvar Orçamento"}
+                        </button>
+                    </>
+                )}
+            </div>
+        </div>
+
+        {/* Collapsible Section */}
+        {isFilterExpanded && (
+            <div className="mt-6 pt-6 border-t border-neutral-200 dark:border-white/5 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex items-end gap-6">
+                    <div className="w-80">
+                        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 px-1">Selecione a Simulação</label>
+                        {topControls}
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 px-1">Centro de Custo</label>
+                        {metadata}
+                    </div>
                 </div>
-              </td>
-              <td className="px-4 py-4 text-center bg-sky-50 dark:bg-[#0d1318] border-r border-neutral-200 dark:border-white/10 sticky left-80 z-10" />
-              {columnResults.map((res, i) => (
-                <td key={`result-${i}`} suppressHydrationWarning className={`px-4 py-4 text-right font-mono border-r border-neutral-200 dark:border-white/10 ${res >= 0 ? 'text-sky-400' : 'text-red-400'}`}>
-                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(res)}
-                </td>
-              ))}
-              <td suppressHydrationWarning className={`px-4 py-4 text-right font-mono sticky right-0 z-10 bg-sky-50 dark:bg-[#061824] ${grandTotalResult >= 0 ? 'text-sky-400 font-bold' : 'text-red-400 font-bold'}`}>
-                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(grandTotalResult)}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+            </div>
+        )}
+      </header>
+
+      {/* Main Table Content */}
+      <main className="flex-1 p-8 min-h-0 overflow-hidden relative">
+        <div className="h-full bg-white dark:bg-[#0a0a0a] border border-neutral-200 dark:border-neutral-800 rounded-3xl shadow-2xl shadow-black/5 flex flex-col overflow-hidden relative group/table">
+            <div className="flex-1 overflow-x-auto overflow-y-auto">
+                <table className="w-full text-left text-sm whitespace-nowrap border-separate border-spacing-0 min-w-full lg:min-w-[1500px]">
+                    <thead className="sticky top-0 z-30 shadow-sm">
+                        <tr>
+                            <th className="px-6 py-4 font-bold text-neutral-500 dark:text-neutral-400 bg-neutral-50/95 dark:bg-[#121212]/95 border-b border-neutral-200 dark:border-white/10 border-r sticky left-0 z-40 w-96 backdrop-blur-md">
+                                Categoria
+                            </th>
+                            <th className="px-4 py-4 font-bold text-sky-400 bg-sky-500/5 dark:bg-[#061824]/95 border-b border-neutral-200 dark:border-white/10 border-r text-center w-32 backdrop-blur-md sticky left-[384px] z-40">
+                                Ações
+                            </th>
+                            {columns.map((m, i) => (
+                                <th key={`${m.mes}-${m.ano}`} className="px-6 py-4 font-bold text-neutral-500 dark:text-neutral-400 text-center bg-neutral-50/95 dark:bg-[#121212]/95 border-b border-neutral-200 dark:border-white/10 border-r last:border-r-0 min-w-44 backdrop-blur-md">
+                                    {nomeMeses[m.mes - 1]}/{String(m.ano).slice(-2)}
+                                </th>
+                            ))}
+                            <th suppressHydrationWarning className="px-6 py-4 font-black text-neutral-900 dark:text-white text-center bg-neutral-100/95 dark:bg-[#1a1a1a]/95 border-b border-neutral-200 dark:border-white/10 min-w-44 sticky right-0 z-30 backdrop-blur-md">
+                                TOTAL
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-100 dark:divide-white/5">
+                        {categorias.map(cat => (
+                            <BudgetRow
+                                key={cat.id}
+                                categoria={cat}
+                                columns={columns}
+                                localState={localState}
+                                onUpdate={handleUpdate}
+                                onReplicate={handleReplicate}
+                                level={0}
+                                canEdit={canEdit}
+                            />
+                        ))}
+
+                        {/* Resultado Row */}
+                        <tr className="bg-sky-500/5 dark:bg-sky-500/10 font-bold border-t-2 border-sky-500/20">
+                            <td className="px-6 py-5 sticky left-0 z-10 bg-sky-50/95 dark:bg-[#061824]/95 border-r border-sky-200 dark:border-sky-500/20 text-sky-500 backdrop-blur-sm">
+                                <div className="flex gap-3 items-center">
+                                    <CheckCircle2 className="w-5 h-5 text-sky-500" />
+                                    <span className="tracking-tight uppercase text-xs font-black">RESULTADO (Receitas - Despesas)</span>
+                                </div>
+                            </td>
+                            <td className="px-4 py-5 text-center bg-sky-50 dark:bg-[#0d1318]/95 border-r border-sky-200 dark:border-sky-500/20 sticky left-[384px] z-10 backdrop-blur-sm" />
+                            {columnResults.map((res, i) => (
+                                <td key={`result-${i}`} suppressHydrationWarning className={cn(
+                                    "px-6 py-5 text-right font-mono border-r border-neutral-200 dark:border-white/5 text-base",
+                                    res >= 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'
+                                )}>
+                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(res)}
+                                </td>
+                            ))}
+                            <td suppressHydrationWarning className={cn(
+                                "px-6 py-5 text-right font-mono sticky right-0 z-10 bg-sky-50/95 dark:bg-[#061824]/95 backdrop-blur-sm text-lg",
+                                grandTotalResult >= 0 ? 'text-emerald-500 font-black' : 'text-red-500 font-black'
+                            )}>
+                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(grandTotalResult)}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+      </main>
+
+      {/* Floating Success Toast */}
+      {showSuccess && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-4 text-sm bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-2xl animate-in fade-in slide-in-from-bottom-6 duration-500 border border-emerald-500/20 shadow-2xl backdrop-blur-xl">
+          <CheckCircle2 className="w-5 h-5 shrink-0" />
+          <span className="font-bold tracking-tight">Orçamento atualizado com sucesso!</span>
+        </div>
+      )}
     </div>
   )
 }
@@ -363,7 +400,7 @@ function BudgetRow({
   canEdit?: boolean,
 }) {
   const isParent = !!(categoria.children && categoria.children.length > 0)
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(level < 1) // Expand root level by default
 
   const computeParentSum = (catId: string, ano: number, mes: number, cat: Categoria): number => {
     let sum = 0
@@ -377,14 +414,14 @@ function BudgetRow({
 
   return (
     <>
-      <tr className="hover:bg-white/60 dark:bg-white/5 transition-colors group">
+      <tr className="hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors group">
         <td 
-          className="px-4 py-3 font-medium sticky left-0 z-10 bg-neutral-100 dark:bg-[#121212] group-hover:bg-neutral-200 dark:bg-[#1a1c23] transition-colors border-r border-neutral-200 dark:border-white/10"
-          style={{ paddingLeft: `${(level * 1.25) + 0.5}rem` }}
+          className="px-6 py-4 font-medium sticky left-0 z-10 bg-white dark:bg-[#121212] group-hover:bg-neutral-50 dark:group-hover:bg-[#1a1c23] transition-colors border-r border-neutral-200 dark:border-white/10"
+          style={{ paddingLeft: `${(level * 1.5) + 1.5}rem` }}
         >
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-3 items-center">
             <button
-              className="p-0.5 rounded text-neutral-600 hover:text-neutral-900 dark:text-white transition-colors w-5 shrink-0"
+              className="p-1 rounded text-neutral-400 hover:text-sky-500 transition-colors w-6 shrink-0 flex justify-center"
               onClick={() => isParent && setIsExpanded(!isExpanded)}
             >
               {isParent ? (
@@ -394,29 +431,32 @@ function BudgetRow({
               )}
             </button>
 
-            <div className="text-neutral-500 shrink-0">
+            <div className="shrink-0">
               {isParent
                 ? isExpanded
                   ? <FolderOpen className="w-4 h-4 text-sky-400" />
-                  : <Folder className="w-4 h-4 text-sky-500" />
-                : <FileText className="w-4 h-4 text-neutral-600" />
+                  : <Folder className="w-4 h-4 text-sky-500/80" />
+                : <FileText className="w-4 h-4 text-neutral-400 group-hover:text-sky-400 transition-colors" />
               }
             </div>
 
-            <span className="text-neutral-500 font-mono text-xs w-10 shrink-0">{categoria.codigo_reduzido}</span>
-            <span className={level === 0 ? "text-sky-300 font-semibold truncate" : "text-neutral-700 dark:text-neutral-300 truncate"}>
+            <span className="text-neutral-400 font-mono text-[10px] w-12 shrink-0">{categoria.codigo_reduzido}</span>
+            <span className={cn(
+                "truncate transition-colors",
+                level === 0 ? "text-sky-500 font-bold uppercase text-xs" : "text-neutral-700 dark:text-neutral-300 text-sm",
+                "group-hover:text-sky-500"
+            )}>
               {categoria.nome_conta}
             </span>
           </div>
         </td>
         
-        {/* Acoes: Now the very first column after Categoria */}
-        <td className="px-4 py-2 text-center bg-sky-50 dark:bg-[#0d1318] border-r border-neutral-200 dark:border-white/10 sticky left-80 z-10 group-hover:bg-sky-100 dark:group-hover:bg-[#111824] transition-colors">
+        <td className="px-4 py-4 text-center bg-sky-50/30 dark:bg-[#0d1318]/95 border-r border-neutral-200 dark:border-white/10 sticky left-[384px] z-10 group-hover:bg-sky-50 dark:group-hover:bg-[#111824] transition-colors backdrop-blur-sm">
           {canEdit && !isParent && columns.length > 0 && (
             <button
               onClick={() => onReplicate(categoria.id, localState[`${categoria.id}_${columns[0].ano}_${columns[0].mes}`] || 0)}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-sky-800/80 text-white/80 hover:text-white hover:bg-sky-900 rounded block text-[10px] uppercase font-bold tracking-wider transition-colors border border-sky-700/50 mx-auto disabled:opacity-30 disabled:cursor-not-allowed"
-              title="Copiar 1º mês para toda a linha"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-100 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 hover:bg-sky-600 hover:text-white rounded-lg text-[10px] uppercase font-bold tracking-widest transition-all border border-sky-300 dark:border-sky-500/20 mx-auto disabled:opacity-30 shadow-sm"
+              title="Replicar valor do 1º mês para os demais"
             >
               <Copy className="w-3.5 h-3.5" />
               Replicar
@@ -429,9 +469,9 @@ function BudgetRow({
           const valorFormatado = isParent ? computeParentSum(categoria.id, col.ano, col.mes, categoria) : (localState[key] || 0)
           
           return (
-            <td key={key} suppressHydrationWarning className="px-4 py-2 text-center border-r border-neutral-200 dark:border-white/10 last:border-r-0 hover:bg-white/60 dark:bg-white/5 transition-colors">
+            <td key={key} suppressHydrationWarning className="px-6 py-4 text-center border-r border-neutral-100 dark:border-white/5 last:border-r-0">
               {isParent || !canEdit ? (
-                <span className="text-neutral-500 text-sm font-mono block w-full text-right p-1.5 opacity-50">
+                <span className="text-neutral-400 dark:text-neutral-500 text-sm font-mono block w-full text-right opacity-60">
                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valorFormatado)}
                 </span>
               ) : (
@@ -444,8 +484,7 @@ function BudgetRow({
           )
         })}
 
-        {/* Total Column Cell */}
-        <td suppressHydrationWarning className="px-4 py-2 text-right border-l border-neutral-200 dark:border-white/10 sticky right-0 z-10 bg-neutral-100 dark:bg-[#121212] group-hover:bg-neutral-200 dark:bg-[#1a1c23] transition-colors font-bold text-neutral-900 dark:text-white font-mono">
+        <td suppressHydrationWarning className="px-6 py-4 text-right border-l border-neutral-200 dark:border-white/10 sticky right-0 z-10 bg-neutral-50 dark:bg-[#121212] group-hover:bg-neutral-100 dark:group-hover:bg-[#1a1c23] transition-colors font-black text-neutral-900 dark:text-white font-mono text-sm border-shadow-left">
           {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
              columns.reduce((acc, col) => {
                const val = isParent ? computeParentSum(categoria.id, col.ano, col.mes, categoria) : (localState[`${categoria.id}_${col.ano}_${col.mes}`] || 0)
@@ -475,7 +514,6 @@ function EditableCell({ valor, onChange }: { valor: number, onChange: (v: number
   const [val, setVal] = useState(String(valor || 0))
   const [isEditing, setIsEditing] = useState(false)
 
-  // Resync if props change
   useMemo(() => {
     if (!isEditing) setVal(String(valor || 0))
   }, [valor, isEditing])
@@ -483,9 +521,7 @@ function EditableCell({ valor, onChange }: { valor: number, onChange: (v: number
   const handleBlur = () => {
     setIsEditing(false)
     const num = Number(val)
-    if (!isNaN(num)) {
-      onChange(num)
-    }
+    if (!isNaN(num)) onChange(num)
   }
 
   return isEditing ? (
@@ -496,16 +532,20 @@ function EditableCell({ valor, onChange }: { valor: number, onChange: (v: number
       onBlur={handleBlur}
       onKeyDown={e => e.key === 'Enter' && handleBlur()}
       autoFocus
-      className="w-full bg-black/60 border border-sky-500 rounded px-2 py-1 text-right text-sm font-mono text-sky-100 focus:outline-none focus:ring-1 focus:ring-sky-500 shadow-inner"
+      className="w-full bg-white dark:bg-black border-2 border-sky-500 rounded-lg px-3 py-1.5 text-right text-sm font-mono text-sky-600 focus:outline-none shadow-lg z-50 relative animate-in zoom-in-95 duration-75"
     />
   ) : (
     <div 
       onClick={() => setIsEditing(true)}
       suppressHydrationWarning
-      className={`w-full cursor-pointer rounded px-2 py-1 text-right text-sm font-mono transition-colors ${valor > 0 ? 'text-neutral-900 dark:text-white font-medium bg-sky-500/5 hover:bg-sky-500/10' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/10'}`}
+      className={cn(
+        "w-full cursor-pointer rounded-lg px-3 py-2 text-right text-sm font-mono transition-all border border-transparent",
+         valor > 0 
+           ? "text-neutral-900 dark:text-white font-bold bg-sky-500/5 hover:bg-sky-500/15 border-sky-500/10" 
+           : "text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-white/5"
+      )}
     >
       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(val) || 0)}
     </div>
   )
 }
-

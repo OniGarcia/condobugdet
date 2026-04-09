@@ -738,7 +738,16 @@ export function GestaoCCView({
             Simulação (Previsto)
           </label>
           <div className="relative">
-            <select value={selectedSimId} onChange={e => router.push(buildUrl({ sim: e.target.value }))}
+            <select value={selectedSimId} onChange={e => {
+                const sim = simulacoes.find(s => s.id === e.target.value)
+                const updates: Record<string, string | undefined> = { sim: e.target.value || undefined }
+                if (sim) {
+                  if (sim.centro_custo_id) updates.cc = sim.centro_custo_id
+                  updates.inicio = `${sim.ano_inicio}-${String(sim.mes_inicio).padStart(2, '0')}`
+                  updates.fim    = `${sim.ano_fim}-${String(sim.mes_fim).padStart(2, '0')}`
+                }
+                router.push(buildUrl(updates))
+              }}
               className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-sky-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
               <option value="" className="bg-white dark:bg-neutral-950">Sem orçamento</option>
               {simulacoes.map(s => <option key={s.id} value={s.id} className="bg-white dark:bg-neutral-950">{s.nome}</option>)}

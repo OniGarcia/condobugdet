@@ -20,6 +20,8 @@ export interface OrcamentoSimulacao {
   ano_inicio: number;
   mes_fim: number;
   ano_fim: number;
+  centro_custo_id: string | null;
+  centro_custo_nome?: string | null;
   created_at: string;
 }
 

@@ -1,47 +1,66 @@
 'use client'
 
 import { useState, useMemo, useRef, useEffect } from 'react'
-import Link from 'next/link'
-import { Categoria } from '@/types'
+import { useRouter } from 'next/navigation'
+import { Categoria, OrcamentoPrevisto, OrcamentoSimulacao } from '@/types'
 import {
   Copy, ChevronDown, ChevronUp, ChevronRight,
   Folder, FolderOpen, FileText, Save, Loader2,
-  Upload, CheckCircle2, ListChecks,
+  Upload, ListChecks, CheckCircle2, Download, Plus
 } from 'lucide-react'
-import { bulkUpsertRealizados } from '@/actions/realizado'
-import { parseBalanceteExcel } from '@/actions/parseBalanceteExcel'
+import { bulkUpsertOrcamentos } from '@/actions/orcamento'
+import { parseBudgetExcel } from '@/actions/parseBudgetExcel'
 import { cn } from '@/lib/utils'
+import { SimulationSelector } from '@/components/budget/SimulationSelector'
+import { SimulationActionsDropdown } from '@/components/budget/SimulationActionsDropdown'
+import { CreateSimulationModal } from '@/components/budget/CreateSimulationModal'
+import { Building2 } from 'lucide-react'
 
 const nomeMeses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
-export function RealizadoGrid({
+export function BudgetPageClient({
   categorias,
-  realizados,
-  ano,
-  canEdit = true,
-  availableYears,
+  orcamentos,
+  simulacao,
+  simulacoes,
+  selectedSimId,
+  canEdit,
 }: {
   categorias: Categoria[]
-  realizados: any[]
-  ano: number
-  canEdit?: boolean
-  availableYears: number[]
+  orcamentos: OrcamentoPrevisto[]
+  simulacao: OrcamentoSimulacao
+  simulacoes: OrcamentoSimulacao[]
+  selectedSimId: string
+  canEdit: boolean
 }) {
   const [isFilterExpanded, setIsFilterExpanded] = useState(false)
-
-  // 12 months for the selected year
-  const columns = useMemo(() =>
-    Array.from({ length: 12 }, (_, i) => ({ mes: i + 1, ano })),
-    [ano]
-  )
-
   const [localState, setLocalState] = useState<Record<string, number>>(() => {
     const map: Record<string, number> = {}
-    realizados.forEach(r => {
-      map[`${r.categoria_id}_${r.ano}_${r.mes}`] = Number(r.valor_realizado)
+    orcamentos.forEach(o => {
+      map[`${o.categoria_id}_${o.ano}_${o.mes}`] = o.valor_previsto
     })
     return map
   })
+  const [isSaving, setIsSaving] = useState(false)
+  const [isImporting, setIsImporting] = useState(false)
+  const [isDirty, setIsDirty] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const columns = useMemo(() => {
+    const cols = []
+    let curMes = simulacao.mes_inicio
+    let curAno = simulacao.ano_inicio
+    let length = 0
+    while (curAno < simulacao.ano_fim || (curAno === simulacao.ano_fim && curMes <= simulacao.mes_fim)) {
+      cols.push({ mes: curMes, ano: curAno })
+      curMes++
+      if (curMes > 12) { curMes = 1; curAno++ }
+      length++
+      if (length > 60) break
+    }
+    return cols
+  }, [simulacao])
 
   const leaves = useMemo(() => {
     const extract = (cats: Categoria[]): Categoria[] => {
@@ -70,30 +89,22 @@ export function RealizadoGrid({
 
   const grandTotalResult = useMemo(() => columnResults.reduce((a, v) => a + v, 0), [columnResults])
 
-  const [isSaving, setIsSaving] = useState(false)
-  const [isImporting, setIsImporting] = useState(false)
-  const [isDirty, setIsDirty] = useState(false)
-  const [showSuccess, setShowSuccess] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
   useEffect(() => {
     const map: Record<string, number> = {}
-    realizados.forEach(r => {
-      map[`${r.categoria_id}_${r.ano}_${r.mes}`] = Number(r.valor_realizado)
-    })
+    orcamentos.forEach(o => { map[`${o.categoria_id}_${o.ano}_${o.mes}`] = o.valor_previsto })
     setLocalState(map)
     setIsDirty(false)
-  }, [ano, realizados])
+  }, [simulacao.id, orcamentos])
 
-  const handleUpdate = (categoriaId: string, _ano: number, mes: number, valor: number) => {
-    setLocalState(prev => ({ ...prev, [`${categoriaId}_${ano}_${mes}`]: valor }))
+  const handleUpdate = (catId: string, ano: number, mes: number, valor: number) => {
+    setLocalState(prev => ({ ...prev, [`${catId}_${ano}_${mes}`]: valor }))
     setIsDirty(true)
   }
 
-  const handleReplicate = (categoriaId: string, valor: number) => {
+  const handleReplicate = (catId: string, valor: number) => {
     setLocalState(prev => {
       const next = { ...prev }
-      columns.forEach(col => { next[`${categoriaId}_${col.ano}_${col.mes}`] = valor })
+      columns.forEach(col => { next[`${catId}_${col.ano}_${col.mes}`] = valor })
       return next
     })
     setIsDirty(true)
@@ -110,7 +121,7 @@ export function RealizadoGrid({
 
   const handleMasterReplicate = () => {
     if (!columns.length) return
-    if (!confirm("Isso irá copiar o valor do primeiro mês visível para todos os demais meses de cada conta. Deseja continuar?")) return
+    if (!confirm("Isso irá copiar TODOS os valores do primeiro mês para os demais. Deseja continuar?")) return
     const firstCol = columns[0]
     setLocalState(prev => {
       const next = { ...prev }
@@ -125,23 +136,23 @@ export function RealizadoGrid({
 
   const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file) return
+    if (!file || !columns.length) return
     setIsImporting(true)
     const formData = new FormData()
     formData.append('file', file)
-    const res = await parseBalanceteExcel(formData, ano)
+    const res = await parseBudgetExcel(formData)
     if (res.error) {
       alert(res.error)
     } else if (res.success && res.data) {
+      const firstCol = columns[0]
       setLocalState(prev => {
         const next = { ...prev }
         res.data.forEach((imported: any) => {
-          next[`${imported.categoria_id}_${ano}_${imported.mes}`] = imported.valor_realizado
+          next[`${imported.categoria_id}_${firstCol.ano}_${firstCol.mes}`] = imported.valor
         })
         return next
       })
       setIsDirty(true)
-      alert(res.message)
     }
     setIsImporting(false)
     if (fileInputRef.current) fileInputRef.current.value = ''
@@ -151,20 +162,16 @@ export function RealizadoGrid({
     setIsSaving(true)
     const entries = []
     for (const key in localState) {
-      const [catId, _anoStr, mesStr] = key.split('_')
-      const valor = localState[key]
-      if (valor !== undefined) {
-        entries.push({ categoria_id: catId, mes: parseInt(mesStr), valor_realizado: valor })
+      const [catId, anoStr, mesStr] = key.split('_')
+      if (localState[key] !== undefined) {
+        entries.push({ categoria_id: catId, ano: parseInt(anoStr), mes: parseInt(mesStr), valor_previsto: localState[key] })
       }
     }
-    if (entries.length === 0) { setIsSaving(false); setIsDirty(false); return }
-    const res = await bulkUpsertRealizados(ano, entries)
+    const res = await bulkUpsertOrcamentos(simulacao.id, entries)
     if (res.success) {
       setIsDirty(false)
       setShowSuccess(true)
       setTimeout(() => setShowSuccess(false), 3000)
-    } else {
-      alert("Erro ao salvar os Dados Realizados: " + res.error)
     }
     setIsSaving(false)
   }
@@ -177,15 +184,17 @@ export function RealizadoGrid({
         <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">
-              Fluxo Realizado
+              Previsão Orçamentária
             </h1>
             <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-              Importe o Balancete Contábil ou preencha manualmente os lançamentos executados.
+              Configure simulações de orçamento condominal para exercícios dinâmicos.
             </p>
           </div>
 
           {/* ACTION BUTTONS */}
           <div className="flex flex-wrap items-center gap-2">
+            {canEdit && <CreateSimulationModal highlight />}
+
             <input type="file" accept=".xlsx" onChange={handleImportExcel} ref={fileInputRef} className="hidden" />
 
             {canEdit && (
@@ -196,7 +205,7 @@ export function RealizadoGrid({
                   className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-white/5 hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-700 dark:text-neutral-300 font-medium rounded-lg transition-all border border-neutral-200 dark:border-white/10 disabled:opacity-50 text-xs shadow-sm"
                 >
                   {isImporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5 text-sky-500" />}
-                  Importar Balancete
+                  Importar XLS
                 </button>
 
                 <button
@@ -209,12 +218,20 @@ export function RealizadoGrid({
                 </button>
 
                 <button
+                  disabled={!simulacao}
+                  className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-white/5 hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-700 dark:text-neutral-300 font-medium rounded-lg transition-all border border-neutral-200 dark:border-white/10 disabled:opacity-50 text-xs shadow-sm"
+                >
+                  <Download className="w-3.5 h-3.5 text-sky-500" />
+                  Exportar XLS
+                </button>
+
+                <button
                   onClick={handleSave}
                   disabled={!isDirty || isSaving}
                   className="flex items-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow-md shadow-sky-500/20 transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed text-sm"
                 >
                   {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                  {isSaving ? 'Salvando...' : 'Salvar Dados'}
+                  {isSaving ? 'Salvando...' : 'Salvar Orçamento'}
                 </button>
               </>
             )}
@@ -229,35 +246,34 @@ export function RealizadoGrid({
           >
             <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-neutral-500">
               {isFilterExpanded ? <ChevronUp className="w-4 h-4 text-sky-500" /> : <ChevronDown className="w-4 h-4 text-sky-500" />}
-              Configurações
+              Configurações da Simulação
             </span>
             <span className="text-xs text-neutral-400 font-normal">
-              Ano de Referência: {ano}
+              {simulacao.nome} · {simulacao.centro_custo_nome || 'Todos os centros de custo'}
             </span>
           </button>
 
           {isFilterExpanded && (
             <div className="px-5 pb-5 pt-2 border-t border-neutral-100 dark:border-white/5">
               <div className="flex flex-wrap items-end gap-6">
-                <div>
-                  <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2">Ano de Referência</label>
-                  <div className="flex flex-wrap gap-2">
-                    {availableYears.map(y => (
-                      <Link
-                        key={y}
-                        href={`/realizado?ano=${y}`}
-                        className={cn(
-                          'px-4 py-2 text-sm font-medium transition-colors border rounded-lg',
-                          y === ano
-                            ? 'bg-sky-600 text-white border-sky-600 shadow-sm'
-                            : 'text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 dark:hover:text-white bg-white dark:bg-black/20'
-                        )}
-                      >
-                        {y}
-                      </Link>
-                    ))}
+                <div className="flex-1 min-w-60">
+                  <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2">Selecione a Simulação</label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <SimulationSelector simulacoes={simulacoes} selectedId={selectedSimId} />
+                    </div>
+                    <SimulationActionsDropdown simulacao={simulacao} />
                   </div>
                 </div>
+                {simulacao.centro_custo_nome && (
+                  <div>
+                    <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2">Centro de Custo</label>
+                    <div className="flex items-center gap-2 px-3 py-2 bg-sky-500/10 border border-sky-500/20 rounded-lg">
+                      <Building2 className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                      <span className="text-xs text-sky-400 font-medium">{simulacao.centro_custo_nome}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -267,22 +283,22 @@ export function RealizadoGrid({
       {/* ─── TABLE AREA (scrollable) ─── */}
       <div className="flex-1 bg-white dark:bg-[#0a0a0a] border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-lg overflow-hidden flex flex-col min-h-0">
         <div className="overflow-x-scroll overflow-y-auto flex-1" style={{ scrollbarWidth: 'thin', scrollbarColor: '#60a5fa #f1f5f9' }}>
-          <table className="text-left text-sm whitespace-nowrap border-collapse" style={{ minWidth: `${Math.max(900, 320 + 128 + 12 * 128 + 128)}px` }}>
+          <table className="text-left text-sm whitespace-nowrap border-collapse" style={{ minWidth: `${Math.max(900, 384 + 128 + columns.length * 176 + 176)}px` }}>
             <thead className="sticky top-0 z-30">
               <tr>
-                <th className="px-6 py-4 font-bold text-neutral-500 dark:text-neutral-400 bg-neutral-50 dark:bg-[#141414] border-b border-r border-neutral-200 dark:border-white/10 sticky left-0 z-40 w-80 min-w-[320px]">Categoria</th>
+                <th className="px-6 py-4 font-bold text-neutral-500 dark:text-neutral-400 bg-neutral-50 dark:bg-[#141414] border-b border-r border-neutral-200 dark:border-white/10 sticky left-0 z-40 w-96 min-w-[384px]">Categoria</th>
                 <th className="px-4 py-4 font-bold text-sky-400 bg-sky-50 dark:bg-[#061824] border-b border-r border-neutral-200 dark:border-white/10 text-center w-32 min-w-[128px]">Ações</th>
                 {columns.map(m => (
-                  <th key={`${m.mes}-${m.ano}`} className="px-6 py-4 font-bold text-neutral-500 dark:text-neutral-400 text-center bg-neutral-50 dark:bg-[#141414] border-b border-r border-neutral-200 dark:border-white/10 min-w-32">
+                  <th key={`${m.mes}-${m.ano}`} className="px-6 py-4 font-bold text-neutral-500 dark:text-neutral-400 text-center bg-neutral-50 dark:bg-[#141414] border-b border-r border-neutral-200 dark:border-white/10 min-w-44">
                     {nomeMeses[m.mes - 1]}/{String(m.ano).slice(-2)}
                   </th>
                 ))}
-                <th className="px-6 py-4 font-black text-neutral-900 dark:text-white text-center bg-neutral-100 dark:bg-[#1c1c1c] border-b border-neutral-200 dark:border-white/10 min-w-32 sticky right-0 z-30">TOTAL</th>
+                <th className="px-6 py-4 font-black text-neutral-900 dark:text-white text-center bg-neutral-100 dark:bg-[#1c1c1c] border-b border-neutral-200 dark:border-white/10 min-w-44 sticky right-0 z-30">TOTAL</th>
               </tr>
             </thead>
             <tbody>
               {categorias.map(cat => (
-                <RealizadoRow
+                <BudgetRow
                   key={cat.id}
                   categoria={cat}
                   columns={columns}
@@ -326,16 +342,16 @@ export function RealizadoGrid({
       {showSuccess && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-4 text-sm bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-2xl animate-in fade-in slide-in-from-bottom-6 duration-500 border border-emerald-500/20 shadow-2xl backdrop-blur-xl">
           <CheckCircle2 className="w-5 h-5 shrink-0" />
-          <span className="font-bold">Dados salvos com sucesso!</span>
+          <span className="font-bold">Orçamento atualizado com sucesso!</span>
         </div>
       )}
     </div>
   )
 }
 
-// ─── RealizadoRow ─────────────────────────────────────────────────────────────
+// ─── BudgetRow ───────────────────────────────────────────────────────────────
 
-function RealizadoRow({
+function BudgetRow({
   categoria, columns, localState, onUpdate, onReplicate, level = 0, canEdit = true,
 }: {
   categoria: Categoria
@@ -399,7 +415,7 @@ function RealizadoRow({
           const key = `${categoria.id}_${col.ano}_${col.mes}`
           const val = isParent ? computeSum(categoria, col.ano, col.mes) : (localState[key] || 0)
           return (
-            <td key={key} suppressHydrationWarning className="px-3 py-3 text-center border-r border-neutral-100 dark:border-white/5 min-w-32">
+            <td key={key} suppressHydrationWarning className="px-3 py-3 text-center border-r border-neutral-100 dark:border-white/5 min-w-44">
               {isParent || !canEdit ? (
                 <span className="text-neutral-400 dark:text-neutral-500 text-sm font-mono block text-right">
                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)}
@@ -417,7 +433,7 @@ function RealizadoRow({
         </td>
       </tr>
       {isExpanded && categoria.children?.map(child => (
-        <RealizadoRow key={child.id} categoria={child} columns={columns} localState={localState} onUpdate={onUpdate} onReplicate={onReplicate} level={level + 1} canEdit={canEdit} />
+        <BudgetRow key={child.id} categoria={child} columns={columns} localState={localState} onUpdate={onUpdate} onReplicate={onReplicate} level={level + 1} canEdit={canEdit} />
       ))}
     </>
   )

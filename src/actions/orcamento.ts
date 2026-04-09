@@ -15,7 +15,7 @@ export async function getSimulacoes(): Promise<OrcamentoSimulacao[]> {
 
   const { data, error } = await supabase
     .from('orcamentos_simulacoes')
-    .select('*')
+    .select('*, centros_custo(nome)')
     .eq('condo_id', condoId)
     .order('created_at', { ascending: false })
 
@@ -24,10 +24,14 @@ export async function getSimulacoes(): Promise<OrcamentoSimulacao[]> {
     return []
   }
 
-  return data as OrcamentoSimulacao[]
+  return data.map((row: any) => ({
+    ...row,
+    centro_custo_nome: row.centros_custo?.nome ?? null,
+    centros_custo: undefined,
+  })) as OrcamentoSimulacao[]
 }
 
-export async function createSimulacao(nome: string, mesInicio: number, anoInicio: number, length: number = 12) {
+export async function createSimulacao(nome: string, mesInicio: number, anoInicio: number, length: number = 12, centroCustoId?: string) {
   const { condoId } = await validateAccess('gestor')
   const supabase = await createClient()
 
@@ -46,7 +50,8 @@ export async function createSimulacao(nome: string, mesInicio: number, anoInicio
       ano_inicio: anoInicio,
       mes_fim: mesFim,
       ano_fim: anoFim,
-      condo_id: condoId
+      condo_id: condoId,
+      ...(centroCustoId ? { centro_custo_id: centroCustoId } : {})
     })
     .select()
     .single()
@@ -210,6 +215,7 @@ export async function cloneSimulacao(id: string, novoNome: string) {
       ano_inicio: original.ano_inicio,
       mes_fim: original.mes_fim,
       ano_fim: original.ano_fim,
+      centro_custo_id: original.centro_custo_id ?? null,
       condo_id: condoId
     })
     .select()

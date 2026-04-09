@@ -32,6 +32,50 @@ export async function getCategoriasTree(): Promise<Categoria[]> {
   return buildTree(flatData)
 }
 
+/**
+ * Returns a category tree filtered to only include categories linked to a
+ * specific cost center, plus all their ancestors (to preserve hierarchy).
+ * If centroCustoId is null/undefined, returns the full tree.
+ */
+export async function getCategoriasTreeByCentroCusto(centroCustoId: string | null | undefined): Promise<Categoria[]> {
+  if (!centroCustoId) return getCategoriasTree()
+
+  const { condoId } = await validateAccess()
+  const supabase = await createClient()
+
+  // 1. Get all category IDs linked to this cost center
+  const { data: junctionRows, error: jErr } = await supabase
+    .from('categoria_centro_custo')
+    .select('categoria_id')
+    .eq('centro_custo_id', centroCustoId)
+
+  if (jErr || !junctionRows || junctionRows.length === 0) return getCategoriasTree()
+
+  const linkedIds = new Set(junctionRows.map((r: any) => r.categoria_id as string))
+
+  // 2. Get all categories flat (to resolve ancestors)
+  const { data: allCats, error: catErr } = await supabase
+    .from('categorias')
+    .select('*')
+    .or(`condo_id.eq.${condoId},condo_id.is.null`)
+  if (catErr || !allCats) return getCategoriasTree()
+
+  const byId = new Map<string, Categoria>(allCats.map((c: any) => [c.id, c as Categoria]))
+
+  // 3. Collect linked IDs + all their ancestors
+  const included = new Set<string>()
+  for (const id of linkedIds) {
+    let current: Categoria | undefined = byId.get(id)
+    while (current) {
+      included.add(current.id)
+      current = current.parent_id ? byId.get(current.parent_id) : undefined
+    }
+  }
+
+  const filtered = allCats.filter((c: any) => included.has(c.id)) as Categoria[]
+  return buildTree(filtered)
+}
+
 export async function createCategoria(data: {
   codigo_reduzido: string
   nome_conta: string
