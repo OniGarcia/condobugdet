@@ -33,7 +33,8 @@ export function BudgetPageClient({
   selectedSimId: string
   canEdit: boolean
 }) {
-  const [isFilterExpanded, setIsFilterExpanded] = useState(false)
+  const router = useRouter()
+  const [isFilterExpanded, setIsFilterExpanded] = useState(true)
   const [localState, setLocalState] = useState<Record<string, number>>(() => {
     const map: Record<string, number> = {}
     orcamentos.forEach(o => {
@@ -90,11 +91,38 @@ export function BudgetPageClient({
   const grandTotalResult = useMemo(() => columnResults.reduce((a, v) => a + v, 0), [columnResults])
 
   useEffect(() => {
+    const saved = localStorage.getItem('budgetFilterExpanded')
+    if (saved !== null) {
+      setIsFilterExpanded(saved === 'true')
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('budgetFilterExpanded', String(isFilterExpanded))
+  }, [isFilterExpanded])
+
+  useEffect(() => {
     const map: Record<string, number> = {}
     orcamentos.forEach(o => { map[`${o.categoria_id}_${o.ano}_${o.mes}`] = o.valor_previsto })
     setLocalState(map)
     setIsDirty(false)
-  }, [simulacao.id, orcamentos])
+
+    // Persistir a última simulação selecionada
+    if (selectedSimId) {
+      localStorage.setItem('lastBudgetSimId', selectedSimId)
+    }
+  }, [simulacao.id, orcamentos, selectedSimId])
+
+  // Lógica para restaurar a última simulação ao entrar na tela sem parâmetro na URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    if (!urlParams.has('simulacao')) {
+      const savedId = localStorage.getItem('lastBudgetSimId')
+      if (savedId && savedId !== selectedSimId && simulacoes.find(s => s.id === savedId)) {
+        router.push(`/orcamento?simulacao=${savedId}`)
+      }
+    }
+  }, [router, selectedSimId, simulacoes])
 
   const handleUpdate = (catId: string, ano: number, mes: number, valor: number) => {
     setLocalState(prev => ({ ...prev, [`${catId}_${ano}_${mes}`]: valor }))

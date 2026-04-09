@@ -27,7 +27,8 @@ export function RealizadoGrid({
   canEdit?: boolean
   availableYears: number[]
 }) {
-  const [isFilterExpanded, setIsFilterExpanded] = useState(false)
+  const router = useRouter()
+  const [isFilterExpanded, setIsFilterExpanded] = useState(true)
 
   // 12 months for the selected year
   const columns = useMemo(() =>
@@ -77,13 +78,40 @@ export function RealizadoGrid({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
+    const saved = localStorage.getItem('realizadoFilterExpanded')
+    if (saved !== null) {
+      setIsFilterExpanded(saved === 'true')
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('realizadoFilterExpanded', String(isFilterExpanded))
+  }, [isFilterExpanded])
+
+  useEffect(() => {
     const map: Record<string, number> = {}
     realizados.forEach(r => {
       map[`${r.categoria_id}_${r.ano}_${r.mes}`] = Number(r.valor_realizado)
     })
     setLocalState(map)
     setIsDirty(false)
+
+    // Persistir o último ano selecionado
+    if (ano) {
+      localStorage.setItem('lastRealizadoYear', String(ano))
+    }
   }, [ano, realizados])
+
+  // Lógica para restaurar o último ano ao entrar na tela sem parâmetro
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    if (!urlParams.has('ano')) {
+      const savedYear = localStorage.getItem('lastRealizadoYear')
+      if (savedYear && parseInt(savedYear) !== ano && availableYears.includes(parseInt(savedYear))) {
+        router.push(`/realizado?ano=${savedYear}`)
+      }
+    }
+  }, [router, ano, availableYears])
 
   const handleUpdate = (categoriaId: string, _ano: number, mes: number, valor: number) => {
     setLocalState(prev => ({ ...prev, [`${categoriaId}_${ano}_${mes}`]: valor }))

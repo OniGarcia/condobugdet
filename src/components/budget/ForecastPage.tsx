@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import {
   BarChart2, TableProperties, ChevronLeft, ChevronRight,
@@ -42,7 +42,7 @@ export function ForecastPage({
   canEdit,
 }: Props) {
   const [activeTab, setActiveTab] = useState<'tabela' | 'graficos'>('tabela')
-  const [isFilterExpanded, setIsFilterExpanded] = useState(false)
+  const [isFilterExpanded, setIsFilterExpanded] = useState(true)
   const [localCutoffAno, setLocalCutoffAno] = useState(cutoffAno)
   const [localCutoffMes, setLocalCutoffMes] = useState(cutoffMes)
 
@@ -81,6 +81,36 @@ export function ForecastPage({
     const beforeEnd = newAno < simulacao.ano_fim || (newAno === simulacao.ano_fim && newMes <= simulacao.mes_fim)
     if (afterStart && beforeEnd) handleCutoffChange(newAno, newMes)
   }
+
+  // Persistência do estado de expansão
+  useEffect(() => {
+    const saved = localStorage.getItem('forecastFilterExpanded')
+    if (saved !== null) {
+      setIsFilterExpanded(saved === 'true')
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('forecastFilterExpanded', String(isFilterExpanded))
+  }, [isFilterExpanded])
+
+  // Persistência da última simulação selecionada
+  useEffect(() => {
+    if (selectedSimId) {
+      localStorage.setItem('lastForecastSimId', selectedSimId)
+    }
+  }, [selectedSimId])
+
+  // Restauração da última simulação se não houver parâmetro na URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    if (!urlParams.has('simulacao')) {
+      const savedId = localStorage.getItem('lastForecastSimId')
+      if (savedId && savedId !== selectedSimId && simulacoes.find(s => s.id === savedId)) {
+        router.push(`/forecast?simulacao=${savedId}`)
+      }
+    }
+  }, [router, selectedSimId, simulacoes])
 
   return (
     <div className="flex flex-col gap-0 h-full">
