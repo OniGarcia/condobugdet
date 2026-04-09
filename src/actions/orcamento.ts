@@ -127,7 +127,7 @@ export async function bulkUpsertOrcamentos(simulacao_id: string, entries: {categ
   // Note: We're doing an upsert on Conflict "simulacao_id,categoria_id,ano,mes".
   const { error } = await supabase
     .from('orcamento_previsto')
-    .upsert(payload, { onConflict: 'simulacao_id,categoria_id,ano,mes' })
+    .upsert(payload, { onConflict: 'condo_id,simulacao_id,categoria_id,ano,mes' })
 
   if (error) {
     console.error('Error saving budgets:', error.message, error.details, error.hint)
