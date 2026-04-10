@@ -1,6 +1,7 @@
 import { getCentrosCusto } from '@/actions/centrosCusto'
 import { getSimulacoes } from '@/actions/orcamento'
 import { getGestaoCentroCusto } from '@/actions/gestaoCentroCusto'
+import { getCurrentCondo } from '@/actions/auth'
 import { GestaoCCView } from '@/components/dashboard/GestaoCCView'
 
 export const dynamic = 'force-dynamic'
@@ -23,9 +24,10 @@ export default async function DashboardPage({
 }) {
   const params = await searchParams
 
-  const [centrosCusto, simulacoes] = await Promise.all([
+  const [centrosCusto, simulacoes, currentCondo] = await Promise.all([
     getCentrosCusto(),
     getSimulacoes(),
+    getCurrentCondo(),
   ])
 
   const selectedSimId = params.sim || simulacoes[0]?.id || ''
@@ -79,6 +81,7 @@ export default async function DashboardPage({
         cutoffAno={cutoff.ano}
         cutoffMes={cutoff.mes}
         gestaoDados={gestaoDados}
+        condoNome={currentCondo?.nome ?? null}
       />
     </div>
   )

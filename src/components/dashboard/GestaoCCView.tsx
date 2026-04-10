@@ -682,6 +682,7 @@ interface GestaoCCViewProps {
   cutoffAno: number
   cutoffMes: number
   gestaoDados: GestaoCCResult | null
+  condoNome: string | null
 }
 
 export function GestaoCCView({
@@ -690,6 +691,7 @@ export function GestaoCCView({
   filterInicio, filterFim,
   cutoffAno, cutoffMes,
   gestaoDados,
+  condoNome,
 }: GestaoCCViewProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -867,6 +869,24 @@ export function GestaoCCView({
           </div>
         )}
       </div>
+
+      {/* ── Banner do Condomínio ──────────────────────────────────────────── */}
+      {condoNome && (
+        <div className="flex items-center gap-3 px-5 py-3.5 bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl backdrop-blur-xl">
+          <div className="w-8 h-8 rounded-xl bg-sky-500/10 flex items-center justify-center shrink-0">
+            <Wallet className="w-4 h-4 text-sky-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Condomínio</p>
+            <h2 className="text-base font-bold text-neutral-900 dark:text-white truncate leading-tight">{condoNome}</h2>
+          </div>
+          {gestaoDados && (
+            <span className="shrink-0 text-xs text-neutral-500 bg-neutral-100 dark:bg-white/10 px-2.5 py-1 rounded-lg border border-neutral-200 dark:border-white/10 font-medium">
+              {periodoLabel}
+            </span>
+          )}
+        </div>
+      )}
 
       {!gestaoDados && (
         <div className="text-center py-20 text-neutral-500">
