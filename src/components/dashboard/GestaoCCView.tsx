@@ -135,7 +135,7 @@ function KPICard({
                     )}
                   </div>
                   <span className={`text-xs font-bold ${status === 'good' ? 'text-sky-400' : 'text-amber-400'}`}>
-                    {PCT.format(pctTarget)}%
+                    {pctTarget !== null ? PCT.format(pctTarget) : '0'}%
                   </span>
                 </div>
               </>

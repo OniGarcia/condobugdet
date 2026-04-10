@@ -317,7 +317,8 @@ export async function getGestaoCentroCusto(
       const previsto = mesOrc.get(catId) ?? 0
       if (valor === 0 && previsto === 0) continue
 
-      const mPct = previsto !== 0 ? r2(((orcAcumuladoAtéCorte.get(catId) || 0) / previsto) * 100) : null
+      const orcAnual = orcAnualPorCat.get(catId) ?? 0
+      const mPct = orcAnual !== 0 ? r2(((orcAcumuladoAtéCorte.get(catId) || 0) / orcAnual) * 100) : null
 
       categorias.push({
         categoriaId: catId,

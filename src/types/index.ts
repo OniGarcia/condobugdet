@@ -98,6 +98,7 @@ export interface GestaoCCCategoria {
   tipo: CategoriaTipo
   valor: number      // realizado
   previsto: number   // orçamento previsto do período
+  metaPct: number | null // progresso anual esperado
 }
 
 /** Resumo financeiro de um único mês do extrato de caixa */
