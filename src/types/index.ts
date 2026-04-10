@@ -140,12 +140,15 @@ export interface GestaoCCResult {
   saldoInicial: number
   totalEntradas: number
   totalEntradasPrevisto: number
+  totalEntradasPrevistoAnual: number
   totalSaidas: number
   totalSaidasPrevisto: number
+  totalSaidasPrevistoAnual: number
   totalMetaEntradasPct: number | null
   totalMetaSaidasPct: number | null
   resultado: number
   resultadoPrevisto: number
+  resultadoPrevistoAnual: number
   saldoFinal: number
   meses: GestaoCCMes[]
   matriz: GestaoCCMatrizCategoria[]   // visão previsto vs realizado por categoria

@@ -35,16 +35,14 @@ function valColor(v: number, neutral = 'text-neutral-600 dark:text-neutral-400')
   return neutral
 }
 
-/** Para receitas: > meta = bom; Para despesas: < meta = bom. Aplica tolerância de 5% */
-function pctStatus(pct: number | null, meta: number | null, tipo: CategoriaTipo): 'good' | 'warn' | 'neutral' {
-  if (pct === null || meta === null) return 'neutral'
+/** Para receitas: >= 95% do alvo acumulado = bom. Para despesas: <= 105% do alvo acumulado = bom. */
+function pctStatus(pct: number | null, tipo?: CategoriaTipo): 'good' | 'warn' | 'neutral' {
+  if (pct === null || !tipo) return 'neutral'
   
   if (tipo === 'RECEITA') {
-    // Para receitas, estar abaixo da meta - 5% é ruim
-    return pct >= (meta * 0.95) ? 'good' : 'warn'
+    return pct >= 95 ? 'good' : 'warn'
   }
-  // Para despesas, estar acima da meta + 5% é ruim
-  return pct <= (meta * 1.05) ? 'good' : 'warn'
+  return pct <= 105 ? 'good' : 'warn'
 }
 
 function variacaoColor(variacao: number): string {
@@ -55,19 +53,24 @@ function variacaoColor(variacao: number): string {
 
 // ─── KPI Card enriquecido ─────────────────────────────────────────────────────
 function KPICard({
-  label, realizado, previsto, metaPct, icon: Icon, tipo, isBalance,
+  label, realizado, previsto, previstoAnual, metaPct, icon: Icon, tipo, isBalance,
 }: {
   label: string
   realizado: number
   previsto?: number
+  previstoAnual?: number
   metaPct?: number | null
   icon: React.ElementType
   tipo?: CategoriaTipo
   isBalance?: boolean
 }) {
-  const hasPrevisto = previsto !== undefined && previsto !== null
-  const pct = hasPrevisto && previsto !== 0 ? (realizado / previsto) * 100 : null
-  const status = (tipo && metaPct !== undefined) ? pctStatus(pct, metaPct, tipo) : null
+  const hasPrevisto = previstoAnual !== undefined && previstoAnual !== null
+  const pctAnual = hasPrevisto && previstoAnual !== 0 ? (realizado / previstoAnual) * 100 : null
+  
+  // Para o status e texto de execução, usamos o previsto do alvo (performance) 
+  const hasPrevistoTarget = previsto !== undefined && previsto !== null
+  const pctTarget = hasPrevistoTarget && previsto !== 0 ? (realizado / previsto!) * 100 : null
+  const status = tipo ? pctStatus(pctTarget, tipo) : null
 
   const mainColor = isBalance
     ? realizado >= 0 ? 'text-sky-400' : 'text-red-400'
@@ -108,18 +111,18 @@ function KPICard({
               <span className="text-xs text-neutral-600">Previsto:</span>
               <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400 tabular-nums">{BRL.format(previsto!)}</span>
             </div>
-            {pct !== null && (
+            {pctAnual !== null && (
               <>
-                {/* Barra de progresso */}
-                <div className="relative w-full h-1 bg-white/60 dark:bg-white/5 rounded-full overflow-hidden">
+                {/* Barra de progresso anual */}
+                <div className="relative w-full h-4 bg-white/60 dark:bg-black/20 rounded-full overflow-hidden border border-white/10 shadow-inner mt-1">
                   <div
-                    className={`h-full rounded-full transition-all ${status === 'good' ? 'bg-sky-500' : 'bg-amber-500'}`}
-                    style={{ width: `${Math.min(pct, 100)}%` }}
+                    className={`h-full rounded-full transition-all ${status === 'good' ? 'bg-sky-500 shadow-[0_0_12px_rgba(14,165,233,0.3)]' : 'bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.3)]'}`}
+                    style={{ width: `${Math.min(pctAnual, 100)}%` }}
                   />
                   {metaPct !== null && metaPct !== undefined && (
                     <div 
-                      className="absolute top-0 bottom-0 w-0.5 bg-neutral-900 dark:bg-white z-10"
-                      title={`Meta: ${PCT.format(metaPct)}%`}
+                      className="absolute top-0 bottom-0 w-1 bg-black dark:bg-white z-20"
+                      title={`Meta do Período: ${PCT.format(metaPct)}%`}
                       style={{ left: `${Math.min(metaPct, 100)}%` }}
                     />
                   )}
@@ -132,7 +135,7 @@ function KPICard({
                     )}
                   </div>
                   <span className={`text-xs font-bold ${status === 'good' ? 'text-sky-400' : 'text-amber-400'}`}>
-                    {PCT.format(pct)}%
+                    {PCT.format(pctTarget)}%
                   </span>
                 </div>
               </>
@@ -168,8 +171,6 @@ function MesRow({ mes, temSimulacao }: { mes: GestaoCCMes; temSimulacao: boolean
             <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">{mesLabel}</span>
           </div>
         </td>
-
-        <td className="py-3 px-3 text-right tabular-nums text-sm text-neutral-600 dark:text-neutral-400">{BRL.format(mes.saldoInicial)}</td>
 
         <td className="py-3 px-3 text-right tabular-nums text-sm">
           {mes.entradas > 0
@@ -211,7 +212,7 @@ function MesRow({ mes, temSimulacao }: { mes: GestaoCCMes; temSimulacao: boolean
 
       {open && hasMovimento && (
         <tr className="bg-black/20">
-          <td colSpan={6} className="px-0 pb-0">
+          <td colSpan={5} className="px-0 pb-0">
             <div className="mx-4 mb-3 mt-1 rounded-xl border border-neutral-200 dark:border-white/10 overflow-hidden">
               <table className="w-full text-xs">
                 <thead>
@@ -336,9 +337,9 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
       <div className="px-6 py-4 border-b border-neutral-200 dark:border-white/10">
         <h3 className="text-sm font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
           <BarChart3 className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
-          Previsto vs Realizado — Período Completo
+          Previsto vs Realizado — Acumulado até o Corte
         </h3>
-        <p className="text-xs text-neutral-500 mt-0.5">% = execução. Meta = alvo acumulado sugerido. Verde = dentro da tolerância (5%).</p>
+        <p className="text-xs text-neutral-500 mt-0.5">% = performance (100% = meta atingida). Meta = progresso anual esperado. Verde = tolerância de 5%.</p>
       </div>
 
       <div className="overflow-x-auto">
@@ -346,8 +347,8 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
           <thead>
             <tr className="border-b border-neutral-200 dark:border-white/10 bg-white/[0.02]">
               <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider min-w-[220px]">Categoria</th>
+               <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Realizado</th>
               <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Previsto</th>
-              <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Realizado</th>
               <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Variação</th>
               <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Meta</th>
               <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Execução</th>
@@ -356,7 +357,7 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
           <tbody className="divide-y divide-white/5">
             {visibleRows.map(row => {
               const isExpanded = expanded.has(row.categoriaId)
-              const status = pctStatus(row.pct, row.metaPct, row.tipo)
+              const status = pctStatus(row.pct, row.tipo)
               const vColor = variacaoColor(row.variacao)
 
               return (
@@ -381,12 +382,12 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
                     </div>
                   </td>
 
-                  <td className="py-2.5 px-3 text-right tabular-nums text-sm text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
-                    {row.previsto > 0 ? BRL.format(row.previsto) : <span className="text-neutral-700">—</span>}
-                  </td>
-
                   <td className={`py-2.5 px-3 text-right tabular-nums text-sm font-medium whitespace-nowrap ${row.tipo === 'RECEITA' ? 'text-sky-400' : 'text-red-400'}`}>
                     {BRL.format(row.realizado)}
+                  </td>
+
+                  <td className="py-2.5 px-3 text-right tabular-nums text-sm text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
+                    {row.previsto > 0 ? BRL.format(row.previsto) : <span className="text-neutral-700">—</span>}
                   </td>
 
                   <td className={`py-2.5 px-3 text-right tabular-nums text-sm font-medium whitespace-nowrap ${vColor}`}>
@@ -424,11 +425,12 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
                     <span className="text-neutral-700 dark:text-neutral-300 font-bold text-xs uppercase tracking-widest">Resultado Líquido</span>
                   </div>
                 </td>
-                <td className={`py-3.5 px-3 text-right tabular-nums font-bold whitespace-nowrap ${valColor(resultado.previsto)}`}>
-                  {BRL.format(resultado.previsto)}
-                </td>
                 <td className={`py-3.5 px-3 text-right tabular-nums font-bold whitespace-nowrap ${valColor(resultado.realizado)}`}>
                   {BRL.format(resultado.realizado)}
+                </td>
+
+                <td className={`py-3.5 px-3 text-right tabular-nums font-bold whitespace-nowrap ${valColor(resultado.previsto)}`}>
+                  {BRL.format(resultado.previsto)}
                 </td>
                 <td className={`py-3.5 px-3 text-right tabular-nums font-bold whitespace-nowrap ${variacaoColor(resultado.realizado - resultado.previsto)}`}>
                   {resultado.realizado - resultado.previsto === 0 ? '—'
@@ -564,8 +566,8 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
           <thead>
             <tr className="border-b border-neutral-200 dark:border-white/10 bg-white/[0.02]">
               <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider min-w-[220px]">Categoria</th>
+               <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">Realizado Acum.</th>
               <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">Previsto Acum.</th>
-              <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">Realizado Acum.</th>
               <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">Orç. Anual</th>
               <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">
                 <span className="flex items-center justify-end gap-1">
@@ -607,12 +609,12 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
                     </div>
                   </td>
 
-                  <td className="py-2.5 px-3 text-right tabular-nums text-sm text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
-                    {row.previsto > 0 ? BRL.format(row.previsto) : <span className="text-neutral-700">—</span>}
-                  </td>
-
                   <td className={`py-2.5 px-3 text-right tabular-nums text-sm font-medium whitespace-nowrap ${row.tipo === 'RECEITA' ? 'text-sky-400' : 'text-red-400'}`}>
                     {BRL.format(row.realizado)}
+                  </td>
+
+                  <td className="py-2.5 px-3 text-right tabular-nums text-sm text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
+                    {row.previsto > 0 ? BRL.format(row.previsto) : <span className="text-neutral-700">—</span>}
                   </td>
 
                   <td className="py-2.5 px-3 text-right tabular-nums text-sm text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
@@ -643,11 +645,12 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
                     <span className="text-neutral-700 dark:text-neutral-300 font-bold text-xs uppercase tracking-widest">Resultado Líquido</span>
                   </div>
                 </td>
-                <td className={`py-3.5 px-3 text-right tabular-nums font-bold whitespace-nowrap ${valColor(res.previsto)}`}>
-                  {BRL.format(res.previsto)}
-                </td>
                 <td className={`py-3.5 px-3 text-right tabular-nums font-bold whitespace-nowrap ${valColor(res.realizado)}`}>
                   {BRL.format(res.realizado)}
+                </td>
+
+                <td className={`py-3.5 px-3 text-right tabular-nums font-bold whitespace-nowrap ${valColor(res.previsto)}`}>
+                  {BRL.format(res.previsto)}
                 </td>
                 <td className={`py-3.5 px-3 text-right tabular-nums font-bold whitespace-nowrap ${valColor(res.orcAnual)}`}>
                   {BRL.format(res.orcAnual)}
@@ -886,12 +889,12 @@ export function GestaoCCView({
           </div>
 
           {/* ── KPI Cards ─────────────────────────────────────────────────── */}
-          {/* ── KPI Cards ─────────────────────────────────────────────────── */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-             <KPICard
+            <KPICard
               label="Total Entradas"
               realizado={gestaoDados.totalEntradas}
               previsto={temSim ? gestaoDados.totalEntradasPrevisto : undefined}
+              previstoAnual={temSim ? gestaoDados.totalEntradasPrevistoAnual : undefined}
               metaPct={temSim ? gestaoDados.totalMetaEntradasPct : undefined}
               icon={ArrowUpCircle}
               tipo="RECEITA"
@@ -900,6 +903,7 @@ export function GestaoCCView({
               label="Total Saídas"
               realizado={gestaoDados.totalSaidas}
               previsto={temSim ? gestaoDados.totalSaidasPrevisto : undefined}
+              previstoAnual={temSim ? gestaoDados.totalSaidasPrevistoAnual : undefined}
               metaPct={temSim ? gestaoDados.totalMetaSaidasPct : undefined}
               icon={ArrowDownCircle}
               tipo="DESPESA"
@@ -908,7 +912,9 @@ export function GestaoCCView({
               label="Resultado"
               realizado={gestaoDados.resultado}
               previsto={temSim ? gestaoDados.resultadoPrevisto : undefined}
+              previstoAnual={temSim ? gestaoDados.resultadoPrevistoAnual : undefined}
               icon={Scale}
+              isBalance
             />
           </div>
 
@@ -935,24 +941,18 @@ export function GestaoCCView({
                 <thead>
                   <tr className="border-b border-neutral-200 dark:border-white/10 bg-white/[0.02]">
                     <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider min-w-[160px]">Mês</th>
-                    <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">Saldo Inicial</th>
                     <th className="text-right px-3 py-3 text-xs font-semibold text-sky-600 uppercase tracking-wider whitespace-nowrap">↑ Entradas</th>
                     <th className="text-right px-3 py-3 text-xs font-semibold text-red-600 uppercase tracking-wider whitespace-nowrap">↓ Saídas</th>
                     <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">Resultado</th>
-                    <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider whitespace-nowrap">Saldo Final</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider whitespace-nowrap">Resultado Acumulado</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b border-white/5 bg-sky-500/5">
-                    <td colSpan={5} className="px-4 py-2.5 text-xs text-sky-400 font-semibold uppercase tracking-wider">◆ Saldo Inicial do Período</td>
-                    <td className="px-4 py-2.5 text-right tabular-nums text-sm font-bold text-sky-400">{BRL.format(gestaoDados.saldoInicial)}</td>
-                  </tr>
                   {gestaoDados.meses.map(mes => (
                     <MesRow key={`${mes.ano}-${mes.mes}`} mes={mes} temSimulacao={temSim} />
                   ))}
                   <tr className="border-t-2 border-white/20 bg-gradient-to-r from-sky-950/40 to-transparent">
                     <td className="px-4 py-3.5 text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">◆ Total do Período</td>
-                    <td className="px-3 py-3.5 text-right tabular-nums text-sm text-neutral-500 font-medium">{BRL.format(gestaoDados.saldoInicial)}</td>
                     <td className="px-3 py-3.5 text-right tabular-nums text-sm font-bold text-sky-400">+ {BRL.format(gestaoDados.totalEntradas)}</td>
                     <td className="px-3 py-3.5 text-right tabular-nums text-sm font-bold text-red-400">− {BRL.format(gestaoDados.totalSaidas)}</td>
                     <td className={`px-3 py-3.5 text-right tabular-nums text-sm font-bold ${gestaoDados.resultado >= 0 ? 'text-sky-400' : 'text-red-400'}`}>

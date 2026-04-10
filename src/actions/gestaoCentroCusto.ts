@@ -240,10 +240,11 @@ export async function getGestaoCentroCusto(
       if (vals.previsto === 0 && vals.realizado === 0) continue
 
       const variacao = cat.tipo === 'RECEITA'
-        ? r2(vals.realizado - vals.previsto)
-        : r2(vals.previsto  - vals.realizado)
-      const pct = vals.previsto !== 0 ? r2((vals.realizado / vals.previsto) * 100) : null
-      const metaPct = vals.previsto !== 0 ? r2((vals.acumCorte / vals.previsto) * 100) : null
+        ? r2(vals.realizado - vals.acumCorte)
+        : r2(vals.acumCorte  - vals.realizado)
+      
+      const pct = vals.acumCorte !== 0 ? r2((vals.realizado / vals.acumCorte) * 100) : null
+      const metaPct = vals.orcAnual !== 0 ? r2((vals.acumCorte / vals.orcAnual) * 100) : null
 
       const orcAnual = r2(vals.orcAnual)
       const saldoAno = r2(orcAnual - vals.realizado)
@@ -253,7 +254,7 @@ export async function getGestaoCentroCusto(
         categoriaNome:  cat.nome_conta,
         codigoReduzido: cat.codigo_reduzido,
         tipo: cat.tipo as CategoriaTipo,
-        previsto:  r2(vals.previsto),
+        previsto:  r2(vals.acumCorte),
         realizado: r2(vals.realizado),
         metaPct,
         variacao, pct,
@@ -281,10 +282,23 @@ export async function getGestaoCentroCusto(
   const leafCatIds = catIds.filter(id => !parentsInCC.has(id))
 
   // 9. Extrato mensal com saldo corrido
+  // Agora calculamos os totais globais a partir da matriz (roots) para garantir consistência total
+  const roots = matriz.filter(r => r.depth === 0)
+  
+  const totalRealEntradas     = r2(roots.filter(r => r.tipo === 'RECEITA').reduce((acc, r) => acc + r.realizado, 0))
+  const totalOrcTargetEntradas = r2(roots.filter(r => r.tipo === 'RECEITA').reduce((acc, r) => acc + r.previsto, 0))
+  const totalOrcAnualEntradas  = r2(roots.filter(r => r.tipo === 'RECEITA').reduce((acc, r) => acc + r.orcamentoAnualTotal, 0))
+  
+  const totalRealSaidas       = r2(roots.filter(r => r.tipo === 'DESPESA').reduce((acc, r) => acc + r.realizado, 0))
+  const totalOrcTargetSaidas   = r2(roots.filter(r => r.tipo === 'DESPESA').reduce((acc, r) => acc + r.previsto, 0))
+  const totalOrcAnualSaidas    = r2(roots.filter(r => r.tipo === 'DESPESA').reduce((acc, r) => acc + r.orcamentoAnualTotal, 0))
+
+  // Meta do período % (ex: 4 meses / 12 meses = 33.3%)
+  const totalMetaEntradasPct = totalOrcAnualEntradas !== 0 ? r2((totalOrcTargetEntradas / totalOrcAnualEntradas) * 100) : null
+  const totalMetaSaidasPct   = totalOrcAnualSaidas   !== 0 ? r2((totalOrcTargetSaidas   / totalOrcAnualSaidas)   * 100) : null
+
   const mesesPeriodo = gerarMesesNoPeriodo(anoInicio, mesInicio, anoFim, mesFim)
-  let saldoCorrente     = saldoInicialCC
-  let totalEntradas     = 0, totalEntradasPrevisto = 0
-  let totalSaidas       = 0, totalSaidasPrevisto   = 0
+  let saldoCorrente = saldoInicialCC
 
   const meses: GestaoCCMes[] = mesesPeriodo.map(({ ano, mes }) => {
     const mesKey  = ano * 100 + mes
@@ -302,7 +316,7 @@ export async function getGestaoCentroCusto(
       const previsto = mesOrc.get(catId) ?? 0
       if (valor === 0 && previsto === 0) continue
 
-      const metaPct = previsto !== 0 ? r2(((orcAcumuladoAtéCorte.get(catId) || 0) / previsto) * 100) : null
+      const mPct = previsto !== 0 ? r2(((orcAcumuladoAtéCorte.get(catId) || 0) / previsto) * 100) : null
 
       categorias.push({
         categoriaId: catId,
@@ -311,7 +325,7 @@ export async function getGestaoCentroCusto(
         tipo: cat.tipo as CategoriaTipo,
         valor:   r2(valor),
         previsto: r2(previsto),
-        metaPct,
+        metaPct: mPct,
       })
       if (cat.tipo === 'RECEITA') { entradas += valor; entradasPrevisto += previsto }
       else { saidas += valor; saidasPrevisto += previsto }
@@ -321,39 +335,34 @@ export async function getGestaoCentroCusto(
     )
 
     entradas = r2(entradas); saidas = r2(saidas)
-    entradasPrevisto = r2(entradasPrevisto); saidasPrevisto = r2(saidasPrevisto)
     const resultado         = r2(entradas - saidas)
-    const resultadoPrevisto = r2(entradasPrevisto - saidasPrevisto)
     const saldoInicial      = r2(saldoCorrente)
     const saldoFinal        = r2(saldoCorrente + resultado)
+    saldoCorrente           = saldoFinal
 
-    totalEntradas         += entradas
-    totalSaidas           += saidas
-    totalEntradasPrevisto += entradasPrevisto
-    totalSaidasPrevisto   += saidasPrevisto
-    saldoCorrente          = saldoFinal
-
-    return { ano, mes, saldoInicial, entradas, saidas, entradasPrevisto, saidasPrevisto, resultado, resultadoPrevisto, saldoFinal, categorias }
+    return { 
+      ano, mes, saldoInicial, entradas, saidas, 
+      entradasPrevisto: r2(entradasPrevisto), saidasPrevisto: r2(saidasPrevisto),
+      resultado, resultadoPrevisto: r2(entradasPrevisto - saidasPrevisto), 
+      saldoFinal, categorias 
+    }
   })
-
-  const totalAcumCorteEntradas = matriz.filter(r => r.depth === 0 && r.tipo === 'RECEITA').reduce((acc, r) => acc + (r.metaPct ? (r.metaPct * r.previsto / 100) : 0), 0)
-  const totalAcumCorteSaidas   = matriz.filter(r => r.depth === 0 && r.tipo === 'DESPESA').reduce((acc, r) => acc + (r.metaPct ? (r.metaPct * r.previsto / 100) : 0), 0)
-
-  const totalMetaEntradasPct = totalEntradasPrevisto !== 0 ? r2((totalAcumCorteEntradas / totalEntradasPrevisto) * 100) : null
-  const totalMetaSaidasPct   = totalSaidasPrevisto   !== 0 ? r2((totalAcumCorteSaidas   / totalSaidasPrevisto)   * 100) : null
 
   return {
     centroCustoId: cc.id,
     centroCustoNome: cc.nome,
     saldoInicial: saldoInicialCC,
-    totalEntradas:         r2(totalEntradas),
-    totalEntradasPrevisto: r2(totalEntradasPrevisto),
-    totalSaidas:           r2(totalSaidas),
-    totalSaidasPrevisto:   r2(totalSaidasPrevisto),
+    totalEntradas:              totalRealEntradas,
+    totalEntradasPrevisto:      totalOrcTargetEntradas,
+    totalEntradasPrevistoAnual: totalOrcAnualEntradas,
+    totalSaidas:                totalRealSaidas,
+    totalSaidasPrevisto:        totalOrcTargetSaidas,
+    totalSaidasPrevistoAnual:   totalOrcAnualSaidas,
     totalMetaEntradasPct,
     totalMetaSaidasPct,
-    resultado:             r2(totalEntradas - totalSaidas),
-    resultadoPrevisto:     r2(totalEntradasPrevisto - totalSaidasPrevisto),
+    resultado:             r2(totalRealEntradas - totalRealSaidas),
+    resultadoPrevisto:     r2(totalOrcTargetEntradas - totalOrcTargetSaidas),
+    resultadoPrevistoAnual: r2(totalOrcAnualEntradas - totalOrcAnualSaidas),
     saldoFinal:            r2(saldoCorrente),
     meses: meses.filter(m => (m.ano * 100 + m.mes) <= cutoffKey),
     matriz,
