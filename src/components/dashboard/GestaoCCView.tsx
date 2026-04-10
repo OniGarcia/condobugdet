@@ -48,7 +48,7 @@ function pctStatus(pct: number | null, tipo?: CategoriaTipo): 'good' | 'warn' | 
 function variacaoColor(variacao: number): string {
   if (variacao > 0) return 'text-sky-400'
   if (variacao < 0) return 'text-red-400'
-  return 'text-neutral-500'
+  return 'text-neutral-600 dark:text-neutral-400 font-medium'
 }
 
 // ─── KPI Card enriquecido ─────────────────────────────────────────────────────
@@ -102,14 +102,14 @@ function KPICard({
       </div>
 
       <div>
-        <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">{label}</p>
+        <p className="text-[10px] font-bold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider mb-1">{label}</p>
         <p className={`text-xl font-bold tabular-nums leading-none ${mainColor}`}>{BRL.format(realizado)}</p>
 
         {hasPrevisto && (
           <div className="mt-2 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-neutral-600">Previsto:</span>
-              <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400 tabular-nums">{BRL.format(previsto!)}</span>
+              <span className="text-xs text-neutral-700 dark:text-neutral-400 font-medium">Previsto:</span>
+              <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200 tabular-nums">{BRL.format(previsto!)}</span>
             </div>
             {pctAnual !== null && (
               <>
@@ -129,9 +129,9 @@ function KPICard({
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-neutral-600">Execução</span>
+                    <span className="text-[10px] text-neutral-700 dark:text-neutral-400 font-bold">Execução</span>
                     {metaPct !== null && metaPct !== undefined && (
-                      <span className="text-[10px] text-neutral-500 ml-1.5">(Meta: {PCT.format(metaPct)}%)</span>
+                      <span className="text-[10px] text-neutral-600 dark:text-neutral-500 ml-1.5">(Meta: {PCT.format(metaPct)}%)</span>
                     )}
                   </div>
                   <span className={`text-xs font-bold ${status === 'good' ? 'text-sky-400' : 'text-amber-400'}`}>
@@ -177,10 +177,10 @@ function MesRow({ mes, temSimulacao }: { mes: GestaoCCMes; temSimulacao: boolean
             ? <div>
                 <span className="text-sky-400 font-medium block">+ {BRL.format(mes.entradas)}</span>
                 {temSimulacao && mes.entradasPrevisto > 0 && (
-                  <span className="text-[10px] text-neutral-600">prev: {BRL.format(mes.entradasPrevisto)}</span>
+                  <span className="text-[10px] text-neutral-700 dark:text-neutral-400 font-bold">prev: {BRL.format(mes.entradasPrevisto)}</span>
                 )}
               </div>
-            : <span className="text-neutral-600">—</span>}
+            : <span className="text-neutral-700 font-medium">—</span>}
         </td>
 
         <td className="py-3 px-3 text-right tabular-nums text-sm">
@@ -188,18 +188,18 @@ function MesRow({ mes, temSimulacao }: { mes: GestaoCCMes; temSimulacao: boolean
             ? <div>
                 <span className="text-red-400 font-medium block">− {BRL.format(mes.saidas)}</span>
                 {temSimulacao && mes.saidasPrevisto > 0 && (
-                  <span className="text-[10px] text-neutral-600">prev: {BRL.format(mes.saidasPrevisto)}</span>
+                  <span className="text-[10px] text-neutral-700 dark:text-neutral-400 font-bold">prev: {BRL.format(mes.saidasPrevisto)}</span>
                 )}
               </div>
-            : <span className="text-neutral-600">—</span>}
+            : <span className="text-neutral-700 font-medium">—</span>}
         </td>
 
         <td className="py-3 px-3 text-right tabular-nums text-sm">
-          <span className={`font-medium ${valColor(mes.resultado, 'text-neutral-600')}`}>
+          <span className={`font-medium ${valColor(mes.resultado, 'text-neutral-700 dark:text-neutral-400')}`}>
             {mes.resultado === 0 ? '—' : `${mes.resultado > 0 ? '+' : ''} ${BRL.format(mes.resultado)}`}
           </span>
           {temSimulacao && mes.resultadoPrevisto !== 0 && (
-            <span className="text-[10px] text-neutral-600 block">prev: {BRL.format(mes.resultadoPrevisto)}</span>
+            <span className="text-[10px] text-neutral-700 dark:text-neutral-400 font-bold block">prev: {BRL.format(mes.resultadoPrevisto)}</span>
           )}
         </td>
 
@@ -227,16 +227,16 @@ function MesRow({ mes, temSimulacao }: { mes: GestaoCCMes; temSimulacao: boolean
                 <tbody className="divide-y divide-white/5">
                   {mes.categorias.map(cat => (
                     <tr key={cat.categoriaId} className="hover:bg-white/[0.03]">
-                      <td className="px-4 py-2 font-mono text-neutral-600">{cat.codigoReduzido}</td>
-                      <td className="px-3 py-2 text-neutral-700 dark:text-neutral-300">{cat.categoriaNome}</td>
+                      <td className="px-4 py-2 font-mono text-neutral-800 dark:text-neutral-400 font-bold">{cat.codigoReduzido}</td>
+                      <td className="px-3 py-2 text-neutral-900 dark:text-neutral-200 font-medium">{cat.categoriaNome}</td>
                       <td className="px-3 py-2 text-right">
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold ${cat.tipo === 'RECEITA' ? 'bg-sky-500/10 text-sky-400' : 'bg-red-500/10 text-red-400'}`}>
                           {cat.tipo === 'RECEITA' ? '↑' : '↓'} {cat.tipo === 'RECEITA' ? 'Entrada' : 'Saída'}
                         </span>
                       </td>
                       {temSimulacao && (
-                        <td className="px-3 py-2 text-right tabular-nums text-neutral-500">
-                          {cat.previsto > 0 ? BRL.format(cat.previsto) : <span className="text-neutral-700">—</span>}
+                        <td className="px-3 py-2 text-right tabular-nums text-neutral-700 dark:text-neutral-400 font-medium">
+                          {cat.previsto > 0 ? BRL.format(cat.previsto) : <span className="text-neutral-800 dark:text-neutral-200">—</span>}
                         </td>
                       )}
                       <td className={`px-4 py-2 text-right tabular-nums font-medium ${cat.tipo === 'RECEITA' ? 'text-sky-400' : 'text-red-400'}`}>
@@ -247,7 +247,7 @@ function MesRow({ mes, temSimulacao }: { mes: GestaoCCMes; temSimulacao: boolean
                 </tbody>
                 <tfoot className="border-t border-neutral-200 dark:border-white/10 bg-white/60 dark:bg-white/5">
                   <tr>
-                    <td colSpan={temSimulacao ? 4 : 3} className="px-4 py-2 text-[10px] font-bold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider">
+                    <td colSpan={temSimulacao ? 4 : 3} className="px-4 py-2 text-[10px] font-bold text-neutral-700 dark:text-neutral-400 uppercase tracking-wider">
                       Resultado {mesLabel}
                     </td>
                     <td className={`px-4 py-2 text-right tabular-nums font-bold ${valColor(mes.resultado)}`}>
@@ -335,23 +335,23 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
   return (
     <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl">
       <div className="px-6 py-4 border-b border-neutral-200 dark:border-white/10">
-        <h3 className="text-sm font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
-          <BarChart3 className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
+        <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+          <BarChart3 className="w-4 h-4 text-neutral-800 dark:text-neutral-400" />
           Previsto vs Realizado — Acumulado até o Corte
         </h3>
-        <p className="text-xs text-neutral-500 mt-0.5">% = performance (100% = meta atingida). Meta = progresso anual esperado. Verde = tolerância de 5%.</p>
+        <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5 font-medium">% = performance (100% = meta atingida). Meta = progresso anual esperado. Verde = tolerância de 5%.</p>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-neutral-200 dark:border-white/10 bg-white/[0.02]">
-              <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider min-w-[220px]">Categoria</th>
-               <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Realizado</th>
-              <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Previsto</th>
-              <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Variação</th>
-              <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Meta</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Execução</th>
+              <th className="text-left px-4 py-3 text-xs font-bold text-neutral-700 dark:text-neutral-400 uppercase tracking-wider min-w-[220px]">Categoria</th>
+               <th className="text-right px-3 py-3 text-xs font-bold text-neutral-700 dark:text-neutral-400 uppercase tracking-wider">Realizado</th>
+              <th className="text-right px-3 py-3 text-xs font-bold text-neutral-700 dark:text-neutral-400 uppercase tracking-wider">Previsto</th>
+              <th className="text-right px-3 py-3 text-xs font-bold text-neutral-700 dark:text-neutral-400 uppercase tracking-wider">Variação</th>
+              <th className="text-right px-3 py-3 text-xs font-bold text-neutral-700 dark:text-neutral-400 uppercase tracking-wider">Meta</th>
+              <th className="text-right px-4 py-3 text-xs font-bold text-neutral-700 dark:text-neutral-400 uppercase tracking-wider">Execução</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
@@ -375,7 +375,7 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
                             : <ChevronRight className="w-3.5 h-3.5" />
                           : <span className="block w-3.5 h-3.5" />}
                       </button>
-                      <span className="font-mono text-xs text-neutral-600 w-12 shrink-0">{row.codigoReduzido}</span>
+                      <span className="font-mono text-xs text-neutral-800 dark:text-neutral-400 w-12 shrink-0 font-bold">{row.codigoReduzido}</span>
                       <span className={row.depth === 0 ? 'text-neutral-800 dark:text-neutral-100 font-medium' : 'text-neutral-700 dark:text-neutral-300'}>
                         {row.categoriaNome}
                       </span>
@@ -395,7 +395,7 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
                       : `${row.variacao > 0 ? '+' : ''}${BRL.format(row.variacao)}`}
                   </td>
 
-                  <td className="py-2.5 px-3 text-right tabular-nums text-sm text-neutral-500 whitespace-nowrap">
+                  <td className="py-2.5 px-3 text-right tabular-nums text-sm text-neutral-700 dark:text-neutral-400 font-bold whitespace-nowrap">
                     {row.metaPct !== null ? `${PCT.format(row.metaPct)}%` : '—'}
                   </td>
 
@@ -409,7 +409,7 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
                         {status === 'good' ? <CheckCircle2 className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
                         {PCT.format(row.pct)}%
                       </span>
-                    ) : <span className="text-neutral-600 text-xs">—</span>}
+                    ) : <span className="text-neutral-700 dark:text-neutral-400 text-xs font-bold">—</span>}
                   </td>
                 </tr>
               )
@@ -556,7 +556,7 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
           <Table2 className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
           Matriz Analítica Detalhada — Valores Acumulados
         </h3>
-        <p className="text-xs text-neutral-500 mt-0.5">
+        <p className="text-xs text-neutral-700 dark:text-neutral-400 mt-0.5 font-bold">
           Acumulado: {periodoLabel} · Saldo Ano = Orç. Anual − Realizado Acumulado
         </p>
       </div>
@@ -565,15 +565,15 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-neutral-200 dark:border-white/10 bg-white/[0.02]">
-              <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider min-w-[220px]">Categoria</th>
-               <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">Realizado Acum.</th>
-              <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">Previsto Acum.</th>
-              <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">Orç. Anual</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">
+              <th className="text-left px-4 py-3 text-xs font-bold text-neutral-700 dark:text-neutral-400 uppercase tracking-wider min-w-[220px]">Categoria</th>
+               <th className="text-right px-3 py-3 text-xs font-bold text-neutral-700 dark:text-neutral-400 uppercase tracking-wider whitespace-nowrap">Realizado Acum.</th>
+              <th className="text-right px-3 py-3 text-xs font-bold text-neutral-700 dark:text-neutral-400 uppercase tracking-wider whitespace-nowrap">Previsto Acum.</th>
+              <th className="text-right px-3 py-3 text-xs font-bold text-neutral-700 dark:text-neutral-400 uppercase tracking-wider whitespace-nowrap">Orç. Anual</th>
+              <th className="text-right px-4 py-3 text-xs font-bold text-neutral-700 dark:text-neutral-400 uppercase tracking-wider whitespace-nowrap">
                 <span className="flex items-center justify-end gap-1">
                   Saldo Ano
                   <span title="Orçamento Anual − Realizado Acumulado" className="cursor-help">
-                    <Info className="w-3.5 h-3.5 text-neutral-500" />
+                    <Info className="w-3.5 h-3.5 text-neutral-600" />
                   </span>
                 </span>
               </th>
@@ -602,7 +602,7 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
                             : <ChevronRight className="w-3.5 h-3.5" />
                           : <span className="block w-3.5 h-3.5" />}
                       </button>
-                      <span className="font-mono text-xs text-neutral-600 w-12 shrink-0">{row.codigoReduzido}</span>
+                      <span className="font-mono text-xs text-neutral-800 dark:text-neutral-400 w-12 shrink-0 font-bold">{row.codigoReduzido}</span>
                       <span className={row.depth === 0 ? 'text-neutral-800 dark:text-neutral-100 font-medium' : 'text-neutral-700 dark:text-neutral-300'}>
                         {row.categoriaNome}
                       </span>
@@ -897,14 +897,19 @@ export function GestaoCCView({
 
       {gestaoDados && (
         <div ref={printRef} className="flex flex-col gap-8">
-          {/* ── Header do CC ─────────────────────────────────────────────── */}
-          <div className="flex items-center gap-3 px-1">
-            <div className="w-9 h-9 rounded-xl bg-sky-500/10 flex items-center justify-center">
-              <Wallet className="w-4 h-4 text-sky-400" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-neutral-900 dark:text-white">{gestaoDados.centroCustoNome}</h2>
-              <p className="text-sm text-neutral-500">{periodoLabel}</p>
+          {/* ── Header do CC (Printable) ─────────────────────────────────────────── */}
+          <div className="px-1 flex flex-col gap-1">
+            {condoNome && (
+              <p className="text-[10px] font-bold text-sky-500 uppercase tracking-[0.2em] mb-0.5">{condoNome}</p>
+            )}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center shrink-0">
+                <Building2 className="w-5 h-4 text-sky-400" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-neutral-900 dark:text-white leading-tight">{gestaoDados.centroCustoNome}</h2>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 font-medium">{periodoLabel}</p>
+              </div>
             </div>
           </div>
 
@@ -960,11 +965,11 @@ export function GestaoCCView({
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-neutral-200 dark:border-white/10 bg-white/[0.02]">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider min-w-[160px]">Mês</th>
-                    <th className="text-right px-3 py-3 text-xs font-semibold text-sky-600 uppercase tracking-wider whitespace-nowrap">↑ Entradas</th>
-                    <th className="text-right px-3 py-3 text-xs font-semibold text-red-600 uppercase tracking-wider whitespace-nowrap">↓ Saídas</th>
-                    <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">Resultado</th>
-                    <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider whitespace-nowrap">Resultado Acumulado</th>
+                    <th className="text-left px-4 py-3 text-xs font-bold text-neutral-700 dark:text-neutral-400 uppercase tracking-wider min-w-[160px]">Mês</th>
+                    <th className="text-right px-3 py-3 text-xs font-bold text-sky-600 uppercase tracking-wider whitespace-nowrap">↑ Entradas</th>
+                    <th className="text-right px-3 py-3 text-xs font-bold text-red-600 uppercase tracking-wider whitespace-nowrap">↓ Saídas</th>
+                    <th className="text-right px-3 py-3 text-xs font-bold text-neutral-700 dark:text-neutral-400 uppercase tracking-wider whitespace-nowrap">Resultado</th>
+                    <th className="text-right px-4 py-3 text-xs font-bold text-neutral-800 dark:text-neutral-200 uppercase tracking-wider whitespace-nowrap">Resultado Acumulado</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1019,8 +1024,8 @@ export function GestaoCCView({
                       <AlertTriangle className="w-4 h-4 text-amber-400" />
                     </div>
                     <div>
-                      <h3 className="text-base font-semibold text-neutral-900 dark:text-white">Despesas Acima do Orçamento</h3>
-                      <p className="text-xs text-neutral-500">Categorias que extrapolaram o previsto, por valor de excesso</p>
+                      <h3 className="text-base font-bold text-neutral-900 dark:text-white">Despesas Acima do Orçamento</h3>
+                      <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium">Categorias que extrapolaram o previsto, por valor de excesso</p>
                     </div>
                   </div>
 
@@ -1074,8 +1079,8 @@ export function GestaoCCView({
                       <CircleDollarSign className="w-4 h-4 text-red-400" />
                     </div>
                     <div>
-                      <h3 className="text-base font-semibold text-neutral-900 dark:text-white">Despesas Não Previstas</h3>
-                      <p className="text-xs text-neutral-500">Gastos em categorias sem orçamento (extras), por valor</p>
+                      <h3 className="text-base font-bold text-neutral-900 dark:text-white">Despesas Não Previstas</h3>
+                      <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium">Gastos em categorias sem orçamento (extras), por valor</p>
                     </div>
                   </div>
 

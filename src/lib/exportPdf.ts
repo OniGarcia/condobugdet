@@ -83,28 +83,42 @@ const PRINT_OVERRIDE_CSS = `
   /* ── Text colours ── */
   [data-pdf-root] [class*="text-neutral-200"],
   [data-pdf-root] [class*="text-neutral-300"],
-  [data-pdf-root] [class*="text-neutral-400"] {
-    color: #374151 !important;
+  [data-pdf-root] [class*="text-neutral-400"],
+  [data-pdf-root] [class*="dark:text-neutral-100"],
+  [data-pdf-root] [class*="dark:text-neutral-200"],
+  [data-pdf-root] [class*="dark:text-neutral-300"] {
+    color: #4b5563 !important; /* Base grey */
   }
+
   [data-pdf-root] [class*="text-neutral-500"],
   [data-pdf-root] [class*="text-neutral-600"],
-  [data-pdf-root] [class*="text-neutral-700"] {
-    color: #6b7280 !important;
+  [data-pdf-root] [class*="text-neutral-700"],
+  [data-pdf-root] [class*="text-neutral-800"],
+  [data-pdf-root] [class*="text-neutral-900"],
+  [data-pdf-root] [class*="dark:text-white"],
+  [data-pdf-root] [class*="dark:text-neutral-50"] {
+    color: #111827 !important; /* Almost black */
   }
+
+  [data-pdf-root] h1, 
+  [data-pdf-root] h2, 
+  [data-pdf-root] h3, 
+  [data-pdf-root] h4 {
+    color: #111827 !important; /* Force all headers to dark */
+  }
+
   [data-pdf-root] .text-white {
     color: #111827 !important;
   }
 
   /* Semantic colours — vivid on white */
   [data-pdf-root] [class*="text-emerald-400"],
-  [data-pdf-root] [class*="text-emerald-300"] { color: #059669 !important; }
+  [data-pdf-root] [class*="text-emerald-300"] { color: #047857 !important; }
   [data-pdf-root] [class*="text-red-400"],
-  [data-pdf-root] [class*="text-red-300"]     { color: #dc2626 !important; }
-  [data-pdf-root] [class*="text-sky-400"]     { color: #0284c7 !important; }
+  [data-pdf-root] [class*="text-red-300"]     { color: #b91c1c !important; }
+  [data-pdf-root] [class*="text-sky-400"]     { color: #0369a1 !important; }
   [data-pdf-root] [class*="text-amber-400"],
-  [data-pdf-root] [class*="text-amber-300"]   { color: #d97706 !important; }
-  [data-pdf-root] [class*="text-emerald-600"] { color: #047857 !important; }
-  [data-pdf-root] [class*="text-red-600"]     { color: #b91c1c !important; }
+  [data-pdf-root] [class*="text-amber-300"]   { color: #b45309 !important; }
 
   /* ── Borders ── */
   [data-pdf-root] [class*="border-white/"],
@@ -186,12 +200,17 @@ export async function exportElementToPdf(
   // 2. Mark the target element so CSS selectors are scoped
   element.setAttribute('data-pdf-root', '1')
 
-  // 3. Wait two frames so browser fully applies the injected styles
+  // 3. Temporarily disable dark mode on the whole document to force Light styles in capture
+  const docClasses = document.documentElement.classList
+  const isDark = docClasses.contains('dark')
+  if (isDark) docClasses.remove('dark')
+
+  // 4. Wait two frames so browser fully applies the injected styles and theme switch
   await new Promise(r => requestAnimationFrame(r))
   await new Promise(r => requestAnimationFrame(r))
 
   try {
-    // 4. Build safe cut points BEFORE the canvas snapshot
+    // 5. Build safe cut points BEFORE the canvas snapshot
     //    (we need live DOM positions while element still rendered)
     const safeBreakpoints = buildSafeBreakpoints(element, quality)
 
@@ -262,7 +281,8 @@ export async function exportElementToPdf(
 
     pdf.save(filename)
   } finally {
-    // 5. Always restore dark theme
+    // 6. Always restore dark theme and cleanup
+    if (isDark) docClasses.add('dark')
     element.removeAttribute('data-pdf-root')
     document.head.removeChild(styleEl)
   }
