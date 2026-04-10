@@ -71,10 +71,11 @@ export async function getGestaoCentroCusto(
     }))
     return {
       centroCustoId: cc.id, centroCustoNome: cc.nome, saldoInicial: saldoInicialCC,
-      totalEntradas: 0, totalEntradasPrevisto: 0,
-      totalSaidas: 0, totalSaidasPrevisto: 0,
+      totalEntradas: 0, totalEntradasPrevisto: 0, totalEntradasPrevistoAnual: 0,
+      totalSaidas: 0, totalSaidasPrevisto: 0, totalSaidasPrevistoAnual: 0,
       totalMetaEntradasPct: null, totalMetaSaidasPct: null,
-      resultado: 0, resultadoPrevisto: 0, saldoFinal: saldoInicialCC,
+      resultado: 0, resultadoPrevisto: 0, resultadoPrevistoAnual: 0,
+      saldoFinal: saldoInicialCC,
       meses: mesesVazios, matriz: [],
       periodo: { anoInicio, mesInicio, anoFim, mesFim }, temSimulacao,
     }
