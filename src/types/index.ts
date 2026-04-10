@@ -122,6 +122,7 @@ export interface GestaoCCMatrizCategoria {
   tipo: CategoriaTipo
   previsto: number
   realizado: number
+  metaPct: number | null // meta acumulada até o corte / previsto anual
   variacao: number   // realizado - previsto (receita) ou previsto - realizado (despesa)
   pct: number | null // realizado / previsto * 100
   orcamentoAnualTotal: number
@@ -141,6 +142,8 @@ export interface GestaoCCResult {
   totalEntradasPrevisto: number
   totalSaidas: number
   totalSaidasPrevisto: number
+  totalMetaEntradasPct: number | null
+  totalMetaSaidasPct: number | null
   resultado: number
   resultadoPrevisto: number
   saldoFinal: number

@@ -35,11 +35,16 @@ function valColor(v: number, neutral = 'text-neutral-600 dark:text-neutral-400')
   return neutral
 }
 
-/** Para receitas: > 100% = bom; Para despesas: < 100% = bom */
-function pctStatus(pct: number | null, tipo: CategoriaTipo): 'good' | 'warn' | 'neutral' {
-  if (pct === null) return 'neutral'
-  if (tipo === 'RECEITA') return pct >= 100 ? 'good' : pct >= 80 ? 'warn' : 'warn'
-  return pct <= 100 ? 'good' : 'warn'
+/** Para receitas: > meta = bom; Para despesas: < meta = bom. Aplica tolerância de 5% */
+function pctStatus(pct: number | null, meta: number | null, tipo: CategoriaTipo): 'good' | 'warn' | 'neutral' {
+  if (pct === null || meta === null) return 'neutral'
+  
+  if (tipo === 'RECEITA') {
+    // Para receitas, estar abaixo da meta - 5% é ruim
+    return pct >= (meta * 0.95) ? 'good' : 'warn'
+  }
+  // Para despesas, estar acima da meta + 5% é ruim
+  return pct <= (meta * 1.05) ? 'good' : 'warn'
 }
 
 function variacaoColor(variacao: number): string {
@@ -50,18 +55,19 @@ function variacaoColor(variacao: number): string {
 
 // ─── KPI Card enriquecido ─────────────────────────────────────────────────────
 function KPICard({
-  label, realizado, previsto, icon: Icon, tipo, isBalance,
+  label, realizado, previsto, metaPct, icon: Icon, tipo, isBalance,
 }: {
   label: string
   realizado: number
   previsto?: number
+  metaPct?: number | null
   icon: React.ElementType
   tipo?: CategoriaTipo
   isBalance?: boolean
 }) {
   const hasPrevisto = previsto !== undefined && previsto !== null
   const pct = hasPrevisto && previsto !== 0 ? (realizado / previsto) * 100 : null
-  const status = tipo ? pctStatus(pct, tipo) : null
+  const status = (tipo && metaPct !== undefined) ? pctStatus(pct, metaPct, tipo) : null
 
   const mainColor = isBalance
     ? realizado >= 0 ? 'text-sky-400' : 'text-red-400'
@@ -105,14 +111,26 @@ function KPICard({
             {pct !== null && (
               <>
                 {/* Barra de progresso */}
-                <div className="w-full h-1 bg-white/60 dark:bg-white/5 rounded-full overflow-hidden">
+                <div className="relative w-full h-1 bg-white/60 dark:bg-white/5 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all ${status === 'good' ? 'bg-sky-500' : 'bg-amber-500'}`}
                     style={{ width: `${Math.min(pct, 100)}%` }}
                   />
+                  {metaPct !== null && metaPct !== undefined && (
+                    <div 
+                      className="absolute top-0 bottom-0 w-0.5 bg-neutral-900 dark:bg-white z-10"
+                      title={`Meta: ${PCT.format(metaPct)}%`}
+                      style={{ left: `${Math.min(metaPct, 100)}%` }}
+                    />
+                  )}
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-neutral-600">Execução</span>
+                  <div>
+                    <span className="text-[10px] text-neutral-600">Execução</span>
+                    {metaPct !== null && metaPct !== undefined && (
+                      <span className="text-[10px] text-neutral-500 ml-1.5">(Meta: {PCT.format(metaPct)}%)</span>
+                    )}
+                  </div>
                   <span className={`text-xs font-bold ${status === 'good' ? 'text-sky-400' : 'text-amber-400'}`}>
                     {PCT.format(pct)}%
                   </span>
@@ -320,7 +338,7 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
           <BarChart3 className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
           Previsto vs Realizado — Período Completo
         </h3>
-        <p className="text-xs text-neutral-500 mt-0.5">% = execução orçamentária. Verde = dentro da meta. Âmbar = atenção.</p>
+        <p className="text-xs text-neutral-500 mt-0.5">% = execução. Meta = alvo acumulado sugerido. Verde = dentro da tolerância (5%).</p>
       </div>
 
       <div className="overflow-x-auto">
@@ -331,13 +349,14 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
               <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Previsto</th>
               <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Realizado</th>
               <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Variação</th>
+              <th className="text-right px-3 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Meta</th>
               <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Execução</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {visibleRows.map(row => {
               const isExpanded = expanded.has(row.categoriaId)
-              const status = pctStatus(row.pct, row.tipo)
+              const status = pctStatus(row.pct, row.metaPct, row.tipo)
               const vColor = variacaoColor(row.variacao)
 
               return (
@@ -373,6 +392,10 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
                   <td className={`py-2.5 px-3 text-right tabular-nums text-sm font-medium whitespace-nowrap ${vColor}`}>
                     {row.variacao === 0 ? '—'
                       : `${row.variacao > 0 ? '+' : ''}${BRL.format(row.variacao)}`}
+                  </td>
+
+                  <td className="py-2.5 px-3 text-right tabular-nums text-sm text-neutral-500 whitespace-nowrap">
+                    {row.metaPct !== null ? `${PCT.format(row.metaPct)}%` : '—'}
                   </td>
 
                   <td className="py-2.5 pl-3 pr-4 text-right whitespace-nowrap">
@@ -865,10 +888,11 @@ export function GestaoCCView({
           {/* ── KPI Cards ─────────────────────────────────────────────────── */}
           {/* ── KPI Cards ─────────────────────────────────────────────────── */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <KPICard
+             <KPICard
               label="Total Entradas"
               realizado={gestaoDados.totalEntradas}
               previsto={temSim ? gestaoDados.totalEntradasPrevisto : undefined}
+              metaPct={temSim ? gestaoDados.totalMetaEntradasPct : undefined}
               icon={ArrowUpCircle}
               tipo="RECEITA"
             />
@@ -876,6 +900,7 @@ export function GestaoCCView({
               label="Total Saídas"
               realizado={gestaoDados.totalSaidas}
               previsto={temSim ? gestaoDados.totalSaidasPrevisto : undefined}
+              metaPct={temSim ? gestaoDados.totalMetaSaidasPct : undefined}
               icon={ArrowDownCircle}
               tipo="DESPESA"
             />
@@ -886,6 +911,9 @@ export function GestaoCCView({
               icon={Scale}
             />
           </div>
+
+           {/* ── Matriz Analítica Detalhada ─────────────────────────────── */}
+          <MatrizAnalitica matriz={gestaoDados.matriz} temSimulacao={temSim} periodoLabel={periodoLabel} />
 
           {/* ── Matriz Previsto vs Realizado ─────────────────────────────── */}
           <MatrizCC matriz={gestaoDados.matriz} temSimulacao={temSim} />
@@ -945,8 +973,7 @@ export function GestaoCCView({
             </div>
           </div>
 
-          {/* ── Matriz Analítica Detalhada ─────────────────────────────── */}
-          <MatrizAnalitica matriz={gestaoDados.matriz} temSimulacao={temSim} periodoLabel={periodoLabel} />
+
 
           {/* ── Despesas Acima do Orçamento & Não Previstas ──────────────── */}
           {temSim && (() => {

@@ -62,6 +62,8 @@ export default async function DashboardPage({
         filterInicio.ano, filterInicio.mes,
         filterFim.ano,    filterFim.mes,
         selectedSimId || undefined,
+        cutoff.ano,
+        cutoff.mes,
       )
     : null
 

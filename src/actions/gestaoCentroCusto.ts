@@ -34,6 +34,8 @@ export async function getGestaoCentroCusto(
   anoFim: number,
   mesFim: number,
   simulacaoId?: string,
+  cutoffAno?: number,
+  cutoffMes?: number,
 ): Promise<GestaoCCResult | null> {
   if (!centroCustoId || centroCustoId === 'all') return null
 
@@ -42,6 +44,9 @@ export async function getGestaoCentroCusto(
   const startKey = anoInicio * 100 + mesInicio
   const endKey   = anoFim   * 100 + mesFim
   const temSimulacao = !!(simulacaoId && simulacaoId !== '')
+
+  // Chave de corte: se não informada, assume um futuro distante
+  const cutoffKey = (cutoffAno && cutoffMes) ? (cutoffAno * 100 + cutoffMes) : 999999
 
   // 1. Centro de custo
   const { data: cc, error: ccErr } = await supabase
@@ -68,6 +73,7 @@ export async function getGestaoCentroCusto(
       centroCustoId: cc.id, centroCustoNome: cc.nome, saldoInicial: saldoInicialCC,
       totalEntradas: 0, totalEntradasPrevisto: 0,
       totalSaidas: 0, totalSaidasPrevisto: 0,
+      totalMetaEntradasPct: null, totalMetaSaidasPct: null,
       resultado: 0, resultadoPrevisto: 0, saldoFinal: saldoInicialCC,
       meses: mesesVazios, matriz: [],
       periodo: { anoInicio, mesInicio, anoFim, mesFim }, temSimulacao,
@@ -131,6 +137,7 @@ export async function getGestaoCentroCusto(
   for (const r of realData) {
     const k = Number(r.ano) * 100 + Number(r.mes)
     if (k < startKey || k > endKey) continue
+    if (k > cutoffKey) continue // Filtra dados realizados após o corte
     if (!realPorMes.has(k)) realPorMes.set(k, new Map())
     const mm = realPorMes.get(k)!
     mm.set(r.categoria_id, r2((mm.get(r.categoria_id) ?? 0) + Number(r.valor_realizado || 0)))
@@ -146,18 +153,24 @@ export async function getGestaoCentroCusto(
   // 7. Totalizadores de período por categoria (para matriz)
   const realPorCat = new Map<string, number>()
   const orcPorCat  = new Map<string, number>()
-  const orcAnualPorCat = new Map<string, number>() // orçamento anual completo (todos os meses do ano)
+  const orcAcumuladoAtéCorte = new Map<string, number>()
+  const orcAnualPorCat = new Map<string, number>()
 
   for (const r of realData) {
     const k = Number(r.ano) * 100 + Number(r.mes)
     if (k < startKey || k > endKey) continue
+    if (k > cutoffKey) continue // Filtra dados realizados após o corte (para matriz)
     realPorCat.set(r.categoria_id, r2((realPorCat.get(r.categoria_id) ?? 0) + Number(r.valor_realizado || 0)))
   }
   for (const o of orcData) {
     const k = Number(o.ano) * 100 + Number(o.mes)
     if (k < startKey || k > endKey) continue
     orcPorCat.set(o.categoria_id, r2((orcPorCat.get(o.categoria_id) ?? 0) + Number(o.valor_previsto || 0)))
-    // Orçamento anual: soma TODOS os meses (sem filtro de período)
+    
+    // Calcula o acumulado do orçamento até a data de corte
+    if (k <= cutoffKey) {
+      orcAcumuladoAtéCorte.set(o.categoria_id, r2((orcAcumuladoAtéCorte.get(o.categoria_id) ?? 0) + Number(o.valor_previsto || 0)))
+    }
   }
   for (const o of orcData) {
     orcAnualPorCat.set(o.categoria_id, r2((orcAnualPorCat.get(o.categoria_id) ?? 0) + Number(o.valor_previsto || 0)))
@@ -185,8 +198,8 @@ export async function getGestaoCentroCusto(
   }
   const catTree = buildCatTree(allCats, null)
 
-  interface CatVals { previsto: number; realizado: number; orcAnual: number }
-  const ZERO: CatVals = { previsto: 0, realizado: 0, orcAnual: 0 }
+  interface CatVals { previsto: number; realizado: number; orcAnual: number; acumCorte: number }
+  const ZERO: CatVals = { previsto: 0, realizado: 0, orcAnual: 0, acumCorte: 0 }
 
   // Agrega recursivamente das folhas para cima, filtrando só catIds do CC
   function aggCat(cat: typeof allCats[0]): CatVals {
@@ -196,14 +209,16 @@ export async function getGestaoCentroCusto(
         previsto:  r2(orcPorCat.get(cat.id)  ?? 0),
         realizado: r2(realPorCat.get(cat.id) ?? 0),
         orcAnual:  r2(orcAnualPorCat.get(cat.id) ?? 0),
+        acumCorte: r2(orcAcumuladoAtéCorte.get(cat.id) ?? 0),
       }
     }
-    const agg: CatVals = { previsto: 0, realizado: 0, orcAnual: 0 }
+    const agg: CatVals = { previsto: 0, realizado: 0, orcAnual: 0, acumCorte: 0 }
     for (const child of cat.children) {
       const cv = aggCat(child)
       agg.previsto  += cv.previsto
       agg.realizado += cv.realizado
       agg.orcAnual  += cv.orcAnual
+      agg.acumCorte += cv.acumCorte
     }
     return agg
   }
@@ -228,6 +243,7 @@ export async function getGestaoCentroCusto(
         ? r2(vals.realizado - vals.previsto)
         : r2(vals.previsto  - vals.realizado)
       const pct = vals.previsto !== 0 ? r2((vals.realizado / vals.previsto) * 100) : null
+      const metaPct = vals.previsto !== 0 ? r2((vals.acumCorte / vals.previsto) * 100) : null
 
       const orcAnual = r2(vals.orcAnual)
       const saldoAno = r2(orcAnual - vals.realizado)
@@ -239,6 +255,7 @@ export async function getGestaoCentroCusto(
         tipo: cat.tipo as CategoriaTipo,
         previsto:  r2(vals.previsto),
         realizado: r2(vals.realizado),
+        metaPct,
         variacao, pct,
         orcamentoAnualTotal: orcAnual,
         saldoDisponivelAno: saldoAno,
@@ -256,8 +273,6 @@ export async function getGestaoCentroCusto(
   flattenMatriz(catTree, 0)
 
   // Categorias-folha no contexto do CC:
-  // Uma categoria é "pai no CC" se algum dos seus filhos (diretos) também está em catIdSet.
-  // Categoriaspai não devem aparecer diretamente no extrato — seus valores já sobem via filhos.
   const parentsInCC = new Set(
     allCats
       .filter(c => c.parent_id !== null && catIdSet.has(c.parent_id) && catIdSet.has(c.id))
@@ -280,13 +295,14 @@ export async function getGestaoCentroCusto(
     let entradas = 0, saidas = 0
     let entradasPrevisto = 0, saidasPrevisto = 0
 
-    // Usa apenas categorias-folha para evitar dupla contagem com categorias pai
     for (const catId of leafCatIds) {
       const cat     = catMap.get(catId)
       if (!cat) continue
       const valor   = mesReal.get(catId) ?? 0
       const previsto = mesOrc.get(catId) ?? 0
       if (valor === 0 && previsto === 0) continue
+
+      const metaPct = previsto !== 0 ? r2(((orcAcumuladoAtéCorte.get(catId) || 0) / previsto) * 100) : null
 
       categorias.push({
         categoriaId: catId,
@@ -295,6 +311,7 @@ export async function getGestaoCentroCusto(
         tipo: cat.tipo as CategoriaTipo,
         valor:   r2(valor),
         previsto: r2(previsto),
+        metaPct,
       })
       if (cat.tipo === 'RECEITA') { entradas += valor; entradasPrevisto += previsto }
       else { saidas += valor; saidasPrevisto += previsto }
@@ -319,6 +336,12 @@ export async function getGestaoCentroCusto(
     return { ano, mes, saldoInicial, entradas, saidas, entradasPrevisto, saidasPrevisto, resultado, resultadoPrevisto, saldoFinal, categorias }
   })
 
+  const totalAcumCorteEntradas = matriz.filter(r => r.depth === 0 && r.tipo === 'RECEITA').reduce((acc, r) => acc + (r.metaPct ? (r.metaPct * r.previsto / 100) : 0), 0)
+  const totalAcumCorteSaidas   = matriz.filter(r => r.depth === 0 && r.tipo === 'DESPESA').reduce((acc, r) => acc + (r.metaPct ? (r.metaPct * r.previsto / 100) : 0), 0)
+
+  const totalMetaEntradasPct = totalEntradasPrevisto !== 0 ? r2((totalAcumCorteEntradas / totalEntradasPrevisto) * 100) : null
+  const totalMetaSaidasPct   = totalSaidasPrevisto   !== 0 ? r2((totalAcumCorteSaidas   / totalSaidasPrevisto)   * 100) : null
+
   return {
     centroCustoId: cc.id,
     centroCustoNome: cc.nome,
@@ -327,10 +350,13 @@ export async function getGestaoCentroCusto(
     totalEntradasPrevisto: r2(totalEntradasPrevisto),
     totalSaidas:           r2(totalSaidas),
     totalSaidasPrevisto:   r2(totalSaidasPrevisto),
+    totalMetaEntradasPct,
+    totalMetaSaidasPct,
     resultado:             r2(totalEntradas - totalSaidas),
     resultadoPrevisto:     r2(totalEntradasPrevisto - totalSaidasPrevisto),
     saldoFinal:            r2(saldoCorrente),
-    meses, matriz,
+    meses: meses.filter(m => (m.ano * 100 + m.mes) <= cutoffKey),
+    matriz,
     periodo: { anoInicio, mesInicio, anoFim, mesFim },
     temSimulacao,
   }
