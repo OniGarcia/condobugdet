@@ -110,24 +110,48 @@ export async function getGestaoCentroCusto(
     }
   }
 
-  // 5. Orçamento previsto — apenas se houver simulação selecionada
+  // 5. Orçamento previsto e Fluxo Projetado — apenas se houver simulação selecionada
   let orcData: any[] = []
+  let projData: any[] = []
   if (temSimulacao) {
-    let from = 0, to = 999, hasMore = true
-    while (hasMore) {
-      const { data, error } = await supabase
-        .from('orcamento_previsto')
-        .select('categoria_id, ano, mes, valor_previsto')
-        .eq('simulacao_id', simulacaoId!)
-        .eq('condo_id', condoId)
-        .in('categoria_id', catIds)
-        .gte('ano', anoInicio).lte('ano', anoFim)
-        .range(from, to)
-      if (error) break
-      if (data && data.length > 0) {
-        orcData = orcData.concat(data)
-        if (data.length < 1000) { hasMore = false } else { from += 1000; to += 1000 }
-      } else { hasMore = false }
+    // Buscar orçamento previsto
+    {
+      let from = 0, to = 999, hasMore = true
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('orcamento_previsto')
+          .select('categoria_id, ano, mes, valor_previsto')
+          .eq('simulacao_id', simulacaoId!)
+          .eq('condo_id', condoId)
+          .in('categoria_id', catIds)
+          .gte('ano', anoInicio).lte('ano', anoFim)
+          .range(from, to)
+        if (error) break
+        if (data && data.length > 0) {
+          orcData = orcData.concat(data)
+          if (data.length < 1000) { hasMore = false } else { from += 1000; to += 1000 }
+        } else { hasMore = false }
+      }
+    }
+
+    // Buscar fluxo projetado (ajustes manuais do usuário para o futuro)
+    {
+      let from = 0, to = 999, hasMore = true
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('fluxo_projetado')
+          .select('categoria_id, ano, mes, valor_projetado')
+          .eq('simulacao_id', simulacaoId!)
+          .eq('condo_id', condoId)
+          .in('categoria_id', catIds)
+          .gte('ano', anoInicio).lte('ano', anoFim)
+          .range(from, to)
+        if (error) break
+        if (data && data.length > 0) {
+          projData = projData.concat(data)
+          if (data.length < 1000) { hasMore = false } else { from += 1000; to += 1000 }
+        } else { hasMore = false }
+      }
     }
   }
 
@@ -149,6 +173,16 @@ export async function getGestaoCentroCusto(
     if (!orcPorMes.has(k)) orcPorMes.set(k, new Map())
     const mm = orcPorMes.get(k)!
     mm.set(o.categoria_id, r2((mm.get(o.categoria_id) ?? 0) + Number(o.valor_previsto || 0)))
+  }
+
+  // Chaves de fluxo projetado
+  const projPorMes = new Map<number, Map<string, number>>()
+  for (const p of projData) {
+    const k = Number(p.ano) * 100 + Number(p.mes)
+    if (k < startKey || k > endKey) continue
+    if (!projPorMes.has(k)) projPorMes.set(k, new Map())
+    const mm = projPorMes.get(k)!
+    mm.set(p.categoria_id, r2((mm.get(p.categoria_id) ?? 0) + Number(p.valor_projetado || 0)))
   }
 
   // 7. Totalizadores de período por categoria (para matriz)
@@ -177,6 +211,29 @@ export async function getGestaoCentroCusto(
     orcAnualPorCat.set(o.categoria_id, r2((orcAnualPorCat.get(o.categoria_id) ?? 0) + Number(o.valor_previsto || 0)))
   }
 
+  // 7.1. Projetado Anual (EAC) por categoria
+  // EAC = Realizado (acum corte) + (Projetado OR Budget se n/h proj) for months > cutoff
+  const eacPorCat = new Map<string, number>()
+  const mesesPeriodoEAC = gerarMesesNoPeriodo(anoInicio, mesInicio, anoFim, mesFim)
+  for (const catId of catIds) {
+    let totalEAC = 0
+    for (const { ano, mes } of mesesPeriodoEAC) {
+      const k = ano * 100 + mes
+      if (k <= cutoffKey) {
+        totalEAC += realPorMes.get(k)?.get(catId) ?? 0
+      } else {
+        // Se houver projeção manual, usa ela; senão usa orçamento original
+        const valProj = projPorMes.get(k)?.get(catId)
+        if (valProj !== undefined) {
+          totalEAC += valProj
+        } else {
+          totalEAC += orcPorMes.get(k)?.get(catId) ?? 0
+        }
+      }
+    }
+    eacPorCat.set(catId, r2(totalEAC))
+  }
+
   // 8. Monta matriz previsto vs realizado com hierarquia (mesmo algoritmo de relatorios.ts)
   //    Busca TODAS as categorias (com parent_id) para montar a árvore corretamente
   const { data: allCatData } = await supabase
@@ -199,8 +256,8 @@ export async function getGestaoCentroCusto(
   }
   const catTree = buildCatTree(allCats, null)
 
-  interface CatVals { previsto: number; realizado: number; orcAnual: number; acumCorte: number }
-  const ZERO: CatVals = { previsto: 0, realizado: 0, orcAnual: 0, acumCorte: 0 }
+  interface CatVals { previsto: number; realizado: number; orcAnual: number; acumCorte: number; projetadoAnual: number }
+  const ZERO: CatVals = { previsto: 0, realizado: 0, orcAnual: 0, acumCorte: 0, projetadoAnual: 0 }
 
   // Agrega recursivamente das folhas para cima, filtrando só catIds do CC
   function aggCat(cat: typeof allCats[0]): CatVals {
@@ -211,15 +268,17 @@ export async function getGestaoCentroCusto(
         realizado: r2(realPorCat.get(cat.id) ?? 0),
         orcAnual:  r2(orcAnualPorCat.get(cat.id) ?? 0),
         acumCorte: r2(orcAcumuladoAtéCorte.get(cat.id) ?? 0),
+        projetadoAnual: r2(eacPorCat.get(cat.id) ?? 0),
       }
     }
-    const agg: CatVals = { previsto: 0, realizado: 0, orcAnual: 0, acumCorte: 0 }
+    const agg: CatVals = { previsto: 0, realizado: 0, orcAnual: 0, acumCorte: 0, projetadoAnual: 0 }
     for (const child of cat.children) {
       const cv = aggCat(child)
       agg.previsto  += cv.previsto
       agg.realizado += cv.realizado
       agg.orcAnual  += cv.orcAnual
       agg.acumCorte += cv.acumCorte
+      agg.projetadoAnual += cv.projetadoAnual
     }
     return agg
   }
@@ -248,7 +307,8 @@ export async function getGestaoCentroCusto(
       const metaPct = vals.orcAnual !== 0 ? r2((vals.acumCorte / vals.orcAnual) * 100) : null
 
       const orcAnual = r2(vals.orcAnual)
-      const saldoAno = r2(orcAnual - vals.realizado)
+      const projetadoAnual = r2(vals.projetadoAnual)
+      const saldoAno = r2(orcAnual - projetadoAnual) // Alterado: agora saldo ano é baseado no EAC (Forecasting)
 
       matriz.push({
         categoriaId:    cat.id,
@@ -260,6 +320,7 @@ export async function getGestaoCentroCusto(
         metaPct,
         variacao, pct,
         orcamentoAnualTotal: orcAnual,
+        projetadoAnual,
         saldoDisponivelAno: saldoAno,
         statusSemaforoAno: computeStatus(saldoAno),
         depth,
@@ -293,6 +354,9 @@ export async function getGestaoCentroCusto(
   const totalRealSaidas       = r2(roots.filter(r => r.tipo === 'DESPESA').reduce((acc, r) => acc + r.realizado, 0))
   const totalOrcTargetSaidas   = r2(roots.filter(r => r.tipo === 'DESPESA').reduce((acc, r) => acc + r.previsto, 0))
   const totalOrcAnualSaidas    = r2(roots.filter(r => r.tipo === 'DESPESA').reduce((acc, r) => acc + r.orcamentoAnualTotal, 0))
+
+  const totalEntradasProjetadoAnual = r2(roots.filter(r => r.tipo === 'RECEITA').reduce((acc, r) => acc + r.projetadoAnual, 0))
+  const totalSaidasProjetadoAnual   = r2(roots.filter(r => r.tipo === 'DESPESA').reduce((acc, r) => acc + r.projetadoAnual, 0))
 
   // Meta do período % (ex: 4 meses / 12 meses = 33.3%)
   const totalMetaEntradasPct = totalOrcAnualEntradas !== 0 ? r2((totalOrcTargetEntradas / totalOrcAnualEntradas) * 100) : null
@@ -365,6 +429,9 @@ export async function getGestaoCentroCusto(
     resultado:             r2(totalRealEntradas - totalRealSaidas),
     resultadoPrevisto:     r2(totalOrcTargetEntradas - totalOrcTargetSaidas),
     resultadoPrevistoAnual: r2(totalOrcAnualEntradas - totalOrcAnualSaidas),
+    totalEntradasProjetadoAnual,
+    totalSaidasProjetadoAnual,
+    resultadoProjetadoAnual: r2(totalEntradasProjetadoAnual - totalSaidasProjetadoAnual),
     saldoFinal:            r2(saldoCorrente),
     meses: meses.filter(m => (m.ano * 100 + m.mes) <= cutoffKey),
     matriz,

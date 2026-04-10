@@ -127,6 +127,7 @@ export interface GestaoCCMatrizCategoria {
   variacao: number   // realizado - previsto (receita) ou previsto - realizado (despesa)
   pct: number | null // realizado / previsto * 100
   orcamentoAnualTotal: number
+  projetadoAnual: number // Realizado (acum corte) + Projetado (futuro)
   saldoDisponivelAno: number
   statusSemaforoAno: StatusSemaforo
   // hierarchy
@@ -150,6 +151,9 @@ export interface GestaoCCResult {
   resultado: number
   resultadoPrevisto: number
   resultadoPrevistoAnual: number
+  totalEntradasProjetadoAnual: number
+  totalSaidasProjetadoAnual: number
+  resultadoProjetadoAnual: number
   saldoFinal: number
   meses: GestaoCCMes[]
   matriz: GestaoCCMatrizCategoria[]   // visão previsto vs realizado por categoria
