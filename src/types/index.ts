@@ -126,6 +126,7 @@ export interface GestaoCCMatrizCategoria {
   metaPct: number | null // meta acumulada até o corte / previsto anual
   variacao: number   // realizado - previsto (receita) ou previsto - realizado (despesa)
   pct: number | null // realizado / previsto * 100
+  pctExecucaoAnual: number | null // realizado / orcamentoAnualTotal * 100
   orcamentoAnualTotal: number
   projetadoAnual: number // Realizado (acum corte) + Projetado (futuro)
   saldoDisponivelAno: number

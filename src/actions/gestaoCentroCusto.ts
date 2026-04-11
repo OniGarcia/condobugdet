@@ -9,8 +9,13 @@ import {
 
 function r2(n: number) { return Math.round(n * 100) / 100 }
 
-function computeStatus(saldo: number): StatusSemaforo {
+function computeStatus(saldo: number, tipo?: CategoriaTipo): StatusSemaforo {
   if (Math.abs(saldo) < 0.01) return 'AMARELO'
+  if (tipo === 'DESPESA') {
+    // Para despesa, projetado > orçado (saldo positivo) é RUIM
+    return saldo > 0 ? 'VERMELHO' : 'VERDE'
+  }
+  // Para receita e resultado, projetado > orçado (saldo positivo) é BOM
   return saldo > 0 ? 'VERDE' : 'VERMELHO'
 }
 
@@ -305,11 +310,12 @@ export async function getGestaoCentroCusto(
         : r2(vals.acumCorte  - vals.realizado)
       
       const pct = vals.acumCorte !== 0 ? r2((vals.realizado / vals.acumCorte) * 100) : null
+      const pctExecucaoAnual = vals.orcAnual !== 0 ? r2((vals.realizado / vals.orcAnual) * 100) : null
       const metaPct = vals.orcAnual !== 0 ? r2((vals.acumCorte / vals.orcAnual) * 100) : null
 
       const orcAnual = r2(vals.orcAnual)
       const projetadoAnual = r2(vals.projetadoAnual)
-      const saldoAno = r2(orcAnual - projetadoAnual) // Alterado: agora saldo ano é baseado no EAC (Forecasting)
+      const saldoAno = r2(projetadoAnual - orcAnual) // Alterado para Proj - Orç conforme solicitado
 
       matriz.push({
         categoriaId:    cat.id,
@@ -320,10 +326,11 @@ export async function getGestaoCentroCusto(
         realizado: r2(vals.realizado),
         metaPct,
         variacao, pct,
+        pctExecucaoAnual,
         orcamentoAnualTotal: orcAnual,
         projetadoAnual,
         saldoDisponivelAno: saldoAno,
-        statusSemaforoAno: computeStatus(saldoAno),
+        statusSemaforoAno: computeStatus(saldoAno, cat.tipo as CategoriaTipo),
         depth,
         hasChildren: hasVisibleChildren(cat),
         parentId: cat.parent_id,

@@ -110,70 +110,51 @@ function KPICard({
         <p className={`text-xl font-bold tabular-nums leading-none ${mainColor}`}>{BRL.format(realizado)}</p>
 
         {hasPrevisto && (
-          <div className="mt-2 space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-neutral-700 dark:text-neutral-400 font-medium">Previsto:</span>
-              <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200 tabular-nums">{BRL.format(previsto!)}</span>
+          <div className="mt-2 space-y-3">
+            {/* Performance do Período (Micro View) */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-tighter">Performance do Período</span>
+                <span className={`text-xs font-bold ${status === 'good' ? 'text-sky-400' : 'text-amber-400'}`}>
+                  {pctTarget !== null ? PCT.format(pctTarget) : '0'}%
+                </span>
+              </div>
+              <div className="relative w-full h-1.5 bg-white/60 dark:bg-black/20 rounded-full overflow-hidden border border-white/10">
+                <div
+                  className={`h-full rounded-full transition-all ${status === 'good' ? 'bg-sky-500' : 'bg-amber-500'}`}
+                  style={{ width: `${Math.min(pctTarget ?? 0, 100)}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between text-[9px] text-neutral-500 font-medium">
+                <span>Meta: {BRL.format(previsto!)}</span>
+                <span>Realizado: {BRL.format(realizado)}</span>
+              </div>
             </div>
+
             {pctAnual !== null && (
-              <>
-                {/* Barra 1: Realizado vs Orçamento */}
+              <div className="pt-2 border-t border-white/5 space-y-3">
+                {/* Barra 1: Realizado vs Orçamento Anual */}
                 <div className="space-y-1">
                   <div className="flex items-center justify-between text-[10px] text-neutral-500 font-bold">
-                    <span>Progresso Realizado</span>
+                    <span>Progresso Anual (Execução)</span>
                     <span>{PCT.format(pctAnual)}%</span>
                   </div>
-                  <div className="relative w-full h-2.5 bg-white/60 dark:bg-black/20 rounded-full overflow-hidden border border-white/10 shadow-inner">
+                  <div className="relative w-full h-2 bg-white/60 dark:bg-black/20 rounded-full overflow-hidden border border-white/10 shadow-inner">
                     <div
-                      className={`h-full rounded-full transition-all ${status === 'good' ? 'bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.3)]' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.3)]'}`}
+                      className={`h-full rounded-full transition-all ${status === 'good' ? 'bg-sky-500/60' : 'bg-amber-500/60'}`}
                       style={{ width: `${Math.min(pctAnual, 100)}%` }}
                     />
                     {metaPct !== null && metaPct !== undefined && (
                       <div 
                         className="absolute top-0 bottom-0 w-1 bg-black dark:bg-white z-20"
-                        title={`Meta do Período: ${PCT.format(metaPct)}%`}
+                        title={`Meta acumulada no ano: ${PCT.format(metaPct)}%`}
                         style={{ left: `${Math.min(metaPct, 100)}%` }}
                       />
                     )}
                   </div>
                 </div>
-
-                {/* Barra 2: Projetado Final (EAC) vs Orçamento */}
-                {hasProjetado && (
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-[10px] text-neutral-500 font-bold">
-                      <div className="flex items-center gap-1">
-                        <span>Tendência (Projetado Anual)</span>
-                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-                      </div>
-                      <span className="text-indigo-400">{PCT.format(pctProjetado!)}%</span>
-                    </div>
-                    <div className="relative w-full h-2.5 bg-white/60 dark:bg-black/20 rounded-full overflow-hidden border border-white/10 shadow-inner">
-                      <div
-                        className={`h-full rounded-full transition-all bg-indigo-500/60 shadow-[0_0_8px_rgba(99,102,241,0.2)]`}
-                        style={{ width: `${Math.min(pctProjetado!, 100)}%` }}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-neutral-500 font-medium">Total Estimado Ano:</span>
-                      <span className="text-[10px] font-bold text-neutral-800 dark:text-neutral-200">{BRL.format(projetadoAnual!)}</span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between pt-1 border-t border-white/5">
-                  <div>
-                    <span className="text-[10px] text-neutral-700 dark:text-neutral-400 font-bold">Status Alvo</span>
-                    {metaPct !== null && metaPct !== undefined && (
-                      <span className="text-[10px] text-neutral-600 dark:text-neutral-500 ml-1.5">(Meta: {PCT.format(metaPct)}%)</span>
-                    )}
-                  </div>
-                  <span className={`text-xs font-bold ${status === 'good' ? 'text-sky-400' : 'text-amber-400'}`}>
-                    {pctTarget !== null ? PCT.format(pctTarget) : '0'}%
-                  </span>
-                </div>
-              </>
-            ) == null && <div />}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -434,14 +415,16 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
                   </td>
 
                   <td className="py-2.5 pl-3 pr-4 text-right whitespace-nowrap">
-                    {row.pct !== null ? (
+                    {row.pctExecucaoAnual !== null ? (
                       <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-bold ${
-                        status === 'good'
+                        (row.tipo === 'RECEITA' ? row.pctExecucaoAnual >= (row.metaPct ?? 0) - 0.5 : row.pctExecucaoAnual <= (row.metaPct ?? 0) + 0.5)
                           ? 'bg-sky-500/10 text-sky-400'
                           : 'bg-amber-500/10 text-amber-400'
                       }`}>
-                        {status === 'good' ? <CheckCircle2 className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
-                        {PCT.format(row.pct)}%
+                        {(row.tipo === 'RECEITA' ? row.pctExecucaoAnual >= (row.metaPct ?? 0) - 0.5 : row.pctExecucaoAnual <= (row.metaPct ?? 0) + 0.5)
+                          ? <CheckCircle2 className="w-3 h-3" />
+                          : <AlertTriangle className="w-3 h-3" />}
+                        {PCT.format(row.pctExecucaoAnual)}%
                       </span>
                     ) : <span className="text-neutral-700 dark:text-neutral-400 text-xs font-bold">—</span>}
                   </td>
@@ -470,16 +453,9 @@ function MatrizCC({ matriz, temSimulacao }: { matriz: GestaoCCMatrizCategoria[];
                   {resultado.realizado - resultado.previsto === 0 ? '—'
                     : `${resultado.realizado - resultado.previsto > 0 ? '+' : ''}${BRL.format(resultado.realizado - resultado.previsto)}`}
                 </td>
-                <td className="py-3.5 pl-3 pr-4 text-right">
-                  {resultado.previsto !== 0 && (
-                    <span className={`inline-flex px-2.5 py-1 rounded-lg text-sm font-bold ${
-                      resultado.realizado >= resultado.previsto
-                        ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30'
-                        : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
-                    }`}>
-                      {PCT.format((resultado.realizado / resultado.previsto) * 100)}%
-                    </span>
-                  )}
+                <td className="py-3.5 pl-3 pr-4 text-right font-bold text-neutral-500">
+                  {/* Somente valor conforme solicitado - variação já mostrada na coluna ao lado */}
+                  —
                 </td>
               </tr>
             )}
@@ -593,7 +569,7 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
           Matriz Analítica Detalhada — Valores Acumulados e Forecasting
         </h3>
         <p className="text-xs text-neutral-700 dark:text-neutral-400 mt-0.5 font-bold">
-          Acumulado: {periodoLabel} · Proj. Anual (EAC) = Realizado Acum. + Projetado Futuro · Saldo Ano = Orç. Anual − Proj. Anual
+          Acumulado: {periodoLabel} · Proj. Anual (EAC) = Realizado Acum. + Projetado Futuro · Saldo Ano = Proj. Anual − Orç. Anual
         </p>
       </div>
 
@@ -609,7 +585,7 @@ function MatrizAnalitica({ matriz, temSimulacao, periodoLabel }: {
               <th className="text-right px-4 py-3 text-xs font-bold text-neutral-700 dark:text-neutral-400 uppercase tracking-wider whitespace-nowrap">
                 <span className="flex items-center justify-end gap-1">
                   Saldo Sugerido
-                  <span title="Orçamento Anual − Projetado Anual (EAC)" className="cursor-help">
+                  <span title="Projetado Anual (EAC) − Orçamento Anual" className="cursor-help">
                     <Info className="w-3.5 h-3.5 text-neutral-600" />
                   </span>
                 </span>
@@ -1072,11 +1048,11 @@ export function GestaoCCView({
                 {/* Acima do Orçamento */}
                 <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 backdrop-blur-xl">
                   <div className="flex items-center gap-2 mb-5">
-                    <div className="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center">
-                      <Radar className="w-4 h-4 text-red-400" />
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                      <Radar className="w-4 h-4 text-amber-500" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-neutral-900 dark:text-white">Radar de Riscos (EAC)</h3>
+                      <h3 className="text-base font-bold text-neutral-900 dark:text-white text-pretty">Radar de Riscos (EAC)</h3>
                       <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium italic">Projeção anual acima do orçamento total (Top 5)</p>
                     </div>
                   </div>
@@ -1101,16 +1077,19 @@ export function GestaoCCView({
                                 <span className="text-sm text-neutral-800 dark:text-neutral-200 truncate font-bold">{item.categoriaNome}</span>
                               </div>
                               <div className="flex items-center gap-3 shrink-0 ml-3">
-                                <span className="text-xs text-red-500 font-bold">+{PCT.format(pctExcessoAnual)}%</span>
-                                <span className="text-sm font-bold text-red-400 tabular-nums" title="Estouro Anual Estimado">{BRL.format(item.estouroAnual)}</span>
+                                <span className="text-xs text-amber-500 font-bold">+{PCT.format(pctExcessoAnual)}%</span>
+                                <span className="text-sm font-bold text-amber-500 tabular-nums" title="Estouro Anual Estimado">{BRL.format(item.estouroAnual)}</span>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <div className="flex-1 h-1.5 bg-white/60 dark:bg-white/5 rounded-full overflow-hidden">
+                              <div className="flex-1 h-2 bg-white/60 dark:bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
                                 <div
-                                  className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full transition-all shadow-[0_0_8px_rgba(239,68,68,0.2)]"
+                                  className="h-full bg-amber-500 relative rounded-full transition-all shadow-[0_0_12px_rgba(245,158,11,0.3)]"
                                   style={{ width: `${barW}%` }}
-                                />
+                                >
+                                  {/* Padrão listrado para indicar estimativa (Storytelling) */}
+                                  <div className="absolute inset-0 opacity-20 bg-[repeating-linear-gradient(45deg,transparent,transparent_8px,rgba(0,0,0,0.5)_8px,rgba(0,0,0,0.5)_16px)]" />
+                                </div>
                               </div>
                             </div>
                             <div className="flex justify-between mt-0.5">
@@ -1127,11 +1106,11 @@ export function GestaoCCView({
                 {/* Despesas Não Previstas */}
                 <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 backdrop-blur-xl">
                   <div className="flex items-center gap-2 mb-5">
-                    <div className="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center">
-                      <CircleDollarSign className="w-4 h-4 text-red-400" />
+                    <div className="w-8 h-8 rounded-xl bg-rose-500/10 flex items-center justify-center">
+                      <CircleDollarSign className="w-4 h-4 text-rose-500" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-neutral-900 dark:text-white">Despesas Não Previstas ({">"} R$ 500,00)</h3>
+                      <h3 className="text-base font-bold text-neutral-900 dark:text-white text-pretty">Despesas Não Previstas ({">"} R$ 500,00)</h3>
                       <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium italic">Gastos extras significativos identificados no período</p>
                     </div>
                   </div>
@@ -1152,13 +1131,13 @@ export function GestaoCCView({
                             <div className="flex items-center justify-between mb-1">
                               <div className="flex items-center gap-2 min-w-0">
                                 <span className="text-xs font-mono text-neutral-600 shrink-0">{String(i + 1).padStart(2, '0')}</span>
-                                <span className="text-sm text-neutral-800 dark:text-neutral-200 truncate">{item.categoriaNome}</span>
+                                <span className="text-sm text-neutral-800 dark:text-neutral-200 truncate font-medium">{item.categoriaNome}</span>
                               </div>
-                              <span className="text-sm font-bold text-red-400 tabular-nums shrink-0 ml-3">{BRL.format(item.realizado)}</span>
+                              <span className="text-sm font-bold text-rose-500 tabular-nums shrink-0 ml-3">{BRL.format(item.realizado)}</span>
                             </div>
-                            <div className="h-1.5 bg-white/60 dark:bg-white/5 rounded-full overflow-hidden">
+                            <div className="h-1.5 bg-white/60 dark:bg-white/5 rounded-full overflow-hidden border border-white/5">
                               <div
-                                className="h-full bg-gradient-to-r from-red-500/80 to-red-400 rounded-full transition-all"
+                                className="h-full bg-gradient-to-r from-rose-500 to-rose-600 rounded-full transition-all shadow-[0_0_8px_rgba(244,63,94,0.2)]"
                                 style={{ width: `${barW}%` }}
                               />
                             </div>
