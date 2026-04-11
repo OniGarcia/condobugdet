@@ -140,6 +140,14 @@ const PRINT_OVERRIDE_CSS = `
   }
   [data-pdf-root] [class*="bg-amber-500/10"] { background: #fef3c7 !important; }
   [data-pdf-root] [class*="bg-sky-500/5"]    { background: #f0f9ff !important; }
+
+  /* ── Responsive grids to static desktop grids for PDF ── */
+  [data-pdf-root] .sm\\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  [data-pdf-root] .lg\\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
 `
 
 // ─── Smart page-break helper ──────────────────────────────────────────────────
@@ -151,13 +159,14 @@ const PRINT_OVERRIDE_CSS = `
  */
 function buildSafeBreakpoints(root: HTMLElement, scale: number): number[] {
   const rootRect = root.getBoundingClientRect()
-  const rows = Array.from(root.querySelectorAll<HTMLElement>('tr, [data-pdf-row]'))
+  const rows = Array.from(root.querySelectorAll<HTMLElement>('tbody > tr, [data-pdf-break]'))
 
   const breakpoints: number[] = []
   for (const row of rows) {
     const rect = row.getBoundingClientRect()
     // bottom edge of this row in canvas pixels
-    const bottom = (rect.bottom - rootRect.top) * scale
+    // adding a 2px buffer so the cut happens just below the border
+    const bottom = (rect.bottom - rootRect.top) * scale + (2 * scale)
     breakpoints.push(bottom)
   }
 
@@ -219,7 +228,7 @@ export async function exportElementToPdf(
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
-      windowWidth: element.scrollWidth,
+      windowWidth: Math.max(element.scrollWidth, 1280),
     })
 
     const imgWidth  = canvas.width

@@ -1002,7 +1002,7 @@ export function GestaoCCView({
           </div>
 
           {/* ── KPI Cards ─────────────────────────────────────────────────── */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6" data-pdf-break="true">
             {isPending ? (
               <>
                 <KPICardSkeleton />
@@ -1045,14 +1045,22 @@ export function GestaoCCView({
           </div>
 
            {/* ── Matriz Analítica Detalhada ─────────────────────────────── */}
-          {isPending ? <TableSkeleton /> : <MatrizAnalitica matriz={gestaoDados.matriz} temSimulacao={temSim} periodoLabel={periodoLabel} />}
+          {isPending ? <TableSkeleton /> : (
+            <div data-pdf-break="true">
+              <MatrizAnalitica matriz={gestaoDados.matriz} temSimulacao={temSim} periodoLabel={periodoLabel} />
+            </div>
+          )}
 
           {/* ── Matriz Previsto vs Realizado ─────────────────────────────── */}
-          {isPending ? <TableSkeleton /> : <MatrizCC matriz={gestaoDados.matriz} temSimulacao={temSim} />}
+          {isPending ? <TableSkeleton /> : (
+            <div data-pdf-break="true">
+              <MatrizCC matriz={gestaoDados.matriz} temSimulacao={temSim} />
+            </div>
+          )}
 
           {/* ── Extrato Mensal ────────────────────────────────────────────── */}
           {isPending ? <TableSkeleton /> : (
-            <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl">
+            <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl" data-pdf-break="true">
             <div className="px-4 py-4 border-b border-neutral-200 dark:border-white/10 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Extrato de Caixa Mensal</h3>
@@ -1131,7 +1139,7 @@ export function GestaoCCView({
             )
 
             return (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" data-pdf-break="true">
                 {/* Acima do Orçamento */}
                 <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 backdrop-blur-xl">
                   <div className="flex items-center gap-2 mb-5">
