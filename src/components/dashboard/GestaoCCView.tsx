@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   CentroCusto, GestaoCCResult, GestaoCCMes,
@@ -157,6 +157,56 @@ function KPICard({
             )}
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+function Skeleton({ className }: { className?: string }) {
+  return <div className={`animate-pulse bg-neutral-200 dark:bg-white/10 rounded ${className}`} />
+}
+
+function KPICardSkeleton() {
+  return (
+    <div className="p-5 rounded-2xl border border-neutral-200 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-xl h-full flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <Skeleton className="w-8 h-8 rounded-xl" />
+        <Skeleton className="w-12 h-4 rounded-full" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="w-20 h-3" />
+        <Skeleton className="w-32 h-6" />
+      </div>
+      <div className="space-y-3 pt-2 border-t border-white/5">
+        <div className="space-y-2">
+          <div className="flex justify-between"><Skeleton className="w-24 h-2" /><Skeleton className="w-8 h-2" /></div>
+          <Skeleton className="w-full h-1.5" />
+        </div>
+        <div className="space-y-2">
+          <div className="flex justify-between"><Skeleton className="w-24 h-2" /><Skeleton className="w-8 h-2" /></div>
+          <Skeleton className="w-full h-2" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TableSkeleton() {
+  return (
+    <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl">
+      <div className="px-6 py-4 border-b border-neutral-200 dark:border-white/10 space-y-2">
+        <Skeleton className="w-48 h-4" />
+        <Skeleton className="w-full h-3" />
+      </div>
+      <div className="p-6 space-y-4">
+        {[1, 2, 3, 4, 5, 6].map(i => (
+          <div key={i} className="flex gap-4 items-center">
+            <Skeleton className="w-1/3 h-4" />
+            <Skeleton className="flex-1 h-4" />
+            <Skeleton className="w-24 h-4" />
+            <Skeleton className="w-24 h-4" />
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -714,6 +764,7 @@ export function GestaoCCView({
   condoNome,
 }: GestaoCCViewProps) {
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
   const searchParams = useSearchParams()
   const printRef = useRef<HTMLDivElement>(null)
   const [exporting, setExporting] = useState(false)
@@ -756,7 +807,9 @@ export function GestaoCCView({
   const activeSim = simulacoes.find(s => s.id === selectedSimId)
 
   const handleCutoffChange = (ano: number, mes: number) => {
-    router.push(buildUrl({ cutoff: `${ano}-${String(mes).padStart(2, '0')}` }))
+    startTransition(() => {
+      router.push(buildUrl({ cutoff: `${ano}-${String(mes).padStart(2, '0')}` }))
+    })
   }
 
   const periodMonths: { ano: number; mes: number }[] = []
@@ -792,7 +845,20 @@ export function GestaoCCView({
   const temSim = gestaoDados?.temSimulacao ?? false
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 relative">
+      {/* ── Barra de Progresso Superior (GitHub/YouTube style) ── */}
+      {isPending && (
+        <div className="fixed top-0 left-0 right-0 h-1 z-[9999] overflow-hidden bg-sky-500/20">
+          <div className="h-full bg-sky-500 w-[40%] animate-[loading-bar_1.5s_infinite_linear]" />
+          <style jsx>{`
+            @keyframes loading-bar {
+              0% { transform: translateX(-100%); width: 30%; }
+              50% { width: 60%; }
+              100% { transform: translateX(350%); width: 30%; }
+            }
+          `}</style>
+        </div>
+      )}
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4">
@@ -840,7 +906,9 @@ export function GestaoCCView({
                     if (sim) {
                       if (sim.centro_custo_id) updates.cc = sim.centro_custo_id
                     }
-                    router.push(buildUrl(updates))
+                    startTransition(() => {
+                      router.push(buildUrl(updates))
+                    })
                   }}
                   className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl px-4 py-2 text-sm appearance-none focus:ring-2 focus:ring-sky-500 outline-none transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10">
                   <option value="" className="bg-white dark:bg-neutral-950">Sem orçamento</option>
@@ -916,7 +984,7 @@ export function GestaoCCView({
       )}
 
       {gestaoDados && (
-        <div ref={printRef} className="flex flex-col gap-8">
+        <div ref={printRef} className={`flex flex-col gap-8 transition-all duration-500 ${isPending ? 'opacity-40 blur-[1px]' : 'opacity-100 blur-0'}`}>
           {/* ── Header do CC (Printable) ─────────────────────────────────────────── */}
           <div className="px-1 flex flex-col gap-1">
             {condoNome && (
@@ -935,45 +1003,56 @@ export function GestaoCCView({
 
           {/* ── KPI Cards ─────────────────────────────────────────────────── */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <KPICard
-              label="Total Entradas"
-              realizado={gestaoDados.totalEntradas}
-              previsto={temSim ? gestaoDados.totalEntradasPrevisto : undefined}
-              previstoAnual={temSim ? gestaoDados.totalEntradasPrevistoAnual : undefined}
-              projetadoAnual={temSim ? gestaoDados.totalEntradasProjetadoAnual : undefined}
-              metaPct={temSim ? gestaoDados.totalMetaEntradasPct : undefined}
-              icon={ArrowUpCircle}
-              tipo="RECEITA"
-            />
-            <KPICard
-              label="Total Saídas"
-              realizado={gestaoDados.totalSaidas}
-              previsto={temSim ? gestaoDados.totalSaidasPrevisto : undefined}
-              previstoAnual={temSim ? gestaoDados.totalSaidasPrevistoAnual : undefined}
-              projetadoAnual={temSim ? gestaoDados.totalSaidasProjetadoAnual : undefined}
-              metaPct={temSim ? gestaoDados.totalMetaSaidasPct : undefined}
-              icon={ArrowDownCircle}
-              tipo="DESPESA"
-            />
-            <KPICard
-              label="Resultado"
-              realizado={gestaoDados.resultado}
-              previsto={temSim ? gestaoDados.resultadoPrevisto : undefined}
-              previstoAnual={temSim ? gestaoDados.resultadoPrevistoAnual : undefined}
-              projetadoAnual={temSim ? gestaoDados.resultadoProjetadoAnual : undefined}
-              icon={Scale}
-              isBalance
-            />
+            {isPending ? (
+              <>
+                <KPICardSkeleton />
+                <KPICardSkeleton />
+                <KPICardSkeleton />
+              </>
+            ) : (
+              <>
+                <KPICard
+                  label="Total Entradas"
+                  realizado={gestaoDados.totalEntradas}
+                  previsto={temSim ? gestaoDados.totalEntradasPrevisto : undefined}
+                  previstoAnual={temSim ? gestaoDados.totalEntradasPrevistoAnual : undefined}
+                  projetadoAnual={temSim ? gestaoDados.totalEntradasProjetadoAnual : undefined}
+                  metaPct={temSim ? gestaoDados.totalMetaEntradasPct : undefined}
+                  icon={ArrowUpCircle}
+                  tipo="RECEITA"
+                />
+                <KPICard
+                  label="Total Saídas"
+                  realizado={gestaoDados.totalSaidas}
+                  previsto={temSim ? gestaoDados.totalSaidasPrevisto : undefined}
+                  previstoAnual={temSim ? gestaoDados.totalSaidasPrevistoAnual : undefined}
+                  projetadoAnual={temSim ? gestaoDados.totalSaidasProjetadoAnual : undefined}
+                  metaPct={temSim ? gestaoDados.totalMetaSaidasPct : undefined}
+                  icon={ArrowDownCircle}
+                  tipo="DESPESA"
+                />
+                <KPICard
+                  label="Resultado"
+                  realizado={gestaoDados.resultado}
+                  previsto={temSim ? gestaoDados.resultadoPrevisto : undefined}
+                  previstoAnual={temSim ? gestaoDados.resultadoPrevistoAnual : undefined}
+                  projetadoAnual={temSim ? gestaoDados.resultadoProjetadoAnual : undefined}
+                  icon={Scale}
+                  isBalance
+                />
+              </>
+            )}
           </div>
 
            {/* ── Matriz Analítica Detalhada ─────────────────────────────── */}
-          <MatrizAnalitica matriz={gestaoDados.matriz} temSimulacao={temSim} periodoLabel={periodoLabel} />
+          {isPending ? <TableSkeleton /> : <MatrizAnalitica matriz={gestaoDados.matriz} temSimulacao={temSim} periodoLabel={periodoLabel} />}
 
           {/* ── Matriz Previsto vs Realizado ─────────────────────────────── */}
-          <MatrizCC matriz={gestaoDados.matriz} temSimulacao={temSim} />
+          {isPending ? <TableSkeleton /> : <MatrizCC matriz={gestaoDados.matriz} temSimulacao={temSim} />}
 
           {/* ── Extrato Mensal ────────────────────────────────────────────── */}
-          <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl">
+          {isPending ? <TableSkeleton /> : (
+            <div className="bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl">
             <div className="px-4 py-4 border-b border-neutral-200 dark:border-white/10 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Extrato de Caixa Mensal</h3>
@@ -1020,6 +1099,7 @@ export function GestaoCCView({
               </table>
             </div>
           </div>
+          )}
 
 
 
@@ -1042,6 +1122,13 @@ export function GestaoCCView({
               .filter(r => r.previsto === 0 && r.realizado > 500)
               .sort((a, b) => b.realizado - a.realizado)
               .slice(0, 5)
+
+            if (isPending) return (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <TableSkeleton />
+                <TableSkeleton />
+              </div>
+            )
 
             return (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
