@@ -12,6 +12,7 @@ import {
   CircleDollarSign, AlertTriangle, CheckCircle2, Info, Printer, Table2, Building2, Radar,
 } from 'lucide-react'
 import { exportElementToPdf } from '@/lib/exportPdf'
+import { MonthPicker } from './MonthPicker'
 
 const BRL  = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 const PCT  = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 })
@@ -955,37 +956,29 @@ export function GestaoCCView({
               </div>
             </div>
 
-            {/* Corte do Realizado */}
+            {/* Corte do Realizado (Calendário) */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest ml-1">Corte do Realizado</label>
-              <div className="flex items-center gap-2 bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-xl px-3 py-1.5">
+              <div className="flex items-center gap-2 bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-xl px-2 py-1">
                 <button
                   onClick={() => moveCutoff(-1)}
-                  className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors text-neutral-500"
+                  className="p-1 px-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors text-neutral-500"
+                  title="Mês Anterior"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                <select
-                  value={cutoffStr}
-                  onChange={e => {
-                    const [a, m] = e.target.value.split('-').map(Number)
-                    handleCutoffChange(a, m)
-                  }}
-                  className="bg-transparent text-sm font-bold text-sky-600 dark:text-sky-400 outline-none cursor-pointer text-center appearance-none px-2"
-                >
-                  {periodMonths.map(({ ano, mes }) => (
-                    <option
-                      key={`${ano}-${mes}`}
-                      value={`${ano}-${String(mes).padStart(2, '0')}`}
-                      className="bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white"
-                    >
-                      {MESES_ABR[mes - 1]}/{ano}
-                    </option>
-                  ))}
-                </select>
+                
+                <MonthPicker
+                  currentAno={cutoffAno}
+                  currentMes={cutoffMes}
+                  availableMonths={periodMonths}
+                  onChange={(ano, mes) => handleCutoffChange(ano, mes)}
+                />
+
                 <button
                   onClick={() => moveCutoff(1)}
-                  className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors text-neutral-500"
+                  className="p-1 px-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors text-neutral-500"
+                  title="Próximo Mês"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>

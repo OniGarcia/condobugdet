@@ -187,10 +187,16 @@ function CreateModal({ centrosDeCusto, onClose, onSubmit, isPending }: any) {
             <select
               value={ccId}
               onChange={e => setCcId(e.target.value)}
-              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-800 dark:text-neutral-200 focus:ring-2 focus:ring-sky-500 outline-none"
+              className="w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-neutral-800 dark:text-neutral-200 focus:ring-2 focus:ring-sky-500 outline-none cursor-pointer"
             >
               {centrosDeCusto.map((cc: any) => (
-                <option key={cc.id} value={cc.id}>{cc.nome}</option>
+                <option 
+                  key={cc.id} 
+                  value={cc.id}
+                  className="bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
+                >
+                  {cc.nome}
+                </option>
               ))}
             </select>
           </div>

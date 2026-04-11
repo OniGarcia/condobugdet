@@ -11,6 +11,7 @@ import { ForecastGrid } from './ForecastGrid'
 import { ForecastCharts } from './ForecastCharts'
 import { SimulationSelector } from '@/components/budget/SimulationSelector'
 import { cn } from '@/lib/utils'
+import { MonthPicker } from '@/components/dashboard/MonthPicker'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Props {
@@ -197,37 +198,29 @@ export function ForecastPage({
                   </div>
                 )}
 
-                {/* Cutoff selector */}
+                {/* Cutoff selector (Calendário) */}
                 <div>
                   <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2">Corte do Realizado</label>
-                  <div className="flex items-center gap-2 bg-white dark:bg-black/40 border border-neutral-200 dark:border-white/10 rounded-lg px-3 py-2">
+                  <div className="flex items-center gap-2 bg-white dark:bg-black/40 border border-neutral-200 dark:border-white/10 rounded-lg px-2 py-1">
                     <button
                       onClick={() => moveCutoff(-1)}
-                      className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors text-neutral-500"
+                      className="p-1 px-2 rounded hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors text-neutral-500"
+                      title="Mês Anterior"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
-                    <select
-                      value={`${localCutoffAno}-${String(localCutoffMes).padStart(2, '0')}`}
-                      onChange={e => {
-                        const [a, m] = e.target.value.split('-').map(Number)
-                        handleCutoffChange(a, m)
-                      }}
-                      className="bg-transparent text-sm font-bold text-sky-600 dark:text-sky-400 outline-none cursor-pointer text-center"
-                    >
-                      {periodMonths.map(({ ano, mes }) => (
-                        <option
-                          key={`${ano}-${mes}`}
-                          value={`${ano}-${String(mes).padStart(2, '0')}`}
-                          className="bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white"
-                        >
-                          {MESES_NOME[mes - 1]}/{ano}
-                        </option>
-                      ))}
-                    </select>
+                    
+                    <MonthPicker
+                      currentAno={localCutoffAno}
+                      currentMes={localCutoffMes}
+                      availableMonths={periodMonths}
+                      onChange={(ano, mes) => handleCutoffChange(ano, mes)}
+                    />
+
                     <button
                       onClick={() => moveCutoff(1)}
-                      className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors text-neutral-500"
+                      className="p-1 px-2 rounded hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors text-neutral-500"
+                      title="Próximo Mês"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
