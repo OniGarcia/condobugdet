@@ -58,6 +58,20 @@ export interface FluxoProjetado {
   updated_at: string;
 }
 
+export interface AporteCentroCusto {
+  id: string;
+  condo_id: string;
+  centro_custo_id: string;
+  valor: number;
+  mes: number;
+  ano: number;
+  data_aporte: string;
+  origem: string;
+  descricao: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CentroCusto {
   id: string;
   nome: string;
@@ -113,6 +127,8 @@ export interface GestaoCCMes {
   resultado: number
   resultadoPrevisto: number
   saldoFinal: number
+  valorAportes: number
+  aportes: AporteCentroCusto[]
   categorias: GestaoCCCategoria[]
 }
 
@@ -145,6 +161,7 @@ export interface GestaoCCResult {
   totalEntradasPrevisto: number
   totalEntradasPrevistoAnual: number
   totalSaidas: number
+  totalAportes: number
   totalSaidasPrevisto: number
   totalSaidasPrevistoAnual: number
   totalMetaEntradasPct: number | null

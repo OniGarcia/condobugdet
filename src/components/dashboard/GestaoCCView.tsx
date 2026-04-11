@@ -53,7 +53,7 @@ function variacaoColor(variacao: number): string {
 
 // ─── KPI Card enriquecido ─────────────────────────────────────────────────────
 function KPICard({
-  label, realizado, previsto, previstoAnual, projetadoAnual, metaPct, icon: Icon, tipo, isBalance,
+  label, realizado, previsto, previstoAnual, projetadoAnual, metaPct, icon: Icon, tipo, isBalance, valorAporte,
 }: {
   label: string
   realizado: number
@@ -64,6 +64,7 @@ function KPICard({
   icon: React.ElementType
   tipo?: CategoriaTipo
   isBalance?: boolean
+  valorAporte?: number
 }) {
   const hasPrevisto = previstoAnual !== undefined && previstoAnual !== null
   const pctAnual = hasPrevisto && previstoAnual !== 0 ? (realizado / previstoAnual!) * 100 : null
@@ -107,7 +108,17 @@ function KPICard({
 
       <div>
         <p className="text-[10px] font-bold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider mb-1">{label}</p>
-        <p className={`text-xl font-bold tabular-nums leading-none ${mainColor}`}>{BRL.format(realizado)}</p>
+        <div className="flex items-baseline justify-between gap-4">
+          <p className={`text-xl font-bold tabular-nums leading-none ${mainColor}`}>{BRL.format(realizado)}</p>
+          {valorAporte !== undefined && valorAporte > 0 && (
+            <div className="text-right">
+              <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-tighter leading-none mb-1">Aporte</p>
+              <p className="text-sm font-bold text-emerald-400 tabular-nums leading-none">
+                + {BRL.format(valorAporte)}
+              </p>
+            </div>
+          )}
+        </div>
 
         {hasPrevisto && (
           <div className="mt-2 space-y-3">
@@ -268,6 +279,12 @@ function MesRow({ mes, temSimulacao }: { mes: GestaoCCMes; temSimulacao: boolean
           )}
         </td>
 
+        <td className="py-3 px-3 text-right tabular-nums text-sm">
+          {mes.valorAportes > 0
+            ? <span className="text-emerald-500 font-bold block">+ {BRL.format(mes.valorAportes)}</span>
+            : <span className="text-neutral-700 font-medium">—</span>}
+        </td>
+
         <td className="py-3 pl-3 pr-4 text-right">
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-lg text-sm font-bold tabular-nums ${saldoPositivo ? 'bg-sky-500/10 text-sky-400' : 'bg-red-500/10 text-red-400'}`}>
             {BRL.format(mes.saldoFinal)}
@@ -277,7 +294,7 @@ function MesRow({ mes, temSimulacao }: { mes: GestaoCCMes; temSimulacao: boolean
 
       {open && hasMovimento && (
         <tr className="bg-black/20">
-          <td colSpan={5} className="px-0 pb-0">
+          <td colSpan={6} className="px-0 pb-0">
             <div className="mx-4 mb-3 mt-1 rounded-xl border border-neutral-200 dark:border-white/10 overflow-hidden">
               <table className="w-full text-xs">
                 <thead>
@@ -310,6 +327,26 @@ function MesRow({ mes, temSimulacao }: { mes: GestaoCCMes; temSimulacao: boolean
                     </tr>
                   ))}
                 </tbody>
+                {/* Opcional: mostrar aportes expandidos também */}
+                {mes.aportes && mes.aportes.length > 0 && (
+                  <tbody className="divide-y divide-white/5 border-t border-white/10">
+                    {mes.aportes.map((ap: any) => (
+                      <tr key={ap.id} className="bg-emerald-900/10">
+                        <td className="px-4 py-2 font-mono text-emerald-500 font-bold">—</td>
+                        <td className="px-3 py-2 text-emerald-500 font-medium">Aporte: {ap.origem}</td>
+                        <td className="px-3 py-2 text-right">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-400">
+                            ↑ Injeção
+                          </span>
+                        </td>
+                        {temSimulacao && <td className="px-3 py-2 text-right text-neutral-500">—</td>}
+                        <td className="px-4 py-2 text-right tabular-nums font-bold text-emerald-400">
+                          {BRL.format(Number(ap.valor))}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                )}
                 <tfoot className="border-t border-neutral-200 dark:border-white/10 bg-white/60 dark:bg-white/5">
                   <tr>
                     <td colSpan={temSimulacao ? 4 : 3} className="px-4 py-2 text-[10px] font-bold text-neutral-700 dark:text-neutral-400 uppercase tracking-wider">
@@ -1014,6 +1051,7 @@ export function GestaoCCView({
                 <KPICard
                   label="Total Entradas"
                   realizado={gestaoDados.totalEntradas}
+                  valorAporte={gestaoDados.totalAportes}
                   previsto={temSim ? gestaoDados.totalEntradasPrevisto : undefined}
                   previstoAnual={temSim ? gestaoDados.totalEntradasPrevistoAnual : undefined}
                   projetadoAnual={temSim ? gestaoDados.totalEntradasProjetadoAnual : undefined}
@@ -1033,7 +1071,7 @@ export function GestaoCCView({
                 />
                 <KPICard
                   label="Resultado"
-                  realizado={gestaoDados.resultado}
+                  realizado={gestaoDados.resultado + (gestaoDados.totalAportes || 0)}
                   previsto={temSim ? gestaoDados.resultadoPrevisto : undefined}
                   previstoAnual={temSim ? gestaoDados.resultadoPrevistoAnual : undefined}
                   projetadoAnual={temSim ? gestaoDados.resultadoProjetadoAnual : undefined}
@@ -1079,7 +1117,8 @@ export function GestaoCCView({
                     <th className="text-right px-3 py-3 text-xs font-bold text-sky-600 uppercase tracking-wider whitespace-nowrap">↑ Entradas</th>
                     <th className="text-right px-3 py-3 text-xs font-bold text-red-600 uppercase tracking-wider whitespace-nowrap">↓ Saídas</th>
                     <th className="text-right px-3 py-3 text-xs font-bold text-neutral-700 dark:text-neutral-400 uppercase tracking-wider whitespace-nowrap">Resultado</th>
-                    <th className="text-right px-4 py-3 text-xs font-bold text-neutral-800 dark:text-neutral-200 uppercase tracking-wider whitespace-nowrap">Resultado Acumulado</th>
+                    <th className="text-right px-3 py-3 text-xs font-bold text-emerald-500 uppercase tracking-wider whitespace-nowrap">✧ Aportes</th>
+                    <th className="text-right px-4 py-3 text-xs font-bold text-neutral-800 dark:text-neutral-200 uppercase tracking-wider whitespace-nowrap">Acumulado Final</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1092,6 +1131,9 @@ export function GestaoCCView({
                     <td className="px-3 py-3.5 text-right tabular-nums text-sm font-bold text-red-400">− {BRL.format(gestaoDados.totalSaidas)}</td>
                     <td className={`px-3 py-3.5 text-right tabular-nums text-sm font-bold ${gestaoDados.resultado >= 0 ? 'text-sky-400' : 'text-red-400'}`}>
                       {gestaoDados.resultado > 0 ? '+' : ''}{BRL.format(gestaoDados.resultado)}
+                    </td>
+                    <td className="px-3 py-3.5 text-right tabular-nums text-sm font-bold text-emerald-400">
+                      {gestaoDados.totalAportes > 0 ? '+' : ''}{BRL.format(gestaoDados.totalAportes || 0)}
                     </td>
                     <td className="px-4 py-3.5 text-right">
                       <span className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold ${

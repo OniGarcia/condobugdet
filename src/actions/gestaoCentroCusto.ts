@@ -72,12 +72,13 @@ export async function getGestaoCentroCusto(
     const mesesVazios: GestaoCCMes[] = gerarMesesNoPeriodo(anoInicio, mesInicio, anoFim, mesFim).map(m => ({
       ...m, saldoInicial: saldoInicialCC, entradas: 0, saidas: 0,
       entradasPrevisto: 0, saidasPrevisto: 0,
-      resultado: 0, resultadoPrevisto: 0, saldoFinal: saldoInicialCC, categorias: [],
+      resultado: 0, resultadoPrevisto: 0, saldoFinal: saldoInicialCC, 
+      valorAportes: 0, aportes: [], categorias: [],
     }))
     return {
       centroCustoId: cc.id, centroCustoNome: cc.nome, saldoInicial: saldoInicialCC,
       totalEntradas: 0, totalEntradasPrevisto: 0, totalEntradasPrevistoAnual: 0,
-      totalSaidas: 0, totalSaidasPrevisto: 0, totalSaidasPrevistoAnual: 0,
+      totalSaidas: 0, totalAportes: 0, totalSaidasPrevisto: 0, totalSaidasPrevistoAnual: 0,
       totalEntradasProjetadoAnual: 0, totalSaidasProjetadoAnual: 0, resultadoProjetadoAnual: 0,
       totalMetaEntradasPct: null, totalMetaSaidasPct: null,
       resultado: 0, resultadoPrevisto: 0, resultadoPrevistoAnual: 0,
@@ -113,6 +114,20 @@ export async function getGestaoCentroCusto(
         realData = realData.concat(data)
         if (data.length < 1000) { hasMore = false } else { from += 1000; to += 1000 }
       } else { hasMore = false }
+    }
+  }
+
+  // 4.5. Aportes do Fundo (Financiamentos)
+  let aportesData: any[] = []
+  {
+    const { data, error } = await supabase
+      .from('aportes_centro_custo')
+      .select('id, valor, mes, ano, data_aporte, origem, descricao')
+      .eq('condo_id', condoId)
+      .eq('centro_custo_id', centroCustoId)
+      .gte('ano', anoInicio).lte('ano', anoFim)
+    if (!error && data) {
+      aportesData = data
     }
   }
 
@@ -173,6 +188,17 @@ export async function getGestaoCentroCusto(
     const mm = realPorMes.get(k)!
     mm.set(r.categoria_id, r2((mm.get(r.categoria_id) ?? 0) + Number(r.valor_realizado || 0)))
   }
+  
+  // Aportes indexados por mesKey
+  const aportesPorMes = new Map<number, any[]>()
+  for (const ap of aportesData) {
+    const k = Number(ap.ano) * 100 + Number(ap.mes)
+    if (k < startKey || k > endKey) continue
+    if (k > cutoffKey) continue
+    if (!aportesPorMes.has(k)) aportesPorMes.set(k, [])
+    aportesPorMes.get(k)!.push(ap)
+  }
+
   for (const o of orcData) {
     const k = Number(o.ano) * 100 + Number(o.mes)
     if (k < startKey || k > endKey) continue
@@ -372,15 +398,24 @@ export async function getGestaoCentroCusto(
 
   const mesesPeriodo = gerarMesesNoPeriodo(anoInicio, mesInicio, anoFim, mesFim)
   let saldoCorrente = saldoInicialCC
+  let totalAportes = 0
 
   const meses: GestaoCCMes[] = mesesPeriodo.map(({ ano, mes }) => {
     const mesKey  = ano * 100 + mes
     const mesReal = realPorMes.get(mesKey) ?? new Map<string, number>()
     const mesOrc  = orcPorMes.get(mesKey)  ?? new Map<string, number>()
+    const mesAportes = aportesPorMes.get(mesKey) ?? []
 
     const categorias: GestaoCCCategoria[] = []
     let entradas = 0, saidas = 0
     let entradasPrevisto = 0, saidasPrevisto = 0
+    let valorAportes = 0
+
+    // Soma os aportes do mes
+    for (const ap of mesAportes) {
+      valorAportes += Number(ap.valor || 0)
+    }
+    totalAportes += valorAportes
 
     for (const catId of leafCatIds) {
       const cat     = catMap.get(catId)
@@ -408,17 +443,18 @@ export async function getGestaoCentroCusto(
       a.codigoReduzido.localeCompare(b.codigoReduzido, undefined, { numeric: true })
     )
 
-    entradas = r2(entradas); saidas = r2(saidas)
+    entradas = r2(entradas); saidas = r2(saidas); valorAportes = r2(valorAportes);
     const resultado         = r2(entradas - saidas)
     const saldoInicial      = r2(saldoCorrente)
-    const saldoFinal        = r2(saldoCorrente + resultado)
+    // OPÇÃO 1 APLICADA: Resultado Operacional + Aportes de capital afetam o saldo fisicamente
+    const saldoFinal        = r2(saldoCorrente + resultado + valorAportes)
     saldoCorrente           = saldoFinal
 
     return { 
       ano, mes, saldoInicial, entradas, saidas, 
       entradasPrevisto: r2(entradasPrevisto), saidasPrevisto: r2(saidasPrevisto),
       resultado, resultadoPrevisto: r2(entradasPrevisto - saidasPrevisto), 
-      saldoFinal, categorias 
+      saldoFinal, valorAportes, aportes: mesAportes, categorias 
     }
   })
 
@@ -430,6 +466,7 @@ export async function getGestaoCentroCusto(
     totalEntradasPrevisto:      totalOrcTargetEntradas,
     totalEntradasPrevistoAnual: totalOrcAnualEntradas,
     totalSaidas:                totalRealSaidas,
+    totalAportes:               r2(totalAportes),
     totalSaidasPrevisto:        totalOrcTargetSaidas,
     totalSaidasPrevistoAnual:   totalOrcAnualSaidas,
     totalMetaEntradasPct,

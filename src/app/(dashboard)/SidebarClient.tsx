@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import {
   LayoutDashboard, Wallet, Settings, FileText, Boxes,
-  TrendingUp, LogOut, Building2, User, UserCog,
+  TrendingUp, LogOut, Building2, User, UserCog, Pickaxe,
   Crown, ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
@@ -168,6 +168,7 @@ export default function SidebarClient({
         <NavLink href="/orcamento" icon={Wallet}>Orçamento Previsto</NavLink>
         <NavLink href="/realizado" icon={Wallet}>Fluxo Realizado</NavLink>
         <NavLink href="/forecast" icon={TrendingUp}>Fluxo Projetado</NavLink>
+        <NavLink href="/aportes" icon={Pickaxe}>Aportes e Financiamentos</NavLink>
 
         {/* CONFIGURAÇÕES */}
         {(currentCondo?.role === 'admin' || currentCondo?.role === 'gestor') && (
