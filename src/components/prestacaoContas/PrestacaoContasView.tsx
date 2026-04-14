@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer, ReferenceLine, Cell,
+  Tooltip, Legend, ResponsiveContainer, ReferenceLine, Cell, LabelList,
 } from 'recharts'
 import { TrendingUp, TrendingDown, Scale, Search, X } from 'lucide-react'
 import type { PrestacaoContasData } from '@/actions/prestacaoContas'
@@ -15,9 +15,36 @@ const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' 
 const BRL_SHORT = (v: number) => {
   const abs = Math.abs(v)
   const sign = v < 0 ? '-' : ''
-  if (abs >= 1_000_000) return `${sign}R$${(abs / 1_000_000).toFixed(1)}M`
-  if (abs >= 1_000)     return `${sign}R$${(abs / 1_000).toFixed(0)}k`
-  return BRL.format(v)
+  if (abs >= 1_000_000) return `${sign}${(abs / 1_000_000).toFixed(1)}M`
+  if (abs >= 1_000)     return `${sign}${(abs / 1_000).toFixed(0)}k`
+  return `${sign}${abs.toFixed(0)}`
+}
+
+// ─── Custom chart labels ──────────────────────────────────────────────────────
+function LineLabel({ x, y, value, position = 'top' }: { x?: number; y?: number; value?: number; position?: 'top' | 'bottom' }) {
+  if (!value) return null
+  const dy = position === 'top' ? -14 : 22
+  return (
+    <text x={x} y={(y ?? 0) + dy} fill="#a3a3a3" fontSize={10} textAnchor="middle">
+      {BRL_SHORT(value)}
+    </text>
+  )
+}
+
+function BarLabel({ x, y, width, value }: { x?: number; y?: number; width?: number; value?: number }) {
+  if (value === undefined || value === null || value === 0) return null
+  const isPos = value >= 0
+  return (
+    <text
+      x={(x ?? 0) + (width ?? 0) / 2}
+      y={(y ?? 0) + (isPos ? -5 : 14)}
+      fill="#a3a3a3"
+      fontSize={10}
+      textAnchor="middle"
+    >
+      {BRL_SHORT(value)}
+    </text>
+  )
 }
 
 const TOOLTIP_STYLE = {
@@ -123,7 +150,7 @@ export function PrestacaoContasView({ data, inicio, fim, condoNome }: Props) {
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
-            Prestação de Contas
+            Demonstrativo de Resultado - Geral
           </h1>
           {condoNome && (
             <p className="text-sm text-neutral-500 mt-0.5">{condoNome}</p>
@@ -224,18 +251,22 @@ export function PrestacaoContasView({ data, inicio, fim, condoNome }: Props) {
         >
           {filteredChartData.length === 0 ? <EmptyState /> : (
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={filteredChartData} margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
+              <LineChart data={filteredChartData} margin={{ top: 32, right: 24, left: 24, bottom: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
-                <XAxis dataKey="label" stroke="#737373" tick={{ fill: '#737373', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tickFormatter={BRL_SHORT} stroke="#737373" tick={{ fill: '#737373', fontSize: 11 }} axisLine={false} tickLine={false} width={70} />
+                <XAxis dataKey="label" stroke="#737373" tick={{ fill: '#737373', fontSize: 11 }} axisLine={false} tickLine={false} padding={{ left: 24, right: 24 }} />
+                <YAxis hide />
                 <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: unknown) => BRL.format(Number(v) || 0)} />
                 <Legend wrapperStyle={{ paddingTop: '12px', fontSize: '12px' }} />
                 {/* Hide the despesas line when filtering by receita (it'll be all zeros) */}
                 {(!activeFilter || activeFilter.tipo === 'RECEITA') && (
-                  <Line type="monotone" dataKey="receitas" name="Receitas" stroke="#38bdf8" strokeWidth={2.5} dot={{ r: 3, fill: '#38bdf8', stroke: '#171717', strokeWidth: 2 }} />
+                  <Line type="monotone" dataKey="receitas" name="Receitas" stroke="#38bdf8" strokeWidth={2.5} dot={{ r: 3, fill: '#38bdf8', stroke: '#171717', strokeWidth: 2 }}>
+                    <LabelList dataKey="receitas" content={(props: any) => <LineLabel {...props} position="top" />} />
+                  </Line>
                 )}
                 {(!activeFilter || activeFilter.tipo === 'DESPESA') && (
-                  <Line type="monotone" dataKey="despesas" name="Despesas" stroke="#f87171" strokeWidth={2.5} dot={{ r: 3, fill: '#f87171', stroke: '#171717', strokeWidth: 2 }} />
+                  <Line type="monotone" dataKey="despesas" name="Despesas" stroke="#f87171" strokeWidth={2.5} dot={{ r: 3, fill: '#f87171', stroke: '#171717', strokeWidth: 2 }}>
+                    <LabelList dataKey="despesas" content={(props: any) => <LineLabel {...props} position="bottom" />} />
+                  </Line>
                 )}
               </LineChart>
             </ResponsiveContainer>
@@ -265,13 +296,14 @@ export function PrestacaoContasView({ data, inicio, fim, condoNome }: Props) {
         >
           {filteredChartData.length === 0 ? <EmptyState /> : (
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={filteredChartData} margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
+              <BarChart data={filteredChartData} margin={{ top: 32, right: 24, left: 24, bottom: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
-                <XAxis dataKey="label" stroke="#737373" tick={{ fill: '#737373', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tickFormatter={BRL_SHORT} stroke="#737373" tick={{ fill: '#737373', fontSize: 11 }} axisLine={false} tickLine={false} width={70} />
+                <XAxis dataKey="label" stroke="#737373" tick={{ fill: '#737373', fontSize: 11 }} axisLine={false} tickLine={false} padding={{ left: 24, right: 24 }} />
+                <YAxis hide />
                 <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: unknown) => [BRL.format(Number(v) || 0), 'Resultado']} />
                 <ReferenceLine y={0} stroke="#555" strokeDasharray="4 2" />
                 <Bar dataKey="resultado" name="Resultado" radius={[4, 4, 0, 0]}>
+                  <LabelList dataKey="resultado" content={(props: any) => <BarLabel {...props} />} />
                   {filteredChartData.map((entry, i) => (
                     <Cell key={`cell-${i}`} fill={entry.resultado >= 0 ? '#34d399' : '#f87171'} />
                   ))}
@@ -405,7 +437,7 @@ function ChartCard({ title, subtitle, children, className = '', filterActive, on
           </button>
         )}
       </div>
-      <div className="h-[260px] w-full">{children}</div>
+      <div className="h-[320px] w-full">{children}</div>
     </div>
   )
 }

@@ -165,12 +165,12 @@ export default function SidebarClient({
       
       {/* Navigation - Scrollable Area */}
       <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar overflow-x-hidden">
-        <NavLink href="/dashboard" icon={LayoutDashboard}>Dashboard</NavLink>
+        <NavLink href="/prestacao-contas" icon={ClipboardList}>DRE Geral</NavLink>
+        <NavLink href="/dashboard" icon={LayoutDashboard}>DRE Centro de Custo</NavLink>
         <NavLink href="/orcamento" icon={Wallet}>Orçamento Previsto</NavLink>
         <NavLink href="/realizado" icon={Wallet}>Fluxo Realizado</NavLink>
         <NavLink href="/forecast" icon={TrendingUp}>Fluxo Projetado</NavLink>
         <NavLink href="/aportes" icon={Pickaxe}>Aportes e Financiamentos</NavLink>
-        <NavLink href="/prestacao-contas" icon={ClipboardList}>Prestação de Contas</NavLink>
 
         {/* CONFIGURAÇÕES */}
         {(currentCondo?.role === 'admin' || currentCondo?.role === 'gestor') && (

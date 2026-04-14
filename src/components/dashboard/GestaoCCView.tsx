@@ -901,7 +901,7 @@ export function GestaoCCView({
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white mb-2">Gestão por Centro de Custo</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white mb-2">Demonstrativo Centro de Custo</h1>
           <p className="text-neutral-600 dark:text-neutral-400">Extrato de caixa mensal e análise orçamentária por centro de custo.</p>
         </div>
         <button
