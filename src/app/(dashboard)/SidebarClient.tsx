@@ -7,7 +7,8 @@ import Image from 'next/image'
 import {
   LayoutDashboard, Wallet, Settings, FileText, Boxes,
   TrendingUp, LogOut, Building2, User, UserCog, Pickaxe,
-  Crown, ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen
+  Crown, ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen,
+  ClipboardList,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
@@ -169,6 +170,7 @@ export default function SidebarClient({
         <NavLink href="/realizado" icon={Wallet}>Fluxo Realizado</NavLink>
         <NavLink href="/forecast" icon={TrendingUp}>Fluxo Projetado</NavLink>
         <NavLink href="/aportes" icon={Pickaxe}>Aportes e Financiamentos</NavLink>
+        <NavLink href="/prestacao-contas" icon={ClipboardList}>Prestação de Contas</NavLink>
 
         {/* CONFIGURAÇÕES */}
         {(currentCondo?.role === 'admin' || currentCondo?.role === 'gestor') && (

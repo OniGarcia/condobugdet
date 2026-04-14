@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
 import { Building2, LogOut, ChevronRight, Wallet } from 'lucide-react'
-import { getUserCondos, logout, selectCondo } from '@/actions/auth'
+import { getUserCondos, logout } from '@/actions/auth'
 import { getSession } from '@/actions/auth'
+import { CondoList } from '@/components/auth/CondoList'
 
 export default async function SelectCondoPage() {
   const session = await getSession()
@@ -37,25 +38,7 @@ export default async function SelectCondoPage() {
               <p className="mt-1">Aguarde um convite de administrador.</p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {condos.map((condo) => (
-                <form key={condo.id} action={selectCondo.bind(null, condo.id)}>
-                  <button
-                    type="submit"
-                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-left group"
-                  >
-                    <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-sky-500/20 to-violet-500/20 border border-sky-500/20 flex items-center justify-center flex-shrink-0">
-                      <Building2 className="w-4 h-4 text-sky-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-neutral-100 truncate">{condo.nome}</p>
-                      <p className="text-xs text-neutral-500 capitalize">{condo.role}</p>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-neutral-500 group-hover:text-neutral-300 transition-colors flex-shrink-0" />
-                  </button>
-                </form>
-              ))}
-            </div>
+            <CondoList condos={condos} />
           )}
 
           <div className="mt-6 pt-6 border-t border-white/10">

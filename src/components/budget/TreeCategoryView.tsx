@@ -15,6 +15,7 @@ import {
   deleteCategoria,
   checkCategoriaVinculos,
   transferAndDeleteCategoria,
+  deleteCategoriasBulk,
 } from '@/actions/categorias'
 import { importCategoryTree } from '@/actions/importCategoryTree'
 
@@ -29,6 +30,7 @@ type ModalState =
   | { type: 'edit'; categoria: Categoria }
   | { type: 'delete-confirm'; categoria: Categoria }
   | { type: 'delete-transfer'; categoria: Categoria; vinculos: { orcamentos: number; realizados: number } }
+  | { type: 'bulk-delete-confirm'; count: number }
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 export function TreeCategoryView({ data, allFlat, role = 'visualizador' }: { data: Categoria[]; allFlat: Categoria[]; role?: string }) {
@@ -36,6 +38,7 @@ export function TreeCategoryView({ data, allFlat, role = 'visualizador' }: { dat
   const [modal, setModal] = useState<ModalState>({ type: 'none' })
   const [isPending, startTransition] = useTransition()
   const [importResult, setImportResult] = useState<{ inserted: number; updated: number; errors?: string[] } | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const closeModal = () => setModal({ type: 'none' })
@@ -50,14 +53,36 @@ export function TreeCategoryView({ data, allFlat, role = 'visualizador' }: { dat
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     const rawRows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' })
 
-    // Extract rows - column B is nome/code combined, column C may have codigo_reduzido
+    // Extract rows - intelligent mapping
     const rows = rawRows
-      .slice(5) // skip the header rows
-      .map((row: any[]) => ({
-        conta: String(row[1] ?? '').trim(),
-        codigo: row[2] ? String(row[2]).trim() : null,
-      }))
-      .filter(r => r.conta.length > 0)
+      .slice(5) // skip header rows
+      .map((row: any[]) => {
+        const rawNome = String(row[1] ?? '').trim()
+        const rawCodigo = row[2] ? String(row[2]).trim() : null
+
+        // HEURÍSTICA: Se o nome começa com um código contábil (ex: "1.1 Taxa" ou "2.1.3 Honorários")
+        // Nós extraímos esse código para garantir que a hierarquia funcione, 
+        // mesmo que a coluna de código do Excel esteja com sequenciais (1, 2, 3...)
+        const codeMatch = rawNome.match(/^([\d.]+)\s+(.+)$/)
+        
+        if (codeMatch) {
+          return {
+            codigo: codeMatch[1],
+            conta: codeMatch[2]
+          }
+        }
+
+        return {
+          conta: rawNome,
+          codigo: rawCodigo,
+        }
+      })
+      .filter(r => {
+        const cLow = r.codigo?.toLowerCase() || ''
+        const nLow = r.conta.toLowerCase()
+        const isHeader = cLow.includes('cód') || cLow.includes('cod') || nLow === 'conta' || nLow === 'nome da conta'
+        return r.conta.length > 0 && r.codigo && !isHeader
+      })
 
     startTransition(async () => {
       const result = await importCategoryTree(rows)
@@ -99,6 +124,48 @@ export function TreeCategoryView({ data, allFlat, role = 'visualizador' }: { dat
     })
   }
 
+  const handleBulkDelete = () => {
+    startTransition(async () => {
+      const response = await deleteCategoriasBulk(Array.from(selectedIds))
+      if (response.skipped.length > 0) {
+        alert(`${response.deleted.length} categorias excluídas. ${response.skipped.length} ignoradas por possuírem vínculos ou erros.`)
+      }
+      setSelectedIds(new Set())
+      closeModal()
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === allFlat.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(allFlat.map(c => c.id)))
+    }
+  }
+
+  const getAllChildIds = (node: Categoria): string[] => {
+    let ids = [node.id]
+    if (node.children) {
+      node.children.forEach(child => {
+        ids = [...ids, ...getAllChildIds(child)]
+      })
+    }
+    return ids
+  }
+
+  const handleToggleSelection = (node: Categoria) => {
+    const newSelected = new Set(selectedIds)
+    const childIds = getAllChildIds(node)
+    const isCurrentlySelected = selectedIds.has(node.id)
+
+    if (isCurrentlySelected) {
+      childIds.forEach(id => newSelected.delete(id))
+    } else {
+      childIds.forEach(id => newSelected.add(id))
+    }
+    setSelectedIds(newSelected)
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {/* Action Bar */}
@@ -128,9 +195,39 @@ export function TreeCategoryView({ data, allFlat, role = 'visualizador' }: { dat
               <Plus className="w-4 h-4" />
               Nova Categoria
             </button>
+            {selectedIds.size > 0 && (
+              <button
+                onClick={() => setModal({ type: 'bulk-delete-confirm', count: selectedIds.size })}
+                disabled={isPending}
+                className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg text-sm font-medium transition-colors border border-red-500/20 disabled:opacity-50"
+              >
+                <Trash2 className="w-4 h-4" />
+                Excluir {selectedIds.size}
+              </button>
+            )}
           </div>
         )}
       </div>
+
+      {/* Select All Toggle */}
+      {allFlat.length > 0 && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-white/40 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-xl">
+          <input
+            type="checkbox"
+            checked={selectedIds.size === allFlat.length && allFlat.length > 0}
+            ref={el => {
+              if (el) {
+                el.indeterminate = selectedIds.size > 0 && selectedIds.size < allFlat.length
+              }
+            }}
+            onChange={toggleSelectAll}
+            className="w-4 h-4 rounded border-neutral-300 text-sky-500 focus:ring-sky-500 bg-transparent"
+          />
+          <span className="text-sm text-neutral-600 dark:text-neutral-400 font-medium">
+            {selectedIds.size > 0 ? `${selectedIds.size} selecionadas` : 'Selecionar todas as categorias'}
+          </span>
+        </div>
+      )}
 
       {/* Import Result Banner */}
       {importResult && (
@@ -167,6 +264,8 @@ export function TreeCategoryView({ data, allFlat, role = 'visualizador' }: { dat
                   onAddChild={c => setModal({ type: 'create', parentId: c.id, parentCodigo: c.codigo_reduzido })}
                   isPending={isPending}
                   canEdit={canEdit}
+                  selectedIds={selectedIds}
+                  onToggleSelect={handleToggleSelection}
                 />
               ))}
             </div>
@@ -222,13 +321,26 @@ export function TreeCategoryView({ data, allFlat, role = 'visualizador' }: { dat
           isPending={isPending}
         />
       )}
+
+      {/* Bulk Delete Confirm */}
+      {modal.type === 'bulk-delete-confirm' && (
+        <ConfirmModal
+          title="Excluir Categorias em Lote"
+          message={`Deseja excluir permanentemente ${modal.count} categorias selecionadas? Categorias com dados vinculados serão ignoradas.`}
+          confirmLabel={`Sim, excluir ${modal.count} itens`}
+          danger
+          onCancel={closeModal}
+          onConfirm={handleBulkDelete}
+          isPending={isPending}
+        />
+      )}
     </div>
   )
 }
 
 // ─── Category Node ─────────────────────────────────────────────────────────────
 function CategoryNode({
-  node, depth, onEdit, onDelete, onAddChild, isPending, canEdit = true
+  node, depth, onEdit, onDelete, onAddChild, isPending, canEdit = true, selectedIds, onToggleSelect
 }: {
   node: Categoria
   depth: number
@@ -237,6 +349,8 @@ function CategoryNode({
   onAddChild: (c: Categoria) => void
   isPending: boolean
   canEdit?: boolean
+  selectedIds: Set<string>
+  onToggleSelect: (node: Categoria) => void
 }) {
   const [isExpanded, setIsExpanded] = useState(false)
   const hasChildren = node.children && node.children.length > 0
@@ -260,6 +374,13 @@ function CategoryNode({
             <span className="w-4 h-4 block" />
           )}
         </button>
+
+        <input
+          type="checkbox"
+          checked={selectedIds.has(node.id)}
+          onChange={() => onToggleSelect(node)}
+          className="w-4 h-4 rounded border-neutral-300 dark:border-white/20 text-sky-500 focus:ring-sky-500 bg-transparent transition-colors cursor-pointer mr-1"
+        />
 
         <div className="text-neutral-500 shrink-0">
           {hasChildren
@@ -326,6 +447,8 @@ function CategoryNode({
               onAddChild={onAddChild}
               isPending={isPending}
               canEdit={canEdit}
+              selectedIds={selectedIds}
+              onToggleSelect={onToggleSelect}
             />
           ))}
         </div>
