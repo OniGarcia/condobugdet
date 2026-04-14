@@ -23,22 +23,28 @@ const BRL_SHORT = (v: number) => {
 // ─── Custom chart labels ──────────────────────────────────────────────────────
 function LineLabel({ x, y, value, position = 'top' }: { x?: number; y?: number; value?: number; position?: 'top' | 'bottom' }) {
   if (!value) return null
-  const dy = position === 'top' ? -14 : 22
+  const dy = position === 'top' ? -20 : 30
   return (
-    <text x={x} y={(y ?? 0) + dy} fill="#a3a3a3" fontSize={10} textAnchor="middle">
+    <text x={x} y={(y ?? 0) + dy} className="fill-neutral-500 dark:fill-neutral-400" fontSize={10} textAnchor="middle">
       {BRL_SHORT(value)}
     </text>
   )
 }
 
-function BarLabel({ x, y, width, value }: { x?: number; y?: number; width?: number; value?: number }) {
+// Recharts 3 passa a geometria da barra em props.viewBox = { x, y, width, height }
+function BarLabel(props: any) {
+  const { value, viewBox } = props
   if (value === undefined || value === null || value === 0) return null
+  const { x = 0, y = 0, width = 0, height = 0 } = viewBox ?? {}
   const isPos = value >= 0
+  const labelY = isPos
+    ? y - 6
+    : y + Math.abs(height) + 13
   return (
     <text
-      x={(x ?? 0) + (width ?? 0) / 2}
-      y={(y ?? 0) + (isPos ? -5 : 14)}
-      fill="#a3a3a3"
+      x={x + width / 2}
+      y={labelY}
+      className="fill-neutral-500 dark:fill-neutral-400"
       fontSize={10}
       textAnchor="middle"
     >
@@ -90,6 +96,7 @@ export function PrestacaoContasView({ data, inicio, fim, condoNome }: Props) {
     dadosMensais,
     receitasPorCategoria,
     despesasPorCategoria,
+    yoyReceitas, yoyDespesas, yoyResultado,
   } = data
 
   // Base chart data (months with any movement)
@@ -220,6 +227,7 @@ export function PrestacaoContasView({ data, inicio, fim, condoNome }: Props) {
           title="Receitas"
           value={totalReceitas}
           sub={`Média: ${BRL.format(mediaReceitas)}`}
+          // yoy={yoyReceitas}
           icon={<TrendingUp size={18} className="text-sky-400" />}
           color="sky"
         />
@@ -227,6 +235,7 @@ export function PrestacaoContasView({ data, inicio, fim, condoNome }: Props) {
           title="Despesas"
           value={totalDespesas}
           sub={`Média: ${BRL.format(mediaDespesas)}`}
+          // yoy={yoyDespesas}
           icon={<TrendingDown size={18} className="text-red-400" />}
           color="red"
         />
@@ -234,6 +243,7 @@ export function PrestacaoContasView({ data, inicio, fim, condoNome }: Props) {
           title="Resultado"
           value={resultado}
           sub={`Média: ${BRL.format(mediaResultado)}`}
+          // yoy={yoyResultado}
           icon={<Scale size={18} className="text-violet-400" />}
           color="violet"
           signed
@@ -296,10 +306,10 @@ export function PrestacaoContasView({ data, inicio, fim, condoNome }: Props) {
         >
           {filteredChartData.length === 0 ? <EmptyState /> : (
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={filteredChartData} margin={{ top: 32, right: 24, left: 24, bottom: 8 }}>
+              <BarChart data={filteredChartData} margin={{ top: 32, right: 24, left: 24, bottom: 28 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
                 <XAxis dataKey="label" stroke="#737373" tick={{ fill: '#737373', fontSize: 11 }} axisLine={false} tickLine={false} padding={{ left: 24, right: 24 }} />
-                <YAxis hide />
+                <YAxis hide padding={{ top: 24, bottom: 24 }} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: unknown) => [BRL.format(Number(v) || 0), 'Resultado']} />
                 <ReferenceLine y={0} stroke="#555" strokeDasharray="4 2" />
                 <Bar dataKey="resultado" name="Resultado" radius={[4, 4, 0, 0]}>
@@ -381,11 +391,12 @@ const COLOR_MAP = {
 }
 
 function KPICard({
-  title, value, sub, icon, color, signed = false,
+  title, value, sub, yoy, icon, color, signed = false,
 }: {
   title: string
   value: number
   sub?: string
+  yoy?: number
   icon: React.ReactNode
   color: keyof typeof COLOR_MAP
   signed?: boolean
@@ -402,6 +413,9 @@ function KPICard({
       </div>
       <h4 className={`text-xl font-bold tracking-tight ${valueColor}`}>{BRL.format(value)}</h4>
       {sub && <p className="text-xs text-neutral-500 mt-1">{sub}</p>}
+      {yoy !== undefined && (
+        <p className="text-xs text-neutral-400 mt-0.5">Ano Anterior: {BRL.format(yoy)}</p>
+      )}
     </div>
   )
 }
@@ -492,8 +506,8 @@ function HorizontalBarChart({
             </div>
             <div className="h-2 bg-neutral-100 dark:bg-white/5 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${isActive ? 'opacity-100' : ''} ${barClass}`}
-                style={{ width: `${pct}%` }}
+                className={`bar-fill h-full rounded-full transition-all duration-500 ${isActive ? 'opacity-100' : ''} ${barClass}`}
+                style={{ '--bar-pct': `${pct}%` } as React.CSSProperties}
               />
             </div>
           </div>

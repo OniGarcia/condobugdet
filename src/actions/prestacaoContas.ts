@@ -54,6 +54,9 @@ export interface PrestacaoContasData {
   receitasPorCategoria: CategoriaValor[]
   despesasPorCategoria: CategoriaValor[]
   mesesComDados: number
+  yoyReceitas: number
+  yoyDespesas: number
+  yoyResultado: number
 }
 
 const EMPTY: PrestacaoContasData = {
@@ -69,6 +72,9 @@ const EMPTY: PrestacaoContasData = {
   receitasPorCategoria: [],
   despesasPorCategoria: [],
   mesesComDados: 0,
+  yoyReceitas: 0,
+  yoyDespesas: 0,
+  yoyResultado: 0,
 }
 
 
@@ -110,29 +116,37 @@ export async function getPrestacaoContas(
   const leafIds = getLeafIds(catTree)
   const catNameMap = new Map(categorias.map(c => [c.id, c.nome_conta]))
 
-  // 2. Fetch realized data for all years in the period (paginated)
-  let realData: any[] = []
+  // YoY keys: same months, previous year
+  const yoyStartKey = (anoInicio - 1) * 100 + mesInicio
+  const yoyEndKey   = (anoFim   - 1) * 100 + mesFim
+
+  // 2. Fetch realized data covering current period + previous year (for YoY)
+  let allRealData: any[] = []
   let from = 0, to = 999, hasMore = true
   while (hasMore) {
     const { data, error } = await supabase
       .from('dados_realizados')
       .select('categoria_id, ano, mes, valor_realizado')
       .eq('condo_id', condoId)
-      .gte('ano', anoInicio)
+      .gte('ano', anoInicio - 1)
       .lte('ano', anoFim)
       .range(from, to)
     if (error) { console.error('prestacaoContas: realizado error', error); break }
     if (data && data.length > 0) {
-      realData = realData.concat(data)
+      allRealData = allRealData.concat(data)
       if (data.length < 1000) hasMore = false
       else { from += 1000; to += 1000 }
     } else hasMore = false
   }
 
-  // Filter to exact period window
-  realData = realData.filter(r => {
+  // Split into current period and YoY period
+  const realData = allRealData.filter(r => {
     const k = Number(r.ano) * 100 + Number(r.mes)
     return k >= startKey && k <= endKey
+  })
+  const yoyData = allRealData.filter(r => {
+    const k = Number(r.ano) * 100 + Number(r.mes)
+    return k >= yoyStartKey && k <= yoyEndKey
   })
 
   // 3. Saldo anterior: soma dos saldo_inicial dos centros de custo do condo
@@ -253,6 +267,18 @@ export async function getPrestacaoContas(
     .filter(x => x.valor > 0)
     .sort((a, b) => b.valor - a.valor)
 
+  // 8. YoY aggregation (same logic, leaf-only, over yoyData)
+  let yoyReceitas = 0
+  let yoyDespesas = 0
+  for (const r of yoyData) {
+    if (!leafIds.has(r.categoria_id)) continue
+    const valor = Number(r.valor_realizado || 0)
+    const tipo  = typeMap.get(r.categoria_id)
+    if (tipo === 'RECEITA') yoyReceitas += valor
+    else if (tipo === 'DESPESA') yoyDespesas += valor
+  }
+  const yoyResultado = yoyReceitas - yoyDespesas
+
   return {
     totalReceitas,
     mediaReceitas: totalReceitas / divisor,
@@ -266,5 +292,8 @@ export async function getPrestacaoContas(
     receitasPorCategoria,
     despesasPorCategoria,
     mesesComDados,
+    yoyReceitas,
+    yoyDespesas,
+    yoyResultado,
   }
 }

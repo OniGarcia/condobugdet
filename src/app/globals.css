@@ -44,6 +44,9 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+  .bar-fill {
+    width: var(--bar-pct);
+  }
 }
 
 @media print {
