@@ -6,18 +6,17 @@ import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer, ReferenceLine, Cell,
 } from 'recharts'
-import {
-  TrendingUp, TrendingDown, Wallet, Scale, ChevronLeft, ChevronRight,
-} from 'lucide-react'
+import { TrendingUp, TrendingDown, Scale, Search, X } from 'lucide-react'
 import type { PrestacaoContasData } from '@/actions/prestacaoContas'
+import { NOMES_MESES } from '@/lib/meses'
 
-// ─── Formatters ──────────────────────────────────────────────────────────────
+// ─── Formatters ───────────────────────────────────────────────────────────────
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 const BRL_SHORT = (v: number) => {
   const abs = Math.abs(v)
   const sign = v < 0 ? '-' : ''
   if (abs >= 1_000_000) return `${sign}R$${(abs / 1_000_000).toFixed(1)}M`
-  if (abs >= 1_000) return `${sign}R$${(abs / 1_000).toFixed(0)}k`
+  if (abs >= 1_000)     return `${sign}R$${(abs / 1_000).toFixed(0)}k`
   return BRL.format(v)
 }
 
@@ -29,53 +28,99 @@ const TOOLTIP_STYLE = {
   fontSize: '12px',
 }
 
-// ─── Props ────────────────────────────────────────────────────────────────────
+const ANOS = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 5 + i)
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+interface Periodo { ano: number; mes: number }
+
+interface ActiveFilter {
+  nome: string
+  tipo: 'RECEITA' | 'DESPESA'
+}
+
 interface Props {
   data: PrestacaoContasData
-  ano: number
+  inicio: Periodo
+  fim: Periodo
   condoNome: string | null
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export function PrestacaoContasView({ data, ano, condoNome }: Props) {
-  const router = useRouter()
+export function PrestacaoContasView({ data, inicio, fim, condoNome }: Props) {
+  const router   = useRouter()
   const pathname = usePathname()
   const [isMounted, setIsMounted] = useState(false)
   useEffect(() => { setIsMounted(true) }, [])
+
+  const [draftInicio, setDraftInicio] = useState(inicio)
+  const [draftFim,    setDraftFim]    = useState(fim)
+  const [activeFilter, setActiveFilter] = useState<ActiveFilter | null>(null)
 
   const {
     totalReceitas, mediaReceitas,
     totalDespesas, mediaDespesas,
     resultado, mediaResultado,
-    saldoAnterior, saldoFinal,
     dadosMensais,
     receitasPorCategoria,
     despesasPorCategoria,
   } = data
 
-  // Only show months with data for the charts
+  // Base chart data (months with any movement)
   const chartData = useMemo(
     () => dadosMensais.filter(d => d.receitas > 0 || d.despesas > 0),
     [dadosMensais],
   )
 
-  function changeYear(delta: number) {
+  // When a category filter is active, use that category's monthly breakdown
+  const filteredChartData = useMemo(() => {
+    if (!activeFilter) return chartData
+    const cats = activeFilter.tipo === 'RECEITA' ? receitasPorCategoria : despesasPorCategoria
+    const cat = cats.find(c => c.nome === activeFilter.nome)
+    if (!cat) return chartData
+    // Keep all months so the x-axis stays consistent; filter to those with data
+    return cat.dadosMensais.filter(d => d.receitas > 0 || d.despesas > 0)
+  }, [activeFilter, chartData, receitasPorCategoria, despesasPorCategoria])
+
+  function handleCategoryClick(nome: string, tipo: 'RECEITA' | 'DESPESA') {
+    setActiveFilter(prev =>
+      prev?.nome === nome && prev?.tipo === tipo ? null : { nome, tipo }
+    )
+  }
+
+  function clearFilter() { setActiveFilter(null) }
+
+  function applyPeriod() {
+    const startKey = draftInicio.ano * 100 + draftInicio.mes
+    const endKey   = draftFim.ano   * 100 + draftFim.mes
+    if (startKey > endKey) return
+    setActiveFilter(null)
     const params = new URLSearchParams()
-    params.set('ano', String(ano + delta))
+    params.set('inicio', `${draftInicio.ano}-${String(draftInicio.mes).padStart(2, '0')}`)
+    params.set('fim',    `${draftFim.ano}-${String(draftFim.mes).padStart(2, '0')}`)
     router.push(`${pathname}?${params.toString()}`)
   }
 
+  const periodoLabel =
+    `${NOMES_MESES[inicio.mes - 1]}/${inicio.ano} – ${NOMES_MESES[fim.mes - 1]}/${fim.ano}`
+
+  const draftStartKey = draftInicio.ano * 100 + draftInicio.mes
+  const draftEndKey   = draftFim.ano   * 100 + draftFim.mes
+  const periodInvalid = draftStartKey > draftEndKey
+
+  // Line chart subtitle: show filter badge or default
+  const lineChartSubtitle = activeFilter
+    ? activeFilter.nome
+    : 'Evolução mensal'
+
   if (!isMounted) {
-    return (
-      <div className="min-h-[400px] w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl animate-pulse" />
-    )
+    return <div className="min-h-[400px] w-full bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl animate-pulse" />
   }
 
   return (
     <div className="space-y-6">
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
             Prestação de Contas
@@ -83,37 +128,73 @@ export function PrestacaoContasView({ data, ano, condoNome }: Props) {
           {condoNome && (
             <p className="text-sm text-neutral-500 mt-0.5">{condoNome}</p>
           )}
+          <p className="text-xs text-neutral-400 mt-1">Período: {periodoLabel}</p>
         </div>
 
-        {/* Year selector */}
-        <div className="flex items-center gap-2 bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-xl px-3 py-2">
+        {/* Period picker */}
+        <div className="flex flex-wrap items-end gap-3 bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl px-4 py-3">
+          <PeriodPicker
+            label="De"
+            mes={draftInicio.mes}
+            ano={draftInicio.ano}
+            onChangeMes={m => setDraftInicio(p => ({ ...p, mes: m }))}
+            onChangeAno={a => setDraftInicio(p => ({ ...p, ano: a }))}
+          />
+
+          <span className="text-neutral-400 text-sm pb-1">até</span>
+
+          <PeriodPicker
+            label="Até"
+            mes={draftFim.mes}
+            ano={draftFim.ano}
+            onChangeMes={m => setDraftFim(p => ({ ...p, mes: m }))}
+            onChangeAno={a => setDraftFim(p => ({ ...p, ano: a }))}
+          />
+
           <button
-            onClick={() => changeYear(-1)}
-            className="p-1 hover:bg-neutral-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+            type="button"
+            onClick={applyPeriod}
+            disabled={periodInvalid}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-sky-500 hover:bg-sky-600 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors"
           >
-            <ChevronLeft className="w-4 h-4 text-neutral-500" />
+            <Search size={14} />
+            Consultar
           </button>
-          <span className="text-sm font-semibold text-neutral-900 dark:text-white w-12 text-center">
-            {ano}
-          </span>
-          <button
-            onClick={() => changeYear(1)}
-            className="p-1 hover:bg-neutral-100 dark:hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <ChevronRight className="w-4 h-4 text-neutral-500" />
-          </button>
+
+          {periodInvalid && (
+            <p className="w-full text-xs text-red-400">
+              O início deve ser anterior ao fim.
+            </p>
+          )}
         </div>
       </div>
 
+      {/* ── Active filter badge ─────────────────────────────────────────────── */}
+      {activeFilter && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-neutral-500">Filtro ativo:</span>
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${
+            activeFilter.tipo === 'RECEITA'
+              ? 'bg-sky-50 border-sky-200 text-sky-700 dark:bg-sky-500/10 dark:border-sky-500/20 dark:text-sky-300'
+              : 'bg-red-50 border-red-200 text-red-700 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-300'
+          }`}>
+            {activeFilter.tipo === 'RECEITA' ? 'Receita' : 'Despesa'}: {activeFilter.nome}
+            <button type="button" onClick={clearFilter} title="Limpar filtro" aria-label="Limpar filtro" className="hover:opacity-70 transition-opacity">
+              <X size={12} />
+            </button>
+          </span>
+          <span className="text-xs text-neutral-400">— clique novamente na categoria para remover</span>
+        </div>
+      )}
+
       {/* ── KPI Cards ──────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KPICard
           title="Receitas"
           value={totalReceitas}
           sub={`Média: ${BRL.format(mediaReceitas)}`}
           icon={<TrendingUp size={18} className="text-sky-400" />}
           color="sky"
-          positive
         />
         <KPICard
           title="Despesas"
@@ -130,80 +211,44 @@ export function PrestacaoContasView({ data, ano, condoNome }: Props) {
           color="violet"
           signed
         />
-        <KPICard
-          title="Saldo Final"
-          value={saldoFinal}
-          sub={`Saldo Anterior: ${BRL.format(saldoAnterior)}`}
-          icon={<Wallet size={18} className="text-emerald-400" />}
-          color="emerald"
-          signed
-        />
       </div>
 
       {/* ── Charts row 1: Linhas + Receitas por Categoria ──────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* Linha: Receitas vs Despesas */}
         <ChartCard
           title="Receitas e Despesas"
-          subtitle="Evolução mensal"
+          subtitle={lineChartSubtitle}
+          filterActive={!!activeFilter}
+          onClearFilter={clearFilter}
           className="lg:col-span-2"
         >
-          {chartData.length === 0 ? (
-            <EmptyState />
-          ) : (
+          {filteredChartData.length === 0 ? <EmptyState /> : (
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
+              <LineChart data={filteredChartData} margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
-                <XAxis
-                  dataKey="label"
-                  stroke="#737373"
-                  tick={{ fill: '#737373', fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tickFormatter={BRL_SHORT}
-                  stroke="#737373"
-                  tick={{ fill: '#737373', fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={70}
-                />
-                <Tooltip
-                  contentStyle={TOOLTIP_STYLE}
-                  formatter={(v: unknown) => BRL.format(Number(v) || 0)}
-                />
+                <XAxis dataKey="label" stroke="#737373" tick={{ fill: '#737373', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tickFormatter={BRL_SHORT} stroke="#737373" tick={{ fill: '#737373', fontSize: 11 }} axisLine={false} tickLine={false} width={70} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: unknown) => BRL.format(Number(v) || 0)} />
                 <Legend wrapperStyle={{ paddingTop: '12px', fontSize: '12px' }} />
-                <Line
-                  type="monotone"
-                  dataKey="receitas"
-                  name="Receitas"
-                  stroke="#38bdf8"
-                  strokeWidth={2.5}
-                  dot={{ r: 3, fill: '#38bdf8', stroke: '#171717', strokeWidth: 2 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="despesas"
-                  name="Despesas"
-                  stroke="#f87171"
-                  strokeWidth={2.5}
-                  dot={{ r: 3, fill: '#f87171', stroke: '#171717', strokeWidth: 2 }}
-                />
+                {/* Hide the despesas line when filtering by receita (it'll be all zeros) */}
+                {(!activeFilter || activeFilter.tipo === 'RECEITA') && (
+                  <Line type="monotone" dataKey="receitas" name="Receitas" stroke="#38bdf8" strokeWidth={2.5} dot={{ r: 3, fill: '#38bdf8', stroke: '#171717', strokeWidth: 2 }} />
+                )}
+                {(!activeFilter || activeFilter.tipo === 'DESPESA') && (
+                  <Line type="monotone" dataKey="despesas" name="Despesas" stroke="#f87171" strokeWidth={2.5} dot={{ r: 3, fill: '#f87171', stroke: '#171717', strokeWidth: 2 }} />
+                )}
               </LineChart>
             </ResponsiveContainer>
           )}
         </ChartCard>
 
-        {/* Barra Horizontal: Receitas por Categoria */}
-        <ChartCard title="Receitas" subtitle="Por categoria">
-          {receitasPorCategoria.length === 0 ? (
-            <EmptyState />
-          ) : (
+        <ChartCard title="Receitas" subtitle="Por categoria — clique para filtrar">
+          {receitasPorCategoria.length === 0 ? <EmptyState /> : (
             <HorizontalBarChart
               data={receitasPorCategoria}
-              color="#38bdf8"
+              barClass="bg-sky-400"
+              selectedNome={activeFilter?.tipo === 'RECEITA' ? activeFilter.nome : null}
+              onSelect={nome => handleCategoryClick(nome, 'RECEITA')}
             />
           )}
         </ChartCard>
@@ -211,45 +256,24 @@ export function PrestacaoContasView({ data, ano, condoNome }: Props) {
 
       {/* ── Charts row 2: Resultado + Despesas por Categoria ───────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* Linha: Resultado mensal */}
         <ChartCard
           title="Resultado"
-          subtitle="Saldo líquido mensal"
+          subtitle={activeFilter ? activeFilter.nome : 'Saldo líquido mensal'}
+          filterActive={!!activeFilter}
+          onClearFilter={clearFilter}
           className="lg:col-span-2"
         >
-          {chartData.length === 0 ? (
-            <EmptyState />
-          ) : (
+          {filteredChartData.length === 0 ? <EmptyState /> : (
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
+              <BarChart data={filteredChartData} margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
-                <XAxis
-                  dataKey="label"
-                  stroke="#737373"
-                  tick={{ fill: '#737373', fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tickFormatter={BRL_SHORT}
-                  stroke="#737373"
-                  tick={{ fill: '#737373', fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={70}
-                />
-                <Tooltip
-                  contentStyle={TOOLTIP_STYLE}
-                  formatter={(v: unknown) => [BRL.format(Number(v) || 0), 'Resultado']}
-                />
+                <XAxis dataKey="label" stroke="#737373" tick={{ fill: '#737373', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tickFormatter={BRL_SHORT} stroke="#737373" tick={{ fill: '#737373', fontSize: 11 }} axisLine={false} tickLine={false} width={70} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: unknown) => [BRL.format(Number(v) || 0), 'Resultado']} />
                 <ReferenceLine y={0} stroke="#555" strokeDasharray="4 2" />
                 <Bar dataKey="resultado" name="Resultado" radius={[4, 4, 0, 0]}>
-                  {chartData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={entry.resultado >= 0 ? '#34d399' : '#f87171'}
-                    />
+                  {filteredChartData.map((entry, i) => (
+                    <Cell key={`cell-${i}`} fill={entry.resultado >= 0 ? '#34d399' : '#f87171'} />
                   ))}
                 </Bar>
               </BarChart>
@@ -257,14 +281,13 @@ export function PrestacaoContasView({ data, ano, condoNome }: Props) {
           )}
         </ChartCard>
 
-        {/* Barra Horizontal: Despesas por Categoria */}
-        <ChartCard title="Despesas" subtitle="Por categoria">
-          {despesasPorCategoria.length === 0 ? (
-            <EmptyState />
-          ) : (
+        <ChartCard title="Despesas" subtitle="Por categoria — clique para filtrar">
+          {despesasPorCategoria.length === 0 ? <EmptyState /> : (
             <HorizontalBarChart
               data={despesasPorCategoria}
-              color="#f87171"
+              barClass="bg-red-400"
+              selectedNome={activeFilter?.tipo === 'DESPESA' ? activeFilter.nome : null}
+              onSelect={nome => handleCategoryClick(nome, 'DESPESA')}
             />
           )}
         </ChartCard>
@@ -274,69 +297,112 @@ export function PrestacaoContasView({ data, ano, condoNome }: Props) {
   )
 }
 
+// ─── Period Picker ─────────────────────────────────────────────────────────────
+function PeriodPicker({
+  label, mes, ano, onChangeMes, onChangeAno,
+}: {
+  label: string
+  mes: number
+  ano: number
+  onChangeMes: (m: number) => void
+  onChangeAno:  (a: number) => void
+}) {
+  const selectCls =
+    'bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 rounded-lg px-2 py-1.5 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer'
+
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-xs font-medium text-neutral-500 uppercase tracking-wide">{label}</span>
+      <div className="flex items-center gap-1.5">
+        <select
+          value={mes}
+          onChange={e => onChangeMes(Number(e.target.value))}
+          className={selectCls}
+          title={`Mês ${label.toLowerCase()}`}
+          aria-label={`Mês ${label.toLowerCase()}`}
+        >
+          {NOMES_MESES.map((nome, i) => (
+            <option key={i + 1} value={i + 1}>{nome}</option>
+          ))}
+        </select>
+        <select
+          value={ano}
+          onChange={e => onChangeAno(Number(e.target.value))}
+          className={selectCls}
+          title={`Ano ${label.toLowerCase()}`}
+          aria-label={`Ano ${label.toLowerCase()}`}
+        >
+          {ANOS.map(a => (
+            <option key={a} value={a}>{a}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+  )
+}
+
 // ─── KPI Card ─────────────────────────────────────────────────────────────────
 const COLOR_MAP = {
-  sky:     'from-sky-500/10',
-  red:     'from-red-500/10',
-  violet:  'from-violet-500/10',
-  emerald: 'from-emerald-500/10',
+  sky:    'from-sky-500/10',
+  red:    'from-red-500/10',
+  violet: 'from-violet-500/10',
 }
 
 function KPICard({
-  title, value, sub, icon, color, positive = false, signed = false,
+  title, value, sub, icon, color, signed = false,
 }: {
   title: string
   value: number
   sub?: string
   icon: React.ReactNode
   color: keyof typeof COLOR_MAP
-  positive?: boolean
   signed?: boolean
 }) {
-  const isNegative = value < 0
   const valueColor = signed
-    ? (isNegative ? 'text-red-500 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400')
+    ? (value < 0 ? 'text-red-500 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400')
     : 'text-neutral-900 dark:text-white'
 
   return (
-    <div
-      className={`bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl p-5 relative overflow-hidden bg-gradient-to-br ${COLOR_MAP[color]} to-transparent`}
-    >
+    <div className={`bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl p-5 relative overflow-hidden bg-gradient-to-br ${COLOR_MAP[color]} to-transparent`}>
       <div className="flex justify-between items-start mb-3">
-        <p className="text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wider">
-          {title}
-        </p>
-        <div className="p-2 bg-white/60 dark:bg-white/5 rounded-xl border border-white/5">
-          {icon}
-        </div>
+        <p className="text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wider">{title}</p>
+        <div className="p-2 bg-white/60 dark:bg-white/5 rounded-xl border border-white/5">{icon}</div>
       </div>
-      <h4 className={`text-xl font-bold tracking-tight ${valueColor}`}>
-        {BRL.format(value)}
-      </h4>
-      {sub && (
-        <p className="text-xs text-neutral-500 mt-1">{sub}</p>
-      )}
+      <h4 className={`text-xl font-bold tracking-tight ${valueColor}`}>{BRL.format(value)}</h4>
+      {sub && <p className="text-xs text-neutral-500 mt-1">{sub}</p>}
     </div>
   )
 }
 
 // ─── Chart Card ───────────────────────────────────────────────────────────────
-function ChartCard({
-  title, subtitle, children, className = '',
-}: {
+function ChartCard({ title, subtitle, children, className = '', filterActive, onClearFilter }: {
   title: string
   subtitle?: string
   children: React.ReactNode
   className?: string
+  filterActive?: boolean
+  onClearFilter?: () => void
 }) {
   return (
-    <div
-      className={`bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 backdrop-blur-xl ${className}`}
-    >
-      <div className="mb-4">
-        <h3 className="text-base font-semibold text-neutral-900 dark:text-white">{title}</h3>
-        {subtitle && (
-          <p className="text-xs text-neutral-500 mt-0.5">{subtitle}</p>
+    <div className={`bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl p-6 backdrop-blur-xl transition-all ${filterActive ? 'ring-2 ring-sky-400/40' : ''} ${className}`}>
+      <div className="mb-4 flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <h3 className="text-base font-semibold text-neutral-900 dark:text-white">{title}</h3>
+          {subtitle && (
+            <p className={`text-xs mt-0.5 truncate ${filterActive ? 'text-sky-500 dark:text-sky-400 font-medium' : 'text-neutral-500'}`}>
+              {subtitle}
+            </p>
+          )}
+        </div>
+        {filterActive && onClearFilter && (
+          <button
+            type="button"
+            onClick={onClearFilter}
+            className="shrink-0 p-1 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors"
+            title="Limpar filtro"
+          >
+            <X size={14} />
+          </button>
         )}
       </div>
       <div className="h-[260px] w-full">{children}</div>
@@ -346,33 +412,56 @@ function ChartCard({
 
 // ─── Horizontal Bar Chart ─────────────────────────────────────────────────────
 function HorizontalBarChart({
-  data, color,
+  data, barClass, selectedNome, onSelect,
 }: {
   data: { nome: string; valor: number }[]
-  color: string
+  barClass: string
+  selectedNome?: string | null
+  onSelect?: (nome: string) => void
 }) {
   const max = data[0]?.valor || 1
-  const shown = data.slice(0, 8)
+  const hasSelection = !!selectedNome
 
   return (
-    <div className="h-full flex flex-col justify-center gap-2 overflow-y-auto pr-1">
-      {shown.map((item) => {
-        const pct = (item.valor / max) * 100
-        const shortNome = item.nome.length > 28 ? item.nome.slice(0, 26) + '…' : item.nome
+    <div className="h-full flex flex-col justify-start gap-2 overflow-y-auto pr-1">
+      {data.map(item => {
+        const pct      = Math.round((item.valor / max) * 100)
+        const isActive = item.nome === selectedNome
+        const isDimmed = hasSelection && !isActive
+
         return (
-          <div key={item.nome} className="group">
+          <div
+            key={item.nome}
+            onClick={() => onSelect?.(item.nome)}
+            className={`rounded-lg px-1.5 py-1 -mx-1.5 cursor-pointer transition-all select-none ${
+              isActive
+                ? 'bg-sky-50 dark:bg-sky-500/10'
+                : isDimmed
+                  ? 'opacity-40'
+                  : 'hover:bg-neutral-50 dark:hover:bg-white/5'
+            }`}
+          >
             <div className="flex justify-between items-center mb-0.5">
-              <span className="text-[11px] text-neutral-600 dark:text-neutral-400 truncate" title={item.nome}>
-                {shortNome}
+              <span
+                className={`text-[11px] truncate transition-colors ${
+                  isActive
+                    ? 'text-sky-700 dark:text-sky-300 font-semibold'
+                    : 'text-neutral-600 dark:text-neutral-400'
+                }`}
+                title={item.nome}
+              >
+                {item.nome}
               </span>
-              <span className="text-[11px] font-semibold text-neutral-900 dark:text-white ml-2 shrink-0">
-                {BRL_SHORT(item.valor)}
+              <span className={`text-[11px] font-semibold ml-2 shrink-0 ${
+                isActive ? 'text-sky-700 dark:text-sky-300' : 'text-neutral-900 dark:text-white'
+              }`}>
+                {BRL.format(item.valor)}
               </span>
             </div>
             <div className="h-2 bg-neutral-100 dark:bg-white/5 rounded-full overflow-hidden">
               <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${pct}%`, backgroundColor: color }}
+                className={`h-full rounded-full transition-all duration-500 ${isActive ? 'opacity-100' : ''} ${barClass}`}
+                style={{ width: `${pct}%` }}
               />
             </div>
           </div>

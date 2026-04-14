@@ -4,17 +4,27 @@ import { PrestacaoContasView } from '@/components/prestacaoContas/PrestacaoConta
 
 export const dynamic = 'force-dynamic'
 
+function parsePeriod(param: string | undefined, fallback: { ano: number; mes: number }) {
+  if (param && /^\d{4}-\d{2}$/.test(param)) {
+    const [ano, mes] = param.split('-').map(Number)
+    if (mes >= 1 && mes <= 12) return { ano, mes }
+  }
+  return fallback
+}
+
 export default async function PrestacaoContasPage({
   searchParams,
 }: {
-  searchParams: Promise<{ ano?: string }>
+  searchParams: Promise<{ inicio?: string; fim?: string }>
 }) {
   const params = await searchParams
   const now = new Date()
-  const ano = params.ano ? Number(params.ano) : now.getFullYear()
+
+  const inicio = parsePeriod(params.inicio, { ano: now.getFullYear(), mes: 1 })
+  const fim    = parsePeriod(params.fim,    { ano: now.getFullYear(), mes: 12 })
 
   const [data, currentCondo] = await Promise.all([
-    getPrestacaoContas(ano),
+    getPrestacaoContas(inicio.ano, inicio.mes, fim.ano, fim.mes),
     getCurrentCondo(),
   ])
 
@@ -22,7 +32,8 @@ export default async function PrestacaoContasPage({
     <div className="flex flex-col min-h-screen">
       <PrestacaoContasView
         data={data}
-        ano={ano}
+        inicio={inicio}
+        fim={fim}
         condoNome={currentCondo?.nome ?? null}
       />
     </div>

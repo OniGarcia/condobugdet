@@ -3,8 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { validateAccess } from '@/lib/supabase/validateAccess'
 import { Categoria } from '@/types'
-
-const NOMES_MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+import { NOMES_MESES } from '@/lib/meses'
 
 function buildTypeMap(cats: Categoria[], map: Map<string, 'RECEITA' | 'DESPESA'> = new Map()) {
   cats.forEach(c => {
@@ -14,13 +13,6 @@ function buildTypeMap(cats: Categoria[], map: Map<string, 'RECEITA' | 'DESPESA'>
   return map
 }
 
-function buildParentMap(cats: Categoria[], parentMap: Map<string, string> = new Map()) {
-  cats.forEach(c => {
-    if (c.parent_id) parentMap.set(c.id, c.parent_id)
-    if (c.children) buildParentMap(c.children, parentMap)
-  })
-  return parentMap
-}
 
 // Only leaf nodes (no children) should be summed to avoid double-counting
 function getLeafIds(cats: Categoria[], leafIds: Set<string> = new Set()): Set<string> {
@@ -34,15 +26,6 @@ function getLeafIds(cats: Categoria[], leafIds: Set<string> = new Set()): Set<st
   return leafIds
 }
 
-function getTopLevelId(catId: string, parentMap: Map<string, string>): string {
-  let current = catId
-  let guard = 0
-  while (parentMap.has(current) && guard < 20) {
-    current = parentMap.get(current)!
-    guard++
-  }
-  return current
-}
 
 export interface DadoMensal {
   mes: number
@@ -55,6 +38,7 @@ export interface DadoMensal {
 export interface CategoriaValor {
   nome: string
   valor: number
+  dadosMensais: DadoMensal[]
 }
 
 export interface PrestacaoContasData {
@@ -87,9 +71,21 @@ const EMPTY: PrestacaoContasData = {
   mesesComDados: 0,
 }
 
-export async function getPrestacaoContas(ano: number): Promise<PrestacaoContasData> {
+
+
+export async function getPrestacaoContas(
+  anoInicio: number,
+  mesInicio: number,
+  anoFim: number,
+  mesFim: number,
+): Promise<PrestacaoContasData> {
   const { condoId } = await validateAccess()
   const supabase = await createClient()
+
+  const startKey = anoInicio * 100 + mesInicio
+  const endKey   = anoFim   * 100 + mesFim
+
+  if (startKey > endKey) return { ...EMPTY }
 
   // 1. Fetch categories
   const { data: catData, error: catErr } = await supabase
@@ -111,11 +107,10 @@ export async function getPrestacaoContas(ano: number): Promise<PrestacaoContasDa
 
   const catTree = buildTree(categorias)
   const typeMap = buildTypeMap(catTree)
-  const parentMap = buildParentMap(catTree)
   const leafIds = getLeafIds(catTree)
   const catNameMap = new Map(categorias.map(c => [c.id, c.nome_conta]))
 
-  // 2. Fetch realized data for the year (paginated)
+  // 2. Fetch realized data for all years in the period (paginated)
   let realData: any[] = []
   let from = 0, to = 999, hasMore = true
   while (hasMore) {
@@ -123,7 +118,8 @@ export async function getPrestacaoContas(ano: number): Promise<PrestacaoContasDa
       .from('dados_realizados')
       .select('categoria_id, ano, mes, valor_realizado')
       .eq('condo_id', condoId)
-      .eq('ano', ano)
+      .gte('ano', anoInicio)
+      .lte('ano', anoFim)
       .range(from, to)
     if (error) { console.error('prestacaoContas: realizado error', error); break }
     if (data && data.length > 0) {
@@ -132,6 +128,12 @@ export async function getPrestacaoContas(ano: number): Promise<PrestacaoContasDa
       else { from += 1000; to += 1000 }
     } else hasMore = false
   }
+
+  // Filter to exact period window
+  realData = realData.filter(r => {
+    const k = Number(r.ano) * 100 + Number(r.mes)
+    return k >= startKey && k <= endKey
+  })
 
   // 3. Saldo anterior: soma dos saldo_inicial dos centros de custo do condo
   const { data: ccData } = await supabase
@@ -144,49 +146,77 @@ export async function getPrestacaoContas(ano: number): Promise<PrestacaoContasDa
     0,
   )
 
-  // 4. Aggregate monthly totals and per-category totals
-  const monthMap = new Map<number, { receitas: number; despesas: number }>()
-  for (let m = 1; m <= 12; m++) monthMap.set(m, { receitas: 0, despesas: 0 })
+  // 4. Build list of all months in the period
+  const periodoMeses: { ano: number; mes: number; label: string }[] = []
+  let curAno = anoInicio
+  let curMes = mesInicio
+  let guard = 0
+  while ((curAno * 100 + curMes) <= endKey && guard < 120) {
+    periodoMeses.push({
+      ano: curAno,
+      mes: curMes,
+      label: `${NOMES_MESES[curMes - 1]}/${String(curAno).slice(-2)}`,
+    })
+    curMes++
+    if (curMes > 12) { curMes = 1; curAno++ }
+    guard++
+  }
+
+  // 5. Aggregate per month and per top-level category
+  // Key: "ano-mes" → { receitas, despesas }
+  type Bucket = { receitas: number; despesas: number }
+  const monthMap = new Map<string, Bucket>()
+  for (const p of periodoMeses) {
+    monthMap.set(`${p.ano}-${p.mes}`, { receitas: 0, despesas: 0 })
+  }
 
   const topLevelRecMap = new Map<string, number>()
   const topLevelDesMap = new Map<string, number>()
+  // Per-category monthly breakdown: nome → "ano-mes" → valor
+  const recCatMonthMap = new Map<string, Map<string, number>>()
+  const desCatMonthMap = new Map<string, Map<string, number>>()
 
   for (const r of realData) {
     // Only count leaf-level categories to avoid double-counting parent + children
     if (!leafIds.has(r.categoria_id)) continue
 
-    const mes = Number(r.mes)
+    const key = `${r.ano}-${Number(r.mes)}`
+    const bucket = monthMap.get(key)
+    if (!bucket) continue
+
     const valor = Number(r.valor_realizado || 0)
     const tipo = typeMap.get(r.categoria_id)
-    const topId = getTopLevelId(r.categoria_id, parentMap)
-    const topNome = catNameMap.get(topId) || 'Outros'
-
-    const bucket = monthMap.get(mes)
-    if (!bucket) continue
+    const nome = catNameMap.get(r.categoria_id) || 'Outros'
 
     if (tipo === 'RECEITA') {
       bucket.receitas += valor
-      topLevelRecMap.set(topNome, (topLevelRecMap.get(topNome) ?? 0) + valor)
+      topLevelRecMap.set(nome, (topLevelRecMap.get(nome) ?? 0) + valor)
+      if (!recCatMonthMap.has(nome)) recCatMonthMap.set(nome, new Map())
+      const m = recCatMonthMap.get(nome)!
+      m.set(key, (m.get(key) ?? 0) + valor)
     } else if (tipo === 'DESPESA') {
       bucket.despesas += valor
-      topLevelDesMap.set(topNome, (topLevelDesMap.get(topNome) ?? 0) + valor)
+      topLevelDesMap.set(nome, (topLevelDesMap.get(nome) ?? 0) + valor)
+      if (!desCatMonthMap.has(nome)) desCatMonthMap.set(nome, new Map())
+      const m = desCatMonthMap.get(nome)!
+      m.set(key, (m.get(key) ?? 0) + valor)
     }
   }
 
-  // 5. Build monthly data array (all 12 months)
+  // 6. Build monthly data array for the period
   const dadosMensais: DadoMensal[] = []
   let totalReceitas = 0
   let totalDespesas = 0
   let mesesComDados = 0
 
-  for (let mes = 1; mes <= 12; mes++) {
-    const { receitas, despesas } = monthMap.get(mes)!
+  for (const p of periodoMeses) {
+    const { receitas, despesas } = monthMap.get(`${p.ano}-${p.mes}`)!
     totalReceitas += receitas
     totalDespesas += despesas
     if (receitas > 0 || despesas > 0) mesesComDados++
     dadosMensais.push({
-      mes,
-      label: NOMES_MESES[mes - 1],
+      mes: p.mes,
+      label: p.label,
       receitas,
       despesas,
       resultado: receitas - despesas,
@@ -196,14 +226,30 @@ export async function getPrestacaoContas(ano: number): Promise<PrestacaoContasDa
   const resultado = totalReceitas - totalDespesas
   const divisor = mesesComDados || 1
 
-  // 6. Sort categories descending by value
+  // 7. Sort categories descending by value, with monthly breakdown
   const receitasPorCategoria: CategoriaValor[] = Array.from(topLevelRecMap.entries())
-    .map(([nome, valor]) => ({ nome, valor }))
+    .map(([nome, valor]) => ({
+      nome,
+      valor,
+      dadosMensais: periodoMeses.map(p => {
+        const k = `${p.ano}-${p.mes}`
+        const v = recCatMonthMap.get(nome)?.get(k) ?? 0
+        return { mes: p.mes, label: p.label, receitas: v, despesas: 0, resultado: v }
+      }),
+    }))
     .filter(x => x.valor > 0)
     .sort((a, b) => b.valor - a.valor)
 
   const despesasPorCategoria: CategoriaValor[] = Array.from(topLevelDesMap.entries())
-    .map(([nome, valor]) => ({ nome, valor }))
+    .map(([nome, valor]) => ({
+      nome,
+      valor,
+      dadosMensais: periodoMeses.map(p => {
+        const k = `${p.ano}-${p.mes}`
+        const v = desCatMonthMap.get(nome)?.get(k) ?? 0
+        return { mes: p.mes, label: p.label, receitas: 0, despesas: v, resultado: -v }
+      }),
+    }))
     .filter(x => x.valor > 0)
     .sort((a, b) => b.valor - a.valor)
 
