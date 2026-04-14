@@ -153,6 +153,18 @@ export async function createUser(data: { email: string; nome: string; senha: str
   return { success: true }
 }
 
+export async function resetUserPassword(userId: string, novaSenha: string) {
+  await validateMasterAccess()
+  const adminClient = createAdminClient()
+
+  const { error } = await adminClient.auth.admin.updateUserById(userId, {
+    password: novaSenha,
+  })
+
+  if (error) return { error: error.message }
+  return { success: true }
+}
+
 export async function deactivateUser(userId: string) {
   await validateMasterAccess()
   const adminClient = createAdminClient()

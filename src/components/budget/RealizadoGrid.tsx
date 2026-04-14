@@ -76,6 +76,7 @@ export function RealizadoGrid({
   const [isImporting, setIsImporting] = useState(false)
   const [isDirty, setIsDirty] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [createdCats, setCreatedCats] = useState<{ codigo: string, nome: string }[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -170,6 +171,15 @@ export function RealizadoGrid({
         return next
       })
       setIsDirty(true)
+      
+      if (res.categoriesCreated && res.categoriesCreated.length > 0) {
+        setCreatedCats(res.categoriesCreated)
+        // Refresh to get the new categories in the tree (since they are passed via props)
+        router.refresh()
+      } else {
+        setCreatedCats([])
+      }
+      
       alert(res.message)
     }
     setIsImporting(false)
@@ -249,6 +259,32 @@ export function RealizadoGrid({
             )}
           </div>
         </div>
+
+        {/* CREATED CATEGORIES ALERT */}
+        {createdCats.length > 0 && (
+          <div className="mb-4 p-4 bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/20 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 text-sky-700 dark:text-sky-400 font-bold text-sm">
+                <CheckCircle2 className="w-4 h-4" />
+                {createdCats.length} novas categorias criadas automaticamente
+              </div>
+              <button 
+                onClick={() => setCreatedCats([])}
+                className="text-xs text-sky-600 hover:text-sky-800 dark:text-sky-500 dark:hover:text-sky-300 font-medium"
+              >
+                Fechar
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+              {createdCats.map(cat => (
+                <div key={cat.codigo} className="flex gap-2 items-center text-xs bg-white/50 dark:bg-black/20 p-2 rounded-lg border border-sky-100 dark:border-sky-500/10">
+                  <span className="font-mono font-bold text-sky-600 dark:text-sky-400">{cat.codigo}</span>
+                  <span className="truncate text-neutral-600 dark:text-neutral-300">{cat.nome}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Collapsible filter row */}
         <div className="bg-white dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl mb-4 overflow-hidden">

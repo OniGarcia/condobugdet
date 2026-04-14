@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { User, Building2, X, Search, Plus, Trash2, Crown, UserPlus, Ban } from 'lucide-react'
+import { User, Building2, X, Search, Plus, Trash2, Crown, UserPlus, Ban, KeyRound } from 'lucide-react'
 import {
   assignCondoToUser,
   removeMembershipFromUser,
@@ -9,6 +9,7 @@ import {
   toggleUserMaster,
   createUser,
   deactivateUser,
+  resetUserPassword,
 } from '@/actions/users_mgmt'
 import type { GlobalUser } from '@/actions/users_mgmt'
 import type { Condo, MemberRole } from '@/types/tenant'
@@ -266,6 +267,9 @@ function UserDetailModal({
   const [cargo, setCargo] = useState(user.cargo ?? '')
   const [savingProfile, setSavingProfile] = useState(false)
   const [profileMsg, setProfileMsg] = useState<string | null>(null)
+  const [novaSenha, setNovaSenha] = useState('')
+  const [savingPassword, setSavingPassword] = useState(false)
+  const [passwordMsg, setPasswordMsg] = useState<{ text: string; ok: boolean } | null>(null)
 
   async function handleRemoveMembership(condoId: string) {
     if (!confirm('Remover acesso a este condomínio?')) return
@@ -291,6 +295,20 @@ function UserDetailModal({
     } else {
       onClose()
     }
+  }
+
+  async function handleResetPassword(e: React.FormEvent) {
+    e.preventDefault()
+    setSavingPassword(true)
+    const result = await resetUserPassword(user.id, novaSenha)
+    setSavingPassword(false)
+    if (result?.error) {
+      setPasswordMsg({ text: result.error, ok: false })
+    } else {
+      setPasswordMsg({ text: 'Senha alterada!', ok: true })
+      setNovaSenha('')
+    }
+    setTimeout(() => setPasswordMsg(null), 3000)
   }
 
   async function handleSaveProfile(e: React.FormEvent) {
@@ -354,6 +372,38 @@ function UserDetailModal({
                 {savingProfile ? 'Salvando...' : 'Salvar Perfil'}
               </button>
               {profileMsg && <p className="text-xs text-sky-400">{profileMsg}</p>}
+            </div>
+          </form>
+
+          {/* Senha */}
+          <form onSubmit={handleResetPassword} className="space-y-3 mb-6 pb-6 border-b border-neutral-200 dark:border-white/10">
+            <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Redefinir Senha</p>
+            <div>
+              <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">Nova senha</label>
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={novaSenha}
+                onChange={(e) => setNovaSenha(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                className="w-full px-3 py-2 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-sm text-neutral-800 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="submit"
+                disabled={savingPassword || novaSenha.length < 6}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500 text-neutral-900 dark:text-white text-xs font-medium hover:bg-sky-600 transition-colors disabled:opacity-50"
+              >
+                <KeyRound className="w-3.5 h-3.5" />
+                {savingPassword ? 'Salvando...' : 'Salvar Nova Senha'}
+              </button>
+              {passwordMsg && (
+                <p className={`text-xs ${passwordMsg.ok ? 'text-sky-400' : 'text-red-400'}`}>
+                  {passwordMsg.text}
+                </p>
+              )}
             </div>
           </form>
 
