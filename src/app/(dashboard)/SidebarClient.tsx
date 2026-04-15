@@ -22,15 +22,17 @@ interface SidebarClientProps {
   logoutAction: () => Promise<void>
   isCollapsed: boolean
   onToggle: () => void
+  onNavigate?: () => void
 }
 
-export default function SidebarClient({ 
-  currentCondo, 
-  currentUser, 
+export default function SidebarClient({
+  currentCondo,
+  currentUser,
   isMaster,
   logoutAction,
   isCollapsed,
-  onToggle
+  onToggle,
+  onNavigate,
 }: SidebarClientProps) {
   const pathname = usePathname()
   
@@ -48,8 +50,9 @@ export default function SidebarClient({
     const isActive = pathname === href
     return (
       <div className="relative group/link">
-        <Link 
+        <Link
           href={href}
+          onClick={() => { if (!isActive) onNavigate?.() }}
           className={cn(
             "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all outline-none",
             isActive 
