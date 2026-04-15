@@ -1026,6 +1026,9 @@ export function GestaoCCView({
               </div>
               <div>
                 <h2 className="text-xl font-bold text-neutral-900 dark:text-white leading-tight">{gestaoDados.centroCustoNome}</h2>
+                {gestaoDados.centroCustoDescricao && (
+                  <p className="text-sm text-sky-600 dark:text-sky-400 font-medium leading-snug mt-0.5">{gestaoDados.centroCustoDescricao}</p>
+                )}
                 <p className="text-sm text-neutral-600 dark:text-neutral-400 font-medium">{periodoLabel}</p>
               </div>
             </div>

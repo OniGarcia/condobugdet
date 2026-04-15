@@ -56,7 +56,7 @@ export async function getGestaoCentroCusto(
   // 1. Centro de custo
   const { data: cc, error: ccErr } = await supabase
     .from('centros_custo')
-    .select('id, nome, saldo_inicial')
+    .select('id, nome, descricao, saldo_inicial')
     .eq('id', centroCustoId)
     .eq('condo_id', condoId)
     .single()
@@ -76,7 +76,7 @@ export async function getGestaoCentroCusto(
       valorAportes: 0, aportes: [], categorias: [],
     }))
     return {
-      centroCustoId: cc.id, centroCustoNome: cc.nome, saldoInicial: saldoInicialCC,
+      centroCustoId: cc.id, centroCustoNome: cc.nome, centroCustoDescricao: cc.descricao ?? null, saldoInicial: saldoInicialCC,
       totalEntradas: 0, totalEntradasPrevisto: 0, totalEntradasPrevistoAnual: 0,
       totalSaidas: 0, totalAportes: 0, totalSaidasPrevisto: 0, totalSaidasPrevistoAnual: 0,
       totalEntradasProjetadoAnual: 0, totalSaidasProjetadoAnual: 0, resultadoProjetadoAnual: 0,
@@ -461,6 +461,7 @@ export async function getGestaoCentroCusto(
   return {
     centroCustoId: cc.id,
     centroCustoNome: cc.nome,
+    centroCustoDescricao: cc.descricao ?? null,
     saldoInicial: saldoInicialCC,
     totalEntradas:              totalRealEntradas,
     totalEntradasPrevisto:      totalOrcTargetEntradas,

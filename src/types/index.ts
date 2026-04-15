@@ -156,6 +156,7 @@ export interface GestaoCCMatrizCategoria {
 export interface GestaoCCResult {
   centroCustoId: string
   centroCustoNome: string
+  centroCustoDescricao: string | null
   saldoInicial: number
   totalEntradas: number
   totalEntradasPrevisto: number
