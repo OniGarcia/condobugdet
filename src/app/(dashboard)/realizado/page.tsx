@@ -11,7 +11,7 @@ export default async function RealizadoPage({ searchParams }: { searchParams: Pr
   const selectedYear = params.ano ? parseInt(params.ano) : anoAtual
   const availableYears = Array.from({ length: 5 }, (_, i) => anoAtual - 2 + i)
 
-  const [categorias, realizados, { role }] = await Promise.all([
+  const [categorias, realizados, { role, condoId }] = await Promise.all([
     getCategoriasTree(),
     getDadosRealizadosAnual(selectedYear),
     validateAccess('visualizador'),
@@ -26,6 +26,7 @@ export default async function RealizadoPage({ searchParams }: { searchParams: Pr
       ano={selectedYear}
       canEdit={canEdit}
       availableYears={availableYears}
+      condoId={condoId}
     />
   )
 }

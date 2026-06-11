@@ -21,12 +21,14 @@ export function RealizadoGrid({
   ano,
   canEdit = true,
   availableYears,
+  condoId,
 }: {
   categorias: Categoria[]
   realizados: any[]
   ano: number
   canEdit?: boolean
   availableYears: number[]
+  condoId: string
 }) {
   const router = useRouter()
   const [isFilterExpanded, setIsFilterExpanded] = useState(true)
@@ -159,28 +161,48 @@ export function RealizadoGrid({
     setIsImporting(true)
     const formData = new FormData()
     formData.append('file', file)
-    const res = await parseBalanceteExcel(formData, ano)
+    const res = await parseBalanceteExcel(formData, ano, condoId)
     if (res.error) {
       alert(res.error)
     } else if (res.success && res.data) {
       setLocalState(prev => {
         const next = { ...prev }
+
+        const importedMonthIndices: number[] = res.monthsFound ?? []
+        if (importedMonthIndices.length > 0) {
+          Object.keys(next).forEach(key => {
+            const parts = key.split('_')
+            const mes = parseInt(parts[parts.length - 1])
+            const keyAno = parseInt(parts[parts.length - 2])
+            if (keyAno === ano && importedMonthIndices.includes(mes - 1)) {
+              next[key] = 0
+            }
+          })
+        }
+
         res.data.forEach((imported: any) => {
           next[`${imported.categoria_id}_${ano}_${imported.mes}`] = imported.valor_realizado
         })
+
         return next
       })
-      setIsDirty(true)
+
+      // AUTO-SAVE to DB immediately after import
+      const saveRes = await bulkUpsertRealizados(ano, res.data, condoId)
       
-      if (res.categoriesCreated && res.categoriesCreated.length > 0) {
-        setCreatedCats(res.categoriesCreated)
-        // Refresh to get the new categories in the tree (since they are passed via props)
-        router.refresh()
+      if (saveRes.success) {
+        setIsDirty(false)
+        if (res.categoriesCreated && res.categoriesCreated.length > 0) {
+          setCreatedCats(res.categoriesCreated)
+          router.refresh()
+        } else {
+          setCreatedCats([])
+        }
+        alert(`${res.message}\n\nDados importados e salvos com sucesso!`)
       } else {
-        setCreatedCats([])
+        setIsDirty(true) // Keep dirty if save failed
+        alert(`${res.message}\n\nAVISO: Os dados foram lidos mas houve um erro ao salvar no banco: ${saveRes.error}`)
       }
-      
-      alert(res.message)
     }
     setIsImporting(false)
     if (fileInputRef.current) fileInputRef.current.value = ''
@@ -197,7 +219,7 @@ export function RealizadoGrid({
       }
     }
     if (entries.length === 0) { setIsSaving(false); setIsDirty(false); return }
-    const res = await bulkUpsertRealizados(ano, entries)
+    const res = await bulkUpsertRealizados(ano, entries, condoId)
     if (res.success) {
       setIsDirty(false)
       setShowSuccess(true)

@@ -15,8 +15,9 @@ function buildTree(categorias: Categoria[], parentId: string | null = null): Cat
     .sort((a, b) => a.codigo_reduzido.localeCompare(b.codigo_reduzido, undefined, { numeric: true }))
 }
 
-export async function getCategoriasFlat(): Promise<Categoria[]> {
-  const { condoId } = await validateAccess()
+export async function getCategoriasFlat(condoIdOverride?: string): Promise<Categoria[]> {
+  const { condoId: validatedCondoId } = await validateAccess()
+  const condoId = condoIdOverride || validatedCondoId
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('categorias')
@@ -81,12 +82,20 @@ export async function createCategoria(data: {
   nome_conta: string
   tipo: CategoriaTipo
   parent_id?: string | null
+  condo_id?: string
 }) {
-  const { condoId } = await validateAccess('gestor')
+  const { condoId: validatedCondoId } = await validateAccess('gestor')
+  const condoId = data.condo_id || validatedCondoId
   const supabase = await createClient()
   const { data: newCat, error } = await supabase
     .from('categorias')
-    .insert([{ ...data, condo_id: condoId }])
+    .insert([{ 
+      codigo_reduzido: data.codigo_reduzido,
+      nome_conta: data.nome_conta,
+      tipo: data.tipo,
+      parent_id: data.parent_id,
+      condo_id: condoId 
+    }])
     .select()
     .single()
   if (error) return { error: error.message }

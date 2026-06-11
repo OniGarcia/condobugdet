@@ -162,8 +162,13 @@ export async function getDadosRealizadosSimulacao(
 }
 
 
-export async function bulkUpsertRealizados(ano: number, entries: { categoria_id: string, mes: number, valor_realizado: number }[]) {
-  const { condoId } = await validateAccess('gestor')
+export async function bulkUpsertRealizados(
+  ano: number, 
+  entries: { categoria_id: string, mes: number, valor_realizado: number }[],
+  condoIdOverride?: string
+) {
+  const { condoId: validatedCondoId } = await validateAccess('gestor')
+  const condoId = condoIdOverride || validatedCondoId
   const supabase = await createClient()
 
   const payload = entries.map(e => ({
